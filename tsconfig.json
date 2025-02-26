@@ -3,32 +3,8 @@
     "target": "ES2015",
     "baseUrl": "./src",
     "paths": {
-      "@apis/*": [
-        "apis/*"
-      ],
-      "@assets/*": [
-        "assets/*"
-      ],
-      "@components/*": [
-        "components/*"
-      ],
-      "@constants/*": [
-        "constants/*"
-      ],
-      "@models/*": [
-        "models/*"
-      ],
-      "@pages/*": [
-        "pages/*"
-      ],
-      "@redux/*": [
-        "redux/*"
-      ],
-      "@routers/*": [
-        "routers/*"
-      ],
-      "@utils/*": [
-        "utils/*"
+      "@/*": [
+        "./src/*"
       ]
     }
   },
