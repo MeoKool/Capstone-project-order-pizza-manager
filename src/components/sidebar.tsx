@@ -13,11 +13,7 @@ export default function Sidebar({ children }: SidebarProps) {
         <aside className="h-screen flex flex-col">
             <nav className=" flex flex-col bg-white border-r shadow-sm h-full">
                 <div className={`h-16  flex items-center justify-center border-b  ${expanded ? `justify-between p-4` : `justify-center`}`}>
-                    <img
-                        src="https://img.logoipsum.com/243.svg"
-                        className={`overflow-hidden transition-all ${expanded ? "w-32" : "w-0"}`}
-                        alt=""
-                    />
+                    <div className={`overflow-hidden transition-all ${expanded ? "w-44" : "w-0"}`}><h1 className="text-lg font-semibold">Pizza Management</h1></div>
                     <button onClick={toggleSidebar} className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200 ? ${expanded ? `ml-3 hover:bg-gray-200` : `bg-gray-300 p-3`} `}>
                         {expanded ? <ChevronLeft /> : <Menu />}
                     </button>
