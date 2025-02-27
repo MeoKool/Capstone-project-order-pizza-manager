@@ -1,0 +1,56 @@
+/* custom-scrollbar.css */
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E0 #EDF2F7;
+    overflow-x: hidden;
+    /* Prevent horizontal scrolling */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 0;
+    /* Prevent horizontal scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #EDF2F7;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #CBD5E0;
+    border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #A0AEC0;
+}
+
+/* Hide scrollbar when not needed */
+.custom-scrollbar {
+    overflow-y: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+    /* Chrome/Safari/Webkit */
+}
+
+/* Show scrollbar only when content overflows */
+.custom-scrollbar:hover,
+.custom-scrollbar:focus,
+.custom-scrollbar:focus-within {
+    scrollbar-width: thin;
+    -ms-overflow-style: auto;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar,
+.custom-scrollbar:focus::-webkit-scrollbar,
+.custom-scrollbar:focus-within::-webkit-scrollbar {
+    width: 6px;
+}

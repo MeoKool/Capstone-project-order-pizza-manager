@@ -1,7 +1,7 @@
 import { MoreVertical, ChevronLeft, Menu } from "lucide-react"
 import type { ReactNode } from "react"
 import { useSidebar } from "./context/SidebarContext"
-
+import '@/css/custom-scrollbar.css'
 interface SidebarProps {
     children: ReactNode
 }
@@ -11,20 +11,20 @@ export default function Sidebar({ children }: SidebarProps) {
 
     return (
         <aside className="h-screen flex flex-col">
-            <nav className=" flex flex-col bg-white border-r shadow-sm min-h-0">
+            <nav className=" flex flex-col bg-white border-r shadow-sm h-full">
                 <div className={`h-16  flex items-center justify-center border-b  ${expanded ? `justify-between p-4` : `justify-center`}`}>
                     <img
                         src="https://img.logoipsum.com/243.svg"
                         className={`overflow-hidden transition-all ${expanded ? "w-32" : "w-0"}`}
                         alt=""
                     />
-                    <button onClick={toggleSidebar} className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200 ? ${expanded ? `ml-3` : `bg-gray-300 p-3`} `}>
+                    <button onClick={toggleSidebar} className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200 ? ${expanded ? `ml-3 hover:bg-gray-200` : `bg-gray-300 p-3`} `}>
                         {expanded ? <ChevronLeft /> : <Menu />}
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <ul>
+                <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                    <ul >
                         {children}
                     </ul>
                 </div>
