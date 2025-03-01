@@ -1,8 +1,8 @@
-export default interface TableDataModels {
+export default interface TableResponse {
     id: string
     code: string
     capacity: number
-    status: string
+    status: TableStatus
     zoneId: string
     currentOrderId: string | null
     currentOrder: any | null
@@ -10,6 +10,8 @@ export default interface TableDataModels {
 }
 
 export interface TableResult {
-    items: TableDataModels[]
+    items: TableResponse[]
     totalCount: number
 }
+
+export type TableStatus = "Opening" | "Closing" | "Booked" | "Locked"

@@ -1,7 +1,8 @@
 import ApiResponse, { get } from "@/apis/apiUtils"
+import TableResponse from "@/types/tables"
 import TableDataModels, { TableResult } from "@/types/tables"
 
-class TableService {
+export default class TableService {
     private static instance: TableService
     private constructor() { }
     public static getInstance(): TableService {
@@ -11,7 +12,7 @@ class TableService {
         return TableService.instance
     }
 
-
+    //done 
     public async getAllTables(): Promise<ApiResponse<TableResult>> {
         try {
             return await get<TableResult>(`/tables`)
@@ -20,7 +21,9 @@ class TableService {
             throw error
         }
     }
-    public async getTableById(id: string): Promise<ApiResponse<TableDataModels>> {
+
+    //done 
+    public async getTableById(id: string): Promise<ApiResponse<TableResponse>> {
         try {
             return await get<TableDataModels>(`/tables/${id}`)
         } catch (error) {
@@ -28,8 +31,14 @@ class TableService {
             throw error
         }
     }
+    //post table 
+    //
 
-    public async checkStatusTable(id: string): Promise<ApiResponse<TableDataModels>> {
+
+
+
+
+    public async checkStatusTable(id: string): Promise<ApiResponse<TableResponse>> {
         try {
             return await get<TableDataModels>(`/tables/${id}`)
         } catch (error) {
@@ -39,5 +48,3 @@ class TableService {
     }
 
 }
-
-export default TableService

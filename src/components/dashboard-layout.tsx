@@ -43,8 +43,8 @@ const DashboardLayout = () => {
     };
 
     return (
-        <SidebarProvider>
-            <div className="flex h-screen">
+        <SidebarProvider >
+            <div className="flex h-screen ">
                 <Sidebar>
                     <Link to="/">
                         <SidebarItem icon={<LayoutDashboard size={20} />} text="Dashboard" active={isActive('/')} />
@@ -84,9 +84,9 @@ const DashboardLayout = () => {
                         <SidebarItem icon={<MoreHorizontal size={20} />} text="More" active={isActive('/more')} />
                     </Link>
                 </Sidebar>
-                <div className="flex flex-col flex-1">
+                <div className="flex flex-col flex-1 relative overflow-hidden">
                     <Header title={getHeaderTitle()} />
-                    <main className="flex-1 p-6 overflow-auto">
+                    <main className="flex-1 p-6 overflow-y-auto max-h-screen ">
                         <Outlet />
                     </main>
                 </div>
