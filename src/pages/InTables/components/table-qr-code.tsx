@@ -29,7 +29,7 @@ if (!apiPublic) {
 export function TableQRCode({ table, open, onOpenChange }: TableQRCodeProps) {
     const [isPrinting, setIsPrinting] = useState(false)
 
-    const qrCodeData = `${apiPublic}/${table.id}`
+    const qrCodeData = `${apiPublic}/${table.id}/?tableCode=${table.code}`
 
     const handlePrint = () => {
         setIsPrinting(true)
