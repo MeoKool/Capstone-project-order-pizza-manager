@@ -39,7 +39,7 @@ export const post = async <T>(url: string, data: object): Promise<ApiResponse<T>
     }
 }
 
-export const put = async <T>(url: string, data: object)
+export const put = async <T>(url: string, data?: object)
     : Promise<ApiResponse<T>> => {
     try {
         const response: AxiosResponse<ApiResponse<T>> = await api.put(url, data)

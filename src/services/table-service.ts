@@ -1,4 +1,4 @@
-import ApiResponse, { get } from "@/apis/apiUtils"
+import ApiResponse, { get, put } from "@/apis/apiUtils"
 import TableResponse from "@/types/tables"
 import TableDataModels, { TableResult } from "@/types/tables"
 
@@ -31,9 +31,14 @@ export default class TableService {
             throw error
         }
     }
-    //post table 
-    //
-
+    public async putOpenTable(id: string): Promise<ApiResponse<TableResult>> {
+        try {
+            return await put(`/tables/open-table/${id}`)
+        } catch (error) {
+            console.error(`Error opening table with id ${id}:`, error)
+            throw error
+        }
+    }
 
 
 

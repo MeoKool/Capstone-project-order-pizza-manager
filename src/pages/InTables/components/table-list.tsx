@@ -10,22 +10,44 @@ import useZone from "@/hooks/useZone"
 import { getStatusBadge, getStatusIcon } from "@/utils/table-utils"
 import { getZoneName } from "@/utils/zone-utils"
 import { TableTimer } from "./table-timer"
+import TableService from "@/services/table-service"
+import OrderService from "@/services/order-service"
 
 
 interface TableListProps {
-    tables: TableResponse[]
+    tables: TableResponse[],
+    onTableUpdate: () => void
 }
 
-export function TableList({ tables }: TableListProps) {
+export function TableList({ tables, onTableUpdate }: TableListProps) {
     const [selectedTable, setSelectedTable] = useState<TableResponse | null>()
     const [showDetailsDialog, setShowDetailsDialog] = useState(false)
     const [runningTimers, setRunningTimers] = useState<{ [key: string]: boolean }>({})
     const { zones_, } = useZone()
 
+
     const handleTimeUp = (tableId: string) => {
         setRunningTimers((prev) => ({ ...prev, [tableId]: false }))
-        // Bạn có thể thêm logic thông báo cho nhân viên ở đây
         console.log(`Hết thời gian cho bàn ${tableId}`)
+    }
+
+    const handleOpeningTables = async (tableId: string) => {
+        console.log("opening table:", tableId)
+        const orderService = OrderService.getInstance()
+        const tableService = TableService.getInstance()
+        try {
+            const response = await tableService.putOpenTable(tableId)
+            const responseOrder = await orderService.createOrder(JSON.stringify({ tableId }))
+            if (response.success && responseOrder) {
+                console.log("Table opened successfully:", response.result)
+                onTableUpdate()
+                // Thực hiện các thao tác tiếp theo nếu cần, ví dụ: cập nhật trạng thái UI
+            } else {
+                console.error("Failed to open table:", response.message)
+            }
+        } catch (error) {
+            console.error("Error handling putOpenTable:", error)
+        }
     }
     // Function to get action buttons based on table status
     const getActionButtons = (table: TableResponse) => {
@@ -35,6 +57,7 @@ export function TableList({ tables }: TableListProps) {
                     <>
                         <Button>Bảo trì</Button>
                         <Button variant="outline">Booking</Button>
+                        <div onClick={() => handleOpeningTables(table.id)}>Mở bàn </div>
                     </>
                 )
             case "Opening":
@@ -57,6 +80,7 @@ export function TableList({ tables }: TableListProps) {
                 return null
         }
     }
+
 
     const handleOpenDetails = (table: TableResponse) => {
         setSelectedTable(table);

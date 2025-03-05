@@ -12,8 +12,6 @@ export interface ProductModel {
     category: CategoryModel
     productOptions: ProductOption[]
 }
-
-
 export interface ProductsResult {
     items: ProductModel[]
     totalCount: number
