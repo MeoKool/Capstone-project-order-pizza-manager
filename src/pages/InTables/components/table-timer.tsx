@@ -7,7 +7,7 @@ interface TableTimerProps {
     onTimeUp: () => void
 }
 
-const INITIAL_TIME = 15 * 60 // 15 phút tính bằng giây
+const INITIAL_TIME = 15 * 60
 
 export function TableTimer({ isRunning, onTimeUp }: TableTimerProps) {
     const [timeLeft, setTimeLeft] = useState(INITIAL_TIME)

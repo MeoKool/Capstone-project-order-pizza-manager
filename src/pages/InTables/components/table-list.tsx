@@ -88,8 +88,11 @@ export function TableList({ tables }: TableListProps) {
         <>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {tables.map((table) => (
+
+
                     <Card key={table.id} className="overflow-hidden">
                         <CardContent className="p-0">
+
                             <div className="flex items-center justify-between border-b p-4">
                                 <div className="flex items-center space-x-2">
                                     <h3 className="font-medium">{table.code}</h3>
@@ -158,6 +161,7 @@ export function TableList({ tables }: TableListProps) {
                         </CardContent>
                     </Card>
                 ))}
+
             </div>
 
             {selectedTable && (
