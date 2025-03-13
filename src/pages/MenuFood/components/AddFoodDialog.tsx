@@ -95,9 +95,12 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
               <Input
                 id='price'
                 name='price'
-                type='number'
-                value={formData.price}
-                onChange={handleChange}
+                type='text'
+                value={formData.price.toLocaleString('vi-VN')}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '')
+                  setFormData((prev) => ({ ...prev, price: Number(value) }))
+                }}
                 placeholder='Nhập giá'
                 required
               />
