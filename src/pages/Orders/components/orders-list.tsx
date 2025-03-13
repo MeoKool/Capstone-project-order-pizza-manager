@@ -1,15 +1,5 @@
 import { useState } from 'react'
-import {
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  ArrowUpDown,
-  ChevronDown
-} from 'lucide-react'
+import { MoreHorizontal, Eye, Edit, Trash2, Clock, CheckCircle2, AlertCircle, ArrowUpDown } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -160,12 +150,6 @@ export function OrdersList() {
               className='w-[200px]'
             />
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant='outline' className='gap-2'>
-                  Lọc
-                  <ChevronDown className='h-4 w-4' />
-                </Button>
-              </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-[200px]'>
                 <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>
                 <DropdownMenuSeparator />
