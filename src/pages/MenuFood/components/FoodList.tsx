@@ -90,7 +90,7 @@ const FoodList: React.FC = () => {
             <div className='w-full '>
               <img
                 src={
-                  food.image ||
+                  `data:image/jpeg;base64,` + food.image ||
                   'https://delivery.pizza4ps.com/_next/image?url=https%3A%2F%2Fstorage.googleapis.com%2Fdelivery-system-v2%2F03-04-2022-Image%2F20200001_2.jpg&w=1920&q=75'
                 }
                 alt={food.name}
