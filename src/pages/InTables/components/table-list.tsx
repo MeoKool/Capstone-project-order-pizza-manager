@@ -98,7 +98,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
               className='flex-1'
               disabled={isLoading}
             >
-              {isLoading ? 'Đang xử lý...' : 'Khóa bàn'}
+              {isLoading ? 'Đang xử lý...' : 'Đóng bàn'}
             </Button>
             <Button variant='outline' size='sm' className='flex-1' disabled={isLoading}>
               Bảo trì
@@ -180,7 +180,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                   </DropdownMenu>
                 </div>
                 <div className='p-4'>
-                  <div className='grid gap-3'>
+                  <div className=' h-[100px]'>
                     <div className='flex items-center text-sm'>
                       <Users className='mr-2 h-4 w-4 text-muted-foreground' />
                       <span>
@@ -190,7 +190,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                         </Badge>
                       </span>
                     </div>
-                    <div className='flex items-center text-sm'>
+                    <div className='flex mt-3 items-center text-sm'>
                       <span className='mr-2'>📍</span>
                       <span>{getZoneName(table.zoneId, zones_)}</span>
                     </div>
@@ -205,7 +205,6 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                     {table.status === 'Booked' && (
                       <div className='mt-1 flex items-center text-sm'>
                         {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-blue-600'>Đã đặt trước</span>
                         <div className='ml-auto'>
                           <TableTimer
                             isRunning={runningTimers[table.id] || false}
@@ -216,17 +215,11 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                     )}
 
                     {table.status === 'Closing' && (
-                      <div className='mt-1 flex items-center text-sm'>
-                        {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-red-600'>Đang bảo trì</span>
-                      </div>
+                      <div className='mt-1 flex items-center text-sm'>{getStatusIcon(table.status)}</div>
                     )}
 
                     {table.status === 'Locked' && (
-                      <div className='mt-1 flex items-center text-sm'>
-                        {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-amber-600'>Đã khóa</span>
-                      </div>
+                      <div className='mt-1 flex items-center text-sm'>{getStatusIcon(table.status)}</div>
                     )}
                   </div>
 
