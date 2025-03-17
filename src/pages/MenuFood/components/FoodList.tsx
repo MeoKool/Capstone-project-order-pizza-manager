@@ -12,19 +12,21 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-// import { EditFoodDialog } from './edit-food-dialog'
 // import { DeleteFoodDialog } from './delete-food-dialog'
 import useProducts from '@/hooks/useProducts'
 import useCategories from '@/hooks/useCategories'
+import type { ProductModel } from '@/types/product'
+import { EditFoodDialog } from './edit-food-dialog'
 
 type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc'
 
 const FoodList: React.FC = () => {
-  //   const [editingFood, setEditingFood] = useState<ProductModel | null>(null)
-  //   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingFood, setEditingFood] = useState<ProductModel | null>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   //   const [isDeletingFood, setIsDeletingFood] = useState<ProductModel | null>(null)
   //   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { products, loading } = useProducts()
+
   const { foodCategory } = useCategories()
 
   const [selectedCategory, setSelectedCategory] = useState<string>('')
@@ -93,10 +95,10 @@ const FoodList: React.FC = () => {
     }
   }
 
-  //   const handleEdit = (food: ProductModel) => {
-  //     setEditingFood(food)
-  //     setIsEditDialogOpen(true)
-  //   }
+  const handleEdit = (food: ProductModel) => {
+    setEditingFood(food)
+    setIsEditDialogOpen(true)
+  }
 
   //   const handleDelete = (food: ProductModel) => {
   //     setIsDeletingFood(food)
@@ -111,11 +113,13 @@ const FoodList: React.FC = () => {
   //     }
   //   }
 
-  //   const updateFood = (updatedFood: ProductModel) => {
-  //     setFoods(foods.map((food) => (food.id === updatedFood.id ? updatedFood : food)))
-  //     setIsEditDialogOpen(false)
-  //     setEditingFood(null)
-  //   }
+  const updateFood = (updatedFood: ProductModel) => {
+    setDisplayedProducts((prevProducts) =>
+      prevProducts.map((food) => (food.id === updatedFood.id ? updatedFood : food))
+    )
+    setIsEditDialogOpen(false)
+    setEditingFood(null)
+  }
 
   return (
     <div className='space-y-6 mx-auto p-4 max-w-full'>
@@ -202,7 +206,7 @@ const FoodList: React.FC = () => {
 
         {(selectedCategory || sortOption !== 'newest') && (
           <Button
-            variant='ghost'
+            variant='default'
             size='sm'
             className='h-8 px-2 text-xs'
             onClick={() => {
@@ -254,7 +258,7 @@ const FoodList: React.FC = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align='end'>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(food)}>
                           <Edit className='h-4 w-4 mr-2' />
                           Chỉnh sửa
                         </DropdownMenuItem>
@@ -290,7 +294,7 @@ const FoodList: React.FC = () => {
         </div>
       )}
 
-      {/* {editingFood && (
+      {editingFood && (
         <EditFoodDialog
           food={editingFood}
           open={isEditDialogOpen}
@@ -299,7 +303,7 @@ const FoodList: React.FC = () => {
         />
       )}
 
-      <DeleteFoodDialog
+      {/* <DeleteFoodDialog
         food={isDeletingFood}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
