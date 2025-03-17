@@ -9,12 +9,14 @@ import { TableFilters } from './components/table-filters'
 import { TableList } from './components/table-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { TableAddDialog } from './components/table-add-dialog'
 
 const TableManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<TableStatus | 'all'>('all')
   const [showFilters, setShowFilters] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [showAddDialog, setShowAddDialog] = useState(false)
 
   const { tables } = useTable()
 
@@ -28,12 +30,21 @@ const TableManagement: React.FC = () => {
     return matchesSearch && matchesFilter
   })
 
+  const handleCreateTable = () => {
+    setShowAddDialog(true)
+  }
+
   const handleRefresh = () => {
     setIsLoading(true)
     // Simulate refresh
     setTimeout(() => {
       setIsLoading(false)
     }, 800)
+  }
+
+  const handleTableAdded = () => {
+    // Refresh the table list after adding a new table
+    handleRefresh()
   }
 
   const tableStatusCounts = {
@@ -78,7 +89,7 @@ const TableManagement: React.FC = () => {
                 <Badge className='ml-2 bg-primary-foreground text-primary'>{tableStatusCounts[activeFilter]}</Badge>
               )}
             </Button>
-            <Button variant='green' size='sm' className='h-9 flex-1 sm:flex-none'>
+            <Button onClick={handleCreateTable} variant='green' size='sm' className='h-9 flex-1 sm:flex-none'>
               <Plus className='mr-2 h-4 w-4' />
               Thêm bàn mới
             </Button>
@@ -105,6 +116,8 @@ const TableManagement: React.FC = () => {
             </Button>
           </div>
         )}
+
+        <TableAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} onTableAdded={handleTableAdded} />
       </CardContent>
     </Card>
   )

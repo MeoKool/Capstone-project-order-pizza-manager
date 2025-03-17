@@ -24,7 +24,7 @@ export function TableFilters({ activeFilter, onFilterChange, counts }: TableFilt
     { value: 'Opening', label: 'Trống', icon: CheckCircle, color: 'bg-green-100 text-green-700' },
     { value: 'Locked', label: 'Đã khóa', icon: Lock, color: 'bg-amber-100 text-amber-700' },
     { value: 'Booked', label: 'Đã đặt trước', icon: Clock, color: 'bg-blue-100 text-blue-700' },
-    { value: 'Closing', label: 'Bảo trì', icon: AlertTriangle, color: 'bg-red-100 text-red-700' }
+    { value: 'Closing', label: 'Đã đóng', icon: AlertTriangle, color: 'bg-red-100 text-red-700' }
   ]
 
   return (

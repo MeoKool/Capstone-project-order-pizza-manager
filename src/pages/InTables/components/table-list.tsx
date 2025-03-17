@@ -144,7 +144,7 @@ export function TableList({ tables }: TableListProps) {
                     {table.status === 'Opening' && table.currentOrderId && (
                       <div className='mt-1 flex items-center text-sm'>
                         {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-green-600'>Đơn hàng: currentID</span>
+                        <span className='ml-1 font-medium text-green-600'>Đơn hàng: {table.currentOrderId}</span>
                       </div>
                     )}
 
