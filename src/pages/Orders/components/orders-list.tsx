@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { MoreHorizontal, Eye, Edit, Trash2, Clock, CheckCircle2, AlertCircle, ArrowUpDown } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,27 +97,31 @@ export function OrdersList() {
     switch (status) {
       case PAYMENT_STATUS.PAID:
         return (
-          <Badge variant='outline' className='bg-green-50 text-green-600 border-green-200 flex items-center gap-1'>
-            <CheckCircle2 className='h-3 w-3' />
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-50 text-green-600'>
+            <CheckCircle2 className='mr-1 h-3.5 w-3.5' />
             Đã thanh toán
-          </Badge>
+          </div>
         )
       case PAYMENT_STATUS.CHECKOUT:
         return (
-          <Badge variant='outline' className='bg-blue-50 text-blue-600 border-blue-200 flex items-center gap-1'>
-            <Clock className='h-3 w-3' />
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-blue-50 text-blue-600'>
+            <Clock className='mr-1 h-3.5 w-3.5' />
             Đã checkout
-          </Badge>
+          </div>
         )
       case PAYMENT_STATUS.UNPAID:
         return (
-          <Badge variant='outline' className='bg-amber-50 text-amber-600 border-amber-200 flex items-center gap-1'>
-            <AlertCircle className='h-3 w-3' />
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-amber-50 text-amber-600'>
+            <AlertCircle className='mr-1 h-3.5 w-3.5' />
             Chưa thanh toán
-          </Badge>
+          </div>
         )
       default:
-        return <Badge variant='outline'>{status}</Badge>
+        return (
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'>
+            {status}
+          </div>
+        )
     }
   }
 
@@ -187,10 +190,7 @@ export function OrdersList() {
             <TableRow className='bg-muted/50'>
               <TableHead className='w-[60px] text-center'>STT</TableHead>
               <TableHead className='w-[120px]'>
-                <div className='flex items-center gap-2 cursor-pointer' onClick={() => handleSort('orderCode')}>
-                  Mã đơn
-                  <ArrowUpDown className='h-4 w-4' />
-                </div>
+                <div className='flex items-center gap-2 '>Mã đơn</div>
               </TableHead>
               <TableHead>
                 <div className='flex items-center gap-2 cursor-pointer' onClick={() => handleSort('tableCode')}>
@@ -204,7 +204,12 @@ export function OrdersList() {
                   <ArrowUpDown className='h-4 w-4' />
                 </div>
               </TableHead>
-              <TableHead>Thời gian kết thúc</TableHead>
+              <TableHead>
+                <div className='flex items-center gap-2 cursor-pointer' onClick={() => handleSort('endTime')}>
+                  Thời gian kết thúc
+                  <ArrowUpDown className='h-4 w-4' />
+                </div>
+              </TableHead>
               <TableHead>
                 <div className='flex items-center gap-2 cursor-pointer' onClick={() => handleSort('totalPrice')}>
                   Tổng tiền
@@ -266,7 +271,7 @@ export function OrdersList() {
         <p className='text-sm text-muted-foreground'>
           Hiển thị {paginatedOrders.length} trên tổng số {filteredOrders.length} đơn hàng
         </p>
-        <Pagination>
+        <Pagination className='cursor-pointer'>
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious

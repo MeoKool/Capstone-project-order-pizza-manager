@@ -86,16 +86,9 @@ const FoodList: React.FC = () => {
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
         {products.map((food) => (
-          <Card key={food.id} className='overflow-hidden h-full'>
-            <div className='w-full '>
-              <img
-                src={
-                  food.image ||
-                  'https://delivery.pizza4ps.com/_next/image?url=https%3A%2F%2Fstorage.googleapis.com%2Fdelivery-system-v2%2F03-04-2022-Image%2F20200001_2.jpg&w=1920&q=75'
-                }
-                alt={food.name}
-                className='object-cover'
-              />
+          <Card key={food.id} className=' h-full'>
+            <div className='w-full h-auto '>
+              <img src={`data:image/jpeg;base64,` + food.image} alt={food.name} className='object-cover' />
             </div>
             <CardContent className='p-4'>
               <div className='flex justify-between items-start'>
