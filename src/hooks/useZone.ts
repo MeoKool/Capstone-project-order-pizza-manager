@@ -1,5 +1,5 @@
 import ZoneService from '@/services/zone-service'
-import { ZoneResponse } from '@/types/zone'
+import type { ZoneResponse } from '@/types/zone'
 import { useCallback, useEffect, useState } from 'react'
 
 const useZone = () => {
@@ -8,7 +8,7 @@ const useZone = () => {
   const [zones_, setZones] = useState<ZoneResponse[]>([])
   const zoneService = ZoneService.getInstance()
 
-  //
+  // Fetch zones data initially
   const getAllZone = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -25,13 +25,42 @@ const useZone = () => {
       } else {
         setError(String(error))
       }
+    } finally {
+      setLoading(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Function to manually fetch zones data
+  const fetchZones = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await zoneService.getAllZones()
+      if (response.success && response.result) {
+        setZones(response.result.items)
+        return response.result.items
+      } else {
+        setZones([])
+        return []
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError(String(error))
+      }
+      throw error
+    } finally {
+      setLoading(false)
+    }
+  }, [zoneService])
+
   useEffect(() => {
     getAllZone()
   }, [getAllZone])
 
-  return { zones_, loading, error }
+  return { zones_, loading, error, fetchZones }
 }
+
 export default useZone

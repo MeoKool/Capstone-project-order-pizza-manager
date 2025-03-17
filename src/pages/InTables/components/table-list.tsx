@@ -10,15 +10,19 @@ import { getStatusBadge, getStatusIcon } from '@/utils/table-utils'
 import { getZoneName } from '@/utils/zone-utils'
 import { TableTimer } from './table-timer'
 import { Badge } from '@/components/ui/badge'
+import api from '@/apis/axiosConfig'
+import { toast } from 'sonner'
 
 interface TableListProps {
   tables: TableResponse[]
+  onTableUpdated?: () => void // Callback to refresh tables after update
 }
 
-export function TableList({ tables }: TableListProps) {
+export function TableList({ tables, onTableUpdated }: TableListProps) {
   const [selectedTable, setSelectedTable] = useState<TableResponse | null>()
   const [showDetailsDialog, setShowDetailsDialog] = useState(false)
   const [runningTimers, setRunningTimers] = useState<{ [key: string]: boolean }>({})
+  const [loadingTableIds, setLoadingTableIds] = useState<string[]>([]) // Track which tables are being updated
   const { zones_ } = useZone()
 
   const handleTimeUp = (tableId: string) => {
@@ -26,16 +30,60 @@ export function TableList({ tables }: TableListProps) {
     console.log(`Hết thời gian cho bàn ${tableId}`)
   }
 
+  const handleOpenTable = async (tableId: string) => {
+    setLoadingTableIds((prev) => [...prev, tableId]) // Set loading state for this table
+    try {
+      await api.put(`/tables/open-table/${tableId}`)
+      toast.success('Bàn đã được mở')
+
+      // Call the callback to refresh table data
+      if (onTableUpdated) {
+        onTableUpdated()
+      }
+    } catch (error) {
+      console.error(`Lỗi khi mở bàn với ID: ${tableId}`, error)
+      toast.error('Không thể mở bàn. Vui lòng thử lại.')
+    } finally {
+      setLoadingTableIds((prev) => prev.filter((id) => id !== tableId)) // Remove loading state
+    }
+  }
+
+  const handleCloseTable = async (tableId: string) => {
+    setLoadingTableIds((prev) => [...prev, tableId]) // Set loading state for this table
+    try {
+      await api.put(`/tables/close-table/${tableId}`)
+      toast.success('Bàn đã được đóng')
+
+      // Call the callback to refresh table data
+      if (onTableUpdated) {
+        onTableUpdated()
+      }
+    } catch (error) {
+      console.error(`Lỗi khi đóng bàn với ID: ${tableId}`, error)
+      toast.error('Không thể đóng bàn. Vui lòng thử lại.')
+    } finally {
+      setLoadingTableIds((prev) => prev.filter((id) => id !== tableId)) // Remove loading state
+    }
+  }
+
   // Function to get action buttons based on table status
   const getActionButtons = (table: TableResponse) => {
+    const isLoading = loadingTableIds.includes(table.id)
+
     switch (table.status) {
       case 'Closing':
         return (
           <div className='flex gap-2 mt-3'>
-            <Button variant='outline' size='sm' className='flex-1'>
-              Mở bàn
+            <Button
+              onClick={() => handleOpenTable(table.id)}
+              variant='outline'
+              size='sm'
+              className='flex-1'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Đang xử lý...' : 'Mở bàn'}
             </Button>
-            <Button variant='outline' size='sm' className='flex-1'>
+            <Button variant='outline' size='sm' className='flex-1' disabled={isLoading}>
               Đặt trước
             </Button>
           </div>
@@ -43,10 +91,16 @@ export function TableList({ tables }: TableListProps) {
       case 'Opening':
         return (
           <div className='flex gap-2 mt-3'>
-            <Button variant='outline' size='sm' className='flex-1'>
-              Khóa bàn
+            <Button
+              onClick={() => handleCloseTable(table.id)}
+              variant='outline'
+              size='sm'
+              className='flex-1'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Đang xử lý...' : 'Đóng bàn'}
             </Button>
-            <Button variant='outline' size='sm' className='flex-1'>
+            <Button variant='outline' size='sm' className='flex-1' disabled={isLoading}>
               Bảo trì
             </Button>
           </div>
@@ -54,10 +108,10 @@ export function TableList({ tables }: TableListProps) {
       case 'Booked':
         return (
           <div className='flex gap-2 mt-3'>
-            <Button size='sm' className='flex-1'>
+            <Button size='sm' className='flex-1' disabled={isLoading}>
               Xác nhận
             </Button>
-            <Button variant='outline' size='sm' className='flex-1'>
+            <Button variant='outline' size='sm' className='flex-1' disabled={isLoading}>
               Hủy đặt
             </Button>
           </div>
@@ -65,8 +119,8 @@ export function TableList({ tables }: TableListProps) {
       case 'Locked':
         return (
           <div className='flex gap-2 mt-3'>
-            <Button size='sm' className='flex-1'>
-              Mở khóa
+            <Button onClick={() => handleOpenTable(table.id)} size='sm' className='flex-1' disabled={isLoading}>
+              {isLoading ? 'Đang xử lý...' : 'Mở khóa'}
             </Button>
           </div>
         )
@@ -126,7 +180,7 @@ export function TableList({ tables }: TableListProps) {
                   </DropdownMenu>
                 </div>
                 <div className='p-4'>
-                  <div className='grid gap-3'>
+                  <div className=' h-[100px]'>
                     <div className='flex items-center text-sm'>
                       <Users className='mr-2 h-4 w-4 text-muted-foreground' />
                       <span>
@@ -136,7 +190,7 @@ export function TableList({ tables }: TableListProps) {
                         </Badge>
                       </span>
                     </div>
-                    <div className='flex items-center text-sm'>
+                    <div className='flex mt-3 items-center text-sm'>
                       <span className='mr-2'>📍</span>
                       <span>{getZoneName(table.zoneId, zones_)}</span>
                     </div>
@@ -151,7 +205,6 @@ export function TableList({ tables }: TableListProps) {
                     {table.status === 'Booked' && (
                       <div className='mt-1 flex items-center text-sm'>
                         {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-blue-600'>Đã đặt trước</span>
                         <div className='ml-auto'>
                           <TableTimer
                             isRunning={runningTimers[table.id] || false}
@@ -162,17 +215,11 @@ export function TableList({ tables }: TableListProps) {
                     )}
 
                     {table.status === 'Closing' && (
-                      <div className='mt-1 flex items-center text-sm'>
-                        {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-red-600'>Đang bảo trì</span>
-                      </div>
+                      <div className='mt-1 flex items-center text-sm'>{getStatusIcon(table.status)}</div>
                     )}
 
                     {table.status === 'Locked' && (
-                      <div className='mt-1 flex items-center text-sm'>
-                        {getStatusIcon(table.status)}
-                        <span className='ml-1 font-medium text-amber-600'>Đã khóa</span>
-                      </div>
+                      <div className='mt-1 flex items-center text-sm'>{getStatusIcon(table.status)}</div>
                     )}
                   </div>
 
