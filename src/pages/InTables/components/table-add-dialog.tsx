@@ -50,7 +50,7 @@ export function TableAddDialog({ open, onOpenChange, onTableAdded }: TableAddDia
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
     try {
-      await api.post(`${apiUrl}/tables1`, JSON.stringify(data), {
+      await api.post(`${apiUrl}/tables`, JSON.stringify(data), {
         headers: {
           'Content-Type': 'application/json'
         }
