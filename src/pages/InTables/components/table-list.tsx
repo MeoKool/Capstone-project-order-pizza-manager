@@ -1,5 +1,3 @@
-'use client'
-
 import { Users, MoreVertical, QrCode, Edit, History, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -34,7 +32,7 @@ export function TableList({ tables }: TableListProps) {
       case 'Closing':
         return (
           <div className='flex gap-2 mt-3'>
-            <Button size='sm' className='flex-1'>
+            <Button variant='outline' size='sm' className='flex-1'>
               Mở bàn
             </Button>
             <Button variant='outline' size='sm' className='flex-1'>
@@ -45,7 +43,7 @@ export function TableList({ tables }: TableListProps) {
       case 'Opening':
         return (
           <div className='flex gap-2 mt-3'>
-            <Button size='sm' className='flex-1'>
+            <Button variant='outline' size='sm' className='flex-1'>
               Khóa bàn
             </Button>
             <Button variant='outline' size='sm' className='flex-1'>
@@ -89,14 +87,16 @@ export function TableList({ tables }: TableListProps) {
           <p className='text-muted-foreground'>Không có bàn nào</p>
         </div>
       ) : (
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-4'>
           {tables.map((table) => (
             <Card key={table.id} className='overflow-hidden hover:shadow-md transition-shadow'>
               <CardContent className='p-0'>
-                <div className='flex items-center justify-between border-b p-4'>
-                  <div className='flex items-center space-x-2'>
-                    <h3 className='font-medium text-lg'>{table.code}</h3>
-                    {getStatusBadge(table.status)}
+                <div
+                  className={`flex items-center justify-between border-b p-4 bg-${table.status === 'Opening' ? 'green' : table.status === 'Booked' ? 'blue' : table.status === 'Closing' ? 'red' : table.status === 'Locked' ? 'amber' : 'gray'}-100`}
+                >
+                  <div className='flex items-center space-x-5'>
+                    <h3 className='font-medium text-3xl'>{table.code}</h3>
+                    <div> {getStatusBadge(table.status)}</div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

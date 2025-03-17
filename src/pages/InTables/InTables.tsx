@@ -9,7 +9,7 @@ const InTables: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tables')
 
   return (
-    <div className='container mx-auto p-4 max-w-7xl'>
+    <div className='mx-auto p-4 max-w-full'>
       <h1 className='text-2xl font-bold mb-6'>Quản lý nhà hàng</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
         <div className='flex items-center justify-between'>

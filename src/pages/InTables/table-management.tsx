@@ -67,7 +67,7 @@ const TableManagement: React.FC = () => {
           <SearchBar placeholder='Tìm kiếm bàn, khu vực...' value={searchQuery} onChange={setSearchQuery} />
           <div className='flex items-center gap-2 w-full sm:w-auto'>
             <Button
-              variant={showFilters ? 'default' : 'outline'}
+              variant={showFilters ? 'outline' : 'outline'}
               size='sm'
               className='h-9 px-3 flex-1 sm:flex-none'
               onClick={() => setShowFilters(!showFilters)}
@@ -78,7 +78,7 @@ const TableManagement: React.FC = () => {
                 <Badge className='ml-2 bg-primary-foreground text-primary'>{tableStatusCounts[activeFilter]}</Badge>
               )}
             </Button>
-            <Button size='sm' className='h-9 flex-1 sm:flex-none'>
+            <Button variant='green' size='sm' className='h-9 flex-1 sm:flex-none'>
               <Plus className='mr-2 h-4 w-4' />
               Thêm bàn mới
             </Button>

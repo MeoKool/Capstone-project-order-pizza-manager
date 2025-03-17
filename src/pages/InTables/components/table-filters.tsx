@@ -34,7 +34,7 @@ export function TableFilters({ activeFilter, onFilterChange, counts }: TableFilt
         return (
           <Button
             key={filter.value}
-            variant={activeFilter === filter.value ? 'default' : 'outline'}
+            variant={activeFilter === filter.value ? 'green' : 'outline'}
             size='sm'
             className='justify-between h-auto py-3'
             onClick={() => onFilterChange(filter.value as TableStatus | 'all')}

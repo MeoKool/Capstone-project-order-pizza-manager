@@ -47,6 +47,17 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
         return 200
     }
   }
+  const handleOpenTable = () => {
+    return () => {
+      console.log(`Mở bàn ${table.id}`)
+    }
+  }
+
+  const handleCloseTable = () => {
+    return () => {
+      console.log(`Khóa bàn ${table.id}`)
+    }
+  }
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank')
@@ -119,7 +130,9 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
       case 'Closing':
         return (
           <>
-            <Button className='flex-1'>Mở bàn</Button>
+            <Button onClick={handleOpenTable()} variant='green' className='flex-1'>
+              Mở bàn
+            </Button>
             <Button variant='outline' className='flex-1'>
               Đặt trước
             </Button>
@@ -128,8 +141,10 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
       case 'Opening':
         return (
           <>
-            <Button className='flex-1'>Khóa bàn</Button>
-            <Button variant='outline' className='flex-1'>
+            <Button variant='destructive' onClick={handleCloseTable()} className='flex-1'>
+              Khóa bàn
+            </Button>
+            <Button variant='yellow' className='flex-1'>
               Bảo trì
             </Button>
           </>
@@ -264,7 +279,7 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
             {statusInfo && (
               <Card>
                 <CardContent className='p-4'>
-                  <div className='grid grid-cols-[24px_1fr] items-start gap-3'>
+                  <div className=' items-start gap-3'>
                     {getStatusIcon(table.status)}
                     <div className='space-y-3'>
                       <h3 className='font-medium'>{statusInfo.title}</h3>
