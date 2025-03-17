@@ -1,3 +1,5 @@
+'use client'
+
 import useTable from '@/hooks/useTable'
 import type { TableStatus } from '@/types/tables'
 import { Button } from '@/components/ui/button'
@@ -18,7 +20,7 @@ const TableManagement: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [showAddDialog, setShowAddDialog] = useState(false)
 
-  const { tables } = useTable()
+  const { tables, loading, fetchAllTables } = useTable()
 
   const filteredTables = tables.filter((table) => {
     const matchesSearch =
@@ -34,17 +36,18 @@ const TableManagement: React.FC = () => {
     setShowAddDialog(true)
   }
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true)
-    // Simulate refresh
-    setTimeout(() => {
+    try {
+      await fetchAllTables()
+    } finally {
       setIsLoading(false)
-    }, 800)
+    }
   }
 
-  const handleTableAdded = () => {
-    // Refresh the table list after adding a new table
-    handleRefresh()
+  const handleTableUpdated = () => {
+    // Refresh the table list after a table is updated
+    fetchAllTables()
   }
 
   const tableStatusCounts = {
@@ -67,8 +70,14 @@ const TableManagement: React.FC = () => {
             <Badge variant='outline' className='text-sm'>
               Tổng số: {tables.length} bàn
             </Badge>
-            <Button variant='outline' size='icon' className='h-8 w-8' onClick={handleRefresh} disabled={isLoading}>
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <Button
+              variant='outline'
+              size='icon'
+              className='h-8 w-8'
+              onClick={handleRefresh}
+              disabled={isLoading || loading}
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading || loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
@@ -100,7 +109,7 @@ const TableManagement: React.FC = () => {
           <TableFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} counts={tableStatusCounts} />
         )}
 
-        <TableList tables={filteredTables} />
+        <TableList tables={filteredTables} onTableUpdated={handleTableUpdated} />
 
         {filteredTables.length === 0 && (
           <div className='text-center py-10'>
@@ -117,7 +126,7 @@ const TableManagement: React.FC = () => {
           </div>
         )}
 
-        <TableAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} onTableAdded={handleTableAdded} />
+        <TableAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} onTableAdded={handleTableUpdated} />
       </CardContent>
     </Card>
   )
