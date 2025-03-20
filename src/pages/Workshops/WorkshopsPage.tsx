@@ -97,7 +97,7 @@ export default function WorkshopsPage() {
   }
 
   return (
-    <div className='container mx-auto p-4'>
+    <div className='mx-auto p-4 max-w-full'>
       <div className='flex items-center justify-between mb-6'>
         <h1 className='text-2xl font-bold'>Quản lý Workshop</h1>
         <Button onClick={() => navigate('/workshops/create')}>

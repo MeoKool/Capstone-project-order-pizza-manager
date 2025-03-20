@@ -98,7 +98,7 @@ export default function WorkshopDetail() {
   }
 
   return (
-    <div className='container mx-auto p-4'>
+    <div className='mx-auto p-4 max-w-full'>
       <div className='flex items-center mb-6'>
         <Button variant='ghost' onClick={() => navigate('/workshops')} className='mr-4'>
           <ArrowLeft className='h-4 w-4 mr-2' /> Quay lại

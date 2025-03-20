@@ -29,7 +29,10 @@ const formSchema = z.object({
   maxPizzaPerRegister: z.number().min(0, 'Số lượng pizza tối đa không được âm'),
   maxParticipantPerRegister: z.number().min(0, 'Số lượng người tham gia tối đa không được âm'),
   workshopStatus: z.string().min(1, 'Trạng thái không được để trống'),
-  zoneId: z.string().min(1, 'Khu vực không được để trống')
+  zoneId: z.string().min(1, 'Khu vực không được để trống'),
+  zone: z.any().optional(),
+  zoneName: z.string().optional(),
+  workshopFoodDetails: z.array(z.any()).optional()
 })
 
 type WorkshopFormProps = {
@@ -74,7 +77,10 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           maxPizzaPerRegister: 0,
           maxParticipantPerRegister: 0,
           workshopStatus: WorkshopStatus.Scheduled,
-          zoneId: ''
+          zoneId: '',
+          zone: null,
+          zoneName: '',
+          workshopFoodDetails: []
         }
   })
 
@@ -121,21 +127,26 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
     }
   }
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async () => {
     try {
       setLoading(true)
-
-      if (isEditing && id) {
-        // const response = await workshopService.updateWorkshop(id, values)
-        // if (response.success) {
-        //   navigate('/workshops')
-        // }
-      } else {
-        const response = await workshopService.createWorkshop(values)
-        if (response.success) {
-          navigate('/workshops')
-        }
-      }
+      // const workshopData = {
+      //   ...values,
+      //   zone: null,
+      //   zoneName: zones.find((zone) => zone.id === values.zoneId)?.name || '',
+      //   workshopFoodDetails: []
+      // }
+      // if (isEditing && id) {
+      //   const response = await workshopService.updateWorkshop(id, workshopData)
+      //   if (response.success) {
+      //     navigate('/workshops')
+      //   }
+      // } else {
+      //   const response = await workshopService.createWorkshop(workshopData)
+      //   if (response.success) {
+      //     navigate('/workshops')
+      //   }
+      // }
     } catch (error) {
       console.error('Error saving workshop:', error)
     } finally {
@@ -152,7 +163,7 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
   }
 
   return (
-    <Card className='container mx-auto p-4'>
+    <Card className='mx-auto p-4 max-w-full'>
       <CardHeader>
         <CardTitle>{isEditing ? 'Chỉnh sửa workshop' : 'Tạo workshop mới'}</CardTitle>
       </CardHeader>
