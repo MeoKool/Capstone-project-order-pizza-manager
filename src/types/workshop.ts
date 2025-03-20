@@ -31,9 +31,17 @@ export interface Workshop {
   maxRegister: number
   maxPizzaPerRegister: number
   maxParticipantPerRegister: number
-  workshopStatus: 'Scheduled' | string
+  workshopStatus: WorkshopStatus
   zoneId: string
   zone: null | string
   zoneName: string
   workshopFoodDetails: WorkshopFoodDetail[] // Replace 'any' with a proper WorkshopFoodDetail interface if available
+}
+
+export enum WorkshopStatus {
+  Scheduled = 'Scheduled',
+  Opening = 'Opening',
+  Closed = 'Closed',
+  Approved = 'Approved',
+  Cancelled = 'Cancelled'
 }

@@ -12,7 +12,8 @@ import {
   UserCircle,
   Tag,
   BarChart,
-  MoreHorizontal
+  MoreHorizontal,
+  CalendarDays
 } from 'lucide-react'
 import Header from './header'
 
@@ -40,6 +41,8 @@ const DashboardLayout = () => {
         return 'Menu Food'
       case '/customers':
         return 'Customers'
+      case '/workshops':
+        return 'Workshops'
       case '/staffs':
         return 'Staffs'
       case '/promotion':
@@ -75,6 +78,9 @@ const DashboardLayout = () => {
           <Link to='/customers'>
             <SidebarItem icon={<Users size={20} />} text='Customers' active={isActive('/customers')} />
           </Link>
+          <Link to='/workshops'>
+            <SidebarItem icon={<CalendarDays size={20} />} text='Workshops' active={isActive('/workshops')} />
+          </Link>
           <Link to='/staffs'>
             <SidebarItem icon={<UserCircle size={20} />} text='Staffs' active={isActive('/staffs')} />
           </Link>
@@ -84,12 +90,6 @@ const DashboardLayout = () => {
           <hr />
           <Link to='/reports'>
             <SidebarItem icon={<BarChart size={20} />} text='Reports' active={isActive('/reports')} />
-          </Link>
-          <Link to='/more'>
-            <SidebarItem icon={<MoreHorizontal size={20} />} text='More' active={isActive('/more')} />
-          </Link>
-          <Link to='/more'>
-            <SidebarItem icon={<MoreHorizontal size={20} />} text='More' active={isActive('/more')} />
           </Link>
           <Link to='/more'>
             <SidebarItem icon={<MoreHorizontal size={20} />} text='More' active={isActive('/more')} />

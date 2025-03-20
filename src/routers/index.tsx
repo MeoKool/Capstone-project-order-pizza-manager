@@ -1,5 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import WorkshopsPage from '@/pages/Workshops/WorkshopsPage'
+import WorkshopDetail from '@/pages/Workshops/components/WorkshopDetail'
+import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
 // import DashboardComponent from "./DashboardComponent";
 
 // Lazy load the components
@@ -88,10 +91,34 @@ export const router = createBrowserRouter([
         )
       },
       {
-        path: 'workshop',
+        path: 'workshops',
         element: (
           <Suspense fallback={<Loading />}>
-            <Promotion />
+            <WorkshopsPage />
+          </Suspense>
+        )
+      },
+      {
+        path: 'workshops/:id',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WorkshopDetail />
+          </Suspense>
+        )
+      },
+      {
+        path: '/workshops/create',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WorkshopForm />
+          </Suspense>
+        )
+      },
+      {
+        path: '/workshops/edit/:id',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <WorkshopForm isEditing={true} />
           </Suspense>
         )
       },
