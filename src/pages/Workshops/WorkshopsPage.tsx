@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react'
+import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye, CalendarIcon } from 'lucide-react'
 import WorkshopService from '../../services/workshop-service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,12 +10,16 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { Workshop } from '@/types/workshop'
+import type { Workshop } from '@/types/workshop'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/utils/utils'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [date, setDate] = useState<Date | undefined>(undefined)
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
 
@@ -81,11 +85,25 @@ export default function WorkshopsPage() {
     }
   }
 
-  const filteredWorkshops = workshops.filter(
-    (workshop) =>
+  // Filter workshops by search term and selected date
+  const filteredWorkshops = workshops.filter((workshop) => {
+    const matchesSearch =
       workshop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       workshop.description.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+
+    // If date is selected, filter by date
+    if (date) {
+      const workshopDate = new Date(workshop.workshopDate)
+      return (
+        matchesSearch &&
+        workshopDate.getDate() === date.getDate() &&
+        workshopDate.getMonth() === date.getMonth() &&
+        workshopDate.getFullYear() === date.getFullYear()
+      )
+    }
+
+    return matchesSearch
+  })
 
   const formatDate = (dateString: string) => {
     try {
@@ -94,6 +112,10 @@ export default function WorkshopsPage() {
     } catch {
       return dateString
     }
+  }
+
+  const clearDateFilter = () => {
+    setDate(undefined)
   }
 
   return (
@@ -107,15 +129,39 @@ export default function WorkshopsPage() {
       <Card>
         <CardHeader className='pb-2'>
           <div className='flex items-center justify-between mt-2'>
-            <div className='relative w-72'>
-              <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
-              <Input
-                placeholder='Tìm kiếm workshop...'
-                className='pl-8'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+            <div className='flex items-center space-x-4'>
+              <div className='relative w-72'>
+                <Search className='absolute left-2 top-2.5 h-4 w-4 text-muted-foreground' />
+                <Input
+                  placeholder='Tìm kiếm workshop...'
+                  className='pl-8'
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant='outline'
+                    className={cn('justify-start text-left font-normal', !date && 'text-muted-foreground')}
+                  >
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0' align='start'>
+                  <Calendar mode='single' selected={date} onSelect={setDate} initialFocus />
+                </PopoverContent>
+              </Popover>
+
+              {date && (
+                <Button variant='ghost' size='sm' onClick={clearDateFilter}>
+                  Xóa bộ lọc ngày
+                </Button>
+              )}
             </div>
+
             <Button variant='outline' size='sm'>
               <Filter className='mr-2 h-4 w-4' /> Lọc
             </Button>

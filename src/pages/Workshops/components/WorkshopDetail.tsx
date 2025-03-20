@@ -129,7 +129,6 @@ export default function WorkshopDetail() {
         <Button variant='ghost' onClick={() => navigate('/workshops')} className='mr-4'>
           <ArrowLeft className='h-4 w-4 mr-2' /> Quay lại
         </Button>
-        <h1 className='text-2xl font-bold'>Chi tiết Workshop</h1>
       </div>
 
       <Card>
