@@ -8,6 +8,8 @@ import { vi } from 'date-fns/locale'
 import { ArrowLeft, Edit, Trash2 } from 'lucide-react'
 import { Workshop } from '@/types/workshop'
 import WorkshopService from '@/services/workshop-service'
+import { ProductModel } from '@/types/product'
+import ProductService from '@/services/product-service'
 
 export default function WorkshopDetail() {
   const [workshop, setWorkshop] = useState<Workshop | null>(null)
@@ -15,12 +17,31 @@ export default function WorkshopDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
+  const [products, setProducts] = useState<ProductModel[]>([])
 
   useEffect(() => {
     if (id) {
       fetchWorkshopDetails(id)
     }
   }, [id])
+
+  useEffect(() => {
+    if (workshop?.workshopFoodDetails && workshop.workshopFoodDetails.length > 0) {
+      fetchProducts()
+    }
+  }, [workshop])
+
+  const fetchProducts = async () => {
+    try {
+      const productService = ProductService.getInstance()
+      const response = productService.getAllProductFood()
+      if ((await response).message === 'OK') {
+        setProducts((await response).result.items)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    }
+  }
 
   const fetchWorkshopDetails = async (workshopId: string) => {
     try {
@@ -76,6 +97,11 @@ export default function WorkshopDetail() {
       console.log('Error formatting date:', error)
       return dateString
     }
+  }
+
+  const getProductName = (productId: string) => {
+    const product = products.find((p) => p.id === productId)
+    return product ? product.id : productId
   }
 
   if (loading) {
@@ -190,9 +216,10 @@ export default function WorkshopDetail() {
             <div>
               <h3 className='text-lg font-semibold mb-4'>Thực đơn</h3>
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                {workshop.workshopFoodDetails.map((food) => (
-                  <Card key={food.id} className='p-4'>
-                    <p className='font-medium'>ID: {food.productId}</p>
+                {workshop.workshopFoodDetails.map((food, index) => (
+                  <Card key={food.id || index} className='p-4'>
+                    <p className='font-medium'>{getProductName(food.productId)}</p>
+                    <p className='text-sm text-muted-foreground'>ID: {food.productId}</p>
                   </Card>
                 ))}
               </div>
