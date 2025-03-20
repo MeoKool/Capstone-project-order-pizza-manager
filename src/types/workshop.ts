@@ -10,7 +10,7 @@ export interface WorkshopResult {
   totalCount: number
 }
 
-interface WorkshopFoodDetail {
+export interface WorkshopFoodDetail {
   id: string
   productId: string
   product: null | string // Replace with proper Product interface if available
