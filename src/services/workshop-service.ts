@@ -1,6 +1,6 @@
 import type ApiResponse from '@/apis/apiUtils'
 import { get, post } from '@/apis/apiUtils'
-import { Workshop, WorkshopResult } from '@/types/workshop'
+import { Workshop, WorkshopCreate, WorkshopResult } from '@/types/workshop'
 
 export default class WorkshopService {
   private static instance: WorkshopService
@@ -32,7 +32,7 @@ export default class WorkshopService {
     }
   }
 
-  public createWorkshop(workshop: Omit<Workshop, 'id'>): Promise<ApiResponse<Workshop>> {
+  public createWorkshop(workshop: WorkshopCreate): Promise<ApiResponse<Workshop>> {
     try {
       return post<Workshop>(`/workshops`, workshop)
     } catch (error) {

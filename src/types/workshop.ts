@@ -1,10 +1,3 @@
-export interface WorkshopResponse {
-  success: boolean
-  result: WorkshopResult
-  message: string
-  statusCode: number
-}
-
 export interface WorkshopResult {
   items: Workshop[]
   totalCount: number
@@ -35,7 +28,24 @@ export interface Workshop {
   zoneId: string
   zone: null | string
   zoneName: string
-  workshopFoodDetails: WorkshopFoodDetail[] // Replace 'any' with a proper WorkshopFoodDetail interface if available
+  workshopFoodDetails: WorkshopFoodDetail[]
+}
+
+export interface WorkshopCreate {
+  name: string
+  header: string
+  description: string
+  location: string
+  organizer: string
+  hotLineContact: string
+  workshopDate: string
+  startRegisterDate: string
+  endRegisterDate: string
+  totalFee: number
+  maxPizzaPerRegister: number
+  maxParticipantPerRegister: number
+  productIds: string[]
+  zoneId: string
 }
 
 export enum WorkshopStatus {

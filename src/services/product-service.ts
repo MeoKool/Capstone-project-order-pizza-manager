@@ -38,7 +38,7 @@ class ProductService {
   }
   public async getAllProducts(): Promise<ApiResponse<ProductsResult>> {
     try {
-      return await get<ProductsResult>(`/products?IncludeProperties=ProductOptions.Option.OptionItems`)
+      return await get<ProductsResult>(`products?IncludeProperties=Options.OptionItems`)
     } catch (error) {
       console.error('Error fetching all products:', error)
       throw error

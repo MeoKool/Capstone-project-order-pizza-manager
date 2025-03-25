@@ -177,7 +177,6 @@ export default function WorkshopsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className='w-[100px]'>Mã workshop</TableHead>
                     <TableHead>Tên workshop</TableHead>
                     <TableHead>Thời gian diễn ra</TableHead>
                     <TableHead>Thời gian đăng ký</TableHead>
@@ -196,7 +195,6 @@ export default function WorkshopsPage() {
                   ) : (
                     filteredWorkshops.map((workshop) => (
                       <TableRow key={workshop.id}>
-                        <TableCell className='font-medium'>{workshop.id.substring(0, 8)}</TableCell>
                         <TableCell>{workshop.name}</TableCell>
                         <TableCell>{formatDate(workshop.workshopDate)}</TableCell>
                         <TableCell>
