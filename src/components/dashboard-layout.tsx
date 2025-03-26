@@ -13,7 +13,8 @@ import {
   Tag,
   BarChart,
   MoreHorizontal,
-  CalendarDays
+  CalendarDays,
+  Settings
 } from 'lucide-react'
 import Header from './header'
 
@@ -45,6 +46,8 @@ const DashboardLayout = () => {
         return 'Workshops'
       case '/staffs':
         return 'Staffs'
+      case '/settings':
+        return 'Settings'
       case '/promotion':
         return 'Promotion'
       case '/reports':
@@ -86,6 +89,9 @@ const DashboardLayout = () => {
           </Link>
           <Link to='/promotion'>
             <SidebarItem icon={<Tag size={20} />} text='Promotion' active={isActive('/promotion')} />
+          </Link>
+          <Link to='/settings'>
+            <SidebarItem icon={<Settings size={20} />} text='Settings' active={isActive('/settings')} />
           </Link>
           <hr />
           <Link to='/reports'>

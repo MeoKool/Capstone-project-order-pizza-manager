@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import WorkshopsPage from '@/pages/Workshops/WorkshopsPage'
 import WorkshopDetail from '@/pages/Workshops/components/WorkshopDetail'
 import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
+import Settings from '@/pages/Settings/Settings'
 // import DashboardComponent from "./DashboardComponent";
 
 // Lazy load the components
@@ -103,6 +104,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <WorkshopDetail />
+          </Suspense>
+        )
+      },
+      {
+        path: 'settings',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Settings />
           </Suspense>
         )
       },
