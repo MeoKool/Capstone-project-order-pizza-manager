@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { useStaff } from './staff-provider'
-import type { Staff, StaffType } from '@/types/staff'
+import { StaffType, type Staff } from '@/types/staff'
 
 interface EditStaffDialogProps {
   staff: Staff
@@ -28,11 +28,17 @@ interface EditStaffDialogProps {
 
 const formSchema = z.object({
   username: z.string().min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự'),
-  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự').optional(),
+  password: z
+    .string()
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
+      'Mật khẩu phải có ít nhất 8 ký tự, bao gồm 1 chữ in hoa, 1 chữ thường và 1 ký tự đặc biệt'
+    )
+    .or(z.literal('')),
   fullName: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Email không hợp lệ'),
   phone: z.string().min(10, 'Số điện thoại phải có ít nhất 10 số'),
-  staffType: z.enum(['Staff', 'Manager', 'Cheff']),
+  staffType: z.nativeEnum(StaffType),
   status: z.enum(['FullTime', 'PartTime'])
 })
 
@@ -46,13 +52,13 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: staff.username,
+      username: '',
       password: '',
-      fullName: staff.fullName,
-      email: staff.email,
-      phone: staff.phone,
-      staffType: staff.staffType,
-      status: staff.status
+      fullName: '',
+      email: '',
+      phone: '',
+      staffType: StaffType.Staff,
+      status: 'FullTime'
     }
   })
 
@@ -72,13 +78,10 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
     try {
-      // Remove password if it's empty (not changed)
-      const updateData = { ...data }
-      if (!updateData.password) {
-        delete updateData.password
-      }
+      const { password, ...rest } = data
+      const updatePayload = password ? { ...rest, password } : rest
 
-      await updateStaff(staff.id, { ...updateData, staffType: staff.staffType as StaffType })
+      await updateStaff(staff.id, updatePayload)
       onOpenChange(false)
     } catch (error) {
       console.error('Failed to update staff:', error)
@@ -87,9 +90,7 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
     }
   }
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,137 +101,133 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-            <div className='space-y-4'>
+            <FormField
+              control={form.control}
+              name='username'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên đăng nhập</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Nhập tên đăng nhập' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='password'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mật khẩu (để trống nếu không thay đổi)</FormLabel>
+                  <FormControl>
+                    <div className='relative'>
+                      <Input type={showPassword ? 'text' : 'password'} placeholder='Nhập mật khẩu mới' {...field} />
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        className='absolute right-0 top-0 h-full px-3'
+                        onClick={togglePasswordVisibility}
+                      >
+                        {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name='fullName'
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Họ và tên</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Nhập họ và tên' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className='grid grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name='username'
+                name='email'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tên đăng nhập</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder='Nhập tên đăng nhập' {...field} />
+                      <Input placeholder='example@email.com' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
-                name='password'
+                name='phone'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mật khẩu (để trống nếu không thay đổi)</FormLabel>
+                    <FormLabel>Số điện thoại</FormLabel>
                     <FormControl>
-                      <div className='relative'>
-                        <Input type={showPassword ? 'text' : 'password'} placeholder='Nhập mật khẩu mới' {...field} />
-                        <Button
-                          type='button'
-                          variant='ghost'
-                          size='sm'
-                          className='absolute right-0 top-0 h-full px-3'
-                          onClick={togglePasswordVisibility}
-                        >
-                          {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
-                          <span className='sr-only'>{showPassword ? 'Hide password' : 'Show password'}</span>
-                        </Button>
-                      </div>
+                      <Input placeholder='0123456789' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
 
+            <div className='grid grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
-                name='fullName'
+                name='staffType'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Họ và tên</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Nhập họ và tên' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className='grid grid-cols-2 gap-4'>
-                <FormField
-                  control={form.control}
-                  name='email'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
+                    <FormLabel>Loại nhân viên</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
-                        <Input placeholder='example@email.com' {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder='Chọn loại nhân viên' />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value='Staff'>Nhân viên</SelectItem>
+                        <SelectItem value='Manager'>Quản lý</SelectItem>
+                        <SelectItem value='Cheff'>Đầu bếp</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name='phone'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Số điện thoại</FormLabel>
+              <FormField
+                control={form.control}
+                name='status'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trạng thái</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
-                        <Input placeholder='0123456789' {...field} />
+                        <SelectTrigger>
+                          <SelectValue placeholder='Chọn trạng thái' />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className='grid grid-cols-2 gap-4'>
-                <FormField
-                  control={form.control}
-                  name='staffType'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Loại nhân viên</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder='Chọn loại nhân viên' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='Staff'>Nhân viên</SelectItem>
-                          <SelectItem value='Manager'>Quản lý</SelectItem>
-                          <SelectItem value='Cheff'>Đầu bếp</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name='status'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trạng thái</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder='Chọn trạng thái' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='FullTime'>Toàn thời gian</SelectItem>
-                          <SelectItem value='PartTime'>Bán thời gian</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <SelectContent>
+                        <SelectItem value='FullTime'>Toàn thời gian</SelectItem>
+                        <SelectItem value='PartTime'>Bán thời gian</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <DialogFooter>
