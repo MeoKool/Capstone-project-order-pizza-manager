@@ -4,6 +4,7 @@ import WorkshopsPage from '@/pages/Workshops/WorkshopsPage'
 import WorkshopDetail from '@/pages/Workshops/components/WorkshopDetail'
 import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
 import SettingsPage from '@/pages/Settings/Settings'
+import Schedule from '@/pages/Schedule/Schedule'
 // import DashboardComponent from "./DashboardComponent";
 
 // Lazy load the components
@@ -88,6 +89,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <Promotion />
+          </Suspense>
+        )
+      },
+      {
+        path: 'schedule',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Schedule />
           </Suspense>
         )
       },
