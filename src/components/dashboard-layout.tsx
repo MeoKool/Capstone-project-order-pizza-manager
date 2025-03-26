@@ -13,7 +13,9 @@ import {
   Tag,
   BarChart,
   MoreHorizontal,
-  CalendarDays
+  Settings,
+  CalendarCheck,
+  Store
 } from 'lucide-react'
 import Header from './header'
 
@@ -45,6 +47,10 @@ const DashboardLayout = () => {
         return 'Workshops'
       case '/staffs':
         return 'Staffs'
+      case '/settings':
+        return 'Settings'
+      case '/schedule':
+        return 'Schedule'
       case '/promotion':
         return 'Promotion'
       case '/reports':
@@ -78,14 +84,20 @@ const DashboardLayout = () => {
           <Link to='/customers'>
             <SidebarItem icon={<Users size={20} />} text='Customers' active={isActive('/customers')} />
           </Link>
+          <Link to='/schedule'>
+            <SidebarItem icon={<CalendarCheck size={20} />} text='Schedule' active={isActive('/schedule')} />
+          </Link>
           <Link to='/workshops'>
-            <SidebarItem icon={<CalendarDays size={20} />} text='Workshops' active={isActive('/workshops')} />
+            <SidebarItem icon={<Store size={20} />} text='Workshops' active={isActive('/workshops')} />
           </Link>
           <Link to='/staffs'>
             <SidebarItem icon={<UserCircle size={20} />} text='Staffs' active={isActive('/staffs')} />
           </Link>
           <Link to='/promotion'>
             <SidebarItem icon={<Tag size={20} />} text='Promotion' active={isActive('/promotion')} />
+          </Link>
+          <Link to='/settings'>
+            <SidebarItem icon={<Settings size={20} />} text='Settings' active={isActive('/settings')} />
           </Link>
           <hr />
           <Link to='/reports'>

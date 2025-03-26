@@ -3,6 +3,8 @@ import { lazy, Suspense } from 'react'
 import WorkshopsPage from '@/pages/Workshops/WorkshopsPage'
 import WorkshopDetail from '@/pages/Workshops/components/WorkshopDetail'
 import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
+import SettingsPage from '@/pages/Settings/Settings'
+import Schedule from '@/pages/Schedule/Schedule'
 // import DashboardComponent from "./DashboardComponent";
 
 // Lazy load the components
@@ -91,6 +93,14 @@ export const router = createBrowserRouter([
         )
       },
       {
+        path: 'schedule',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <Schedule />
+          </Suspense>
+        )
+      },
+      {
         path: 'workshops',
         element: (
           <Suspense fallback={<Loading />}>
@@ -103,6 +113,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <WorkshopDetail />
+          </Suspense>
+        )
+      },
+      {
+        path: 'settings',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SettingsPage />
           </Suspense>
         )
       },
