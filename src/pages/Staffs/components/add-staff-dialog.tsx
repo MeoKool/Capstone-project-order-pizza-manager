@@ -27,10 +27,14 @@ interface AddStaffDialogProps {
 
 const formSchema = z.object({
   username: z.string().min(3, 'Tên đăng nhập phải có ít nhất 3 ký tự'),
-  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+  password: z
+    .string()
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
+    .regex(/[A-Z]/, 'Mật khẩu phải có ít nhất 1 chữ in hoa')
+    .regex(/[@$!%*?&#]/, 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt'),
   fullName: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Email không hợp lệ'),
-  phone: z.string().min(10, 'Số điện thoại phải có ít nhất 10 số'),
+  phone: z.string().min(10, 'Số điện thoại phải có ít nhất 10 số').regex(/^0/, 'Số điện thoại phải bắt đầu bằng số 0'),
   staffType: z.nativeEnum(StaffType),
   status: z.enum(['FullTime', 'PartTime'])
 })
