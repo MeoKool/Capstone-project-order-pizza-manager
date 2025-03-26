@@ -13,14 +13,14 @@ export function SidebarItem({ icon, text, active = false, alert = false }: Sideb
     return (
         <li
             className={`
-                relative flex items-center py-3 h-14 
+                relative flex items-center py-3 h-14
                 font-medium rounded-md cursor-pointer
                 transition-colors group
                 ${active
-                    ? "bg-green-200 text-green-800"
-                    : expanded ? "hover:bg-gray-200 text-gray-500" : "text-gray-500 hover:bg-gray-200"
+                    ? "bg-green-400 text-green-100"
+                    : expanded ? "hover:bg-gray-200 text-gray-500 " : "text-gray-500 hover:bg-gray-200"
                 }
-                ${expanded ? 'px-6 justify-start' : 'px-2 justify-center'}
+                ${expanded ? 'px-6 justify-start mx-3' : 'px-2 justify-center mx-1'}
             `}
         >
             <span className={`${active ? 'text-green-800' : 'text-gray-500'} ${expanded ? '' : 'text-xl'}`}>

@@ -1,9 +1,7 @@
-'use client'
-
 import type React from 'react'
 import { useState, useEffect } from 'react'
 import { MoreVertical, Edit, Trash2, Filter, ArrowUpDown, Check, X, PlusCircle } from 'lucide-react'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -12,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-// import { DeleteFoodDialog } from './delete-food-dialog'
+// import { DeleteFoodDialog } from './dialogs/delete-food-dialog'
 import useProducts from '@/hooks/useProducts'
 import useCategories from '@/hooks/useCategories'
 import type { ProductModel } from '@/types/product'
@@ -124,202 +122,209 @@ const FoodList: React.FC = () => {
   }
 
   return (
-    <div className='space-y-6 mx-auto p-4 max-w-full'>
-      <div className='flex justify-between items-center'>
-        <h2 className='text-2xl font-bold'>Danh sách món ăn</h2>
-        <div className='flex items-center gap-3'>
-          <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-            <PopoverTrigger asChild>
-              <Button variant='outline' size='sm' className='gap-2'>
-                <Filter className='h-4 w-4' />
-                Lọc
-                {selectedCategory && (
-                  <Badge variant='secondary' className='ml-1 rounded-sm px-1'>
-                    1
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className='w-[200px] p-0' align='end'>
-              <div className='p-3'>
-                <div className='flex items-center justify-between'>
-                  <h4 className='font-medium'>Danh mục</h4>
-                  {selectedCategory && (
-                    <Button variant='ghost' size='sm' className='h-8 px-2' onClick={clearFilter}>
-                      <X className='h-4 w-4' />
-                      <span className='sr-only'>Xóa bộ lọc</span>
-                    </Button>
-                  )}
-                </div>
-                <Separator className='my-2' />
-              </div>
-              <ScrollArea className='h-[300px] px-3'>
-                <div className='space-y-2'>
-                  {foodCategory.map((category) => (
-                    <Button
-                      key={category.id}
-                      variant='ghost'
-                      className='w-full justify-start font-normal'
-                      onClick={() => handleCategorySelect(category.id)}
-                    >
-                      <div className='flex items-center'>
-                        {selectedCategory === category.id && <Check className='mr-2 h-4 w-4 text-primary' />}
-                        <span className={selectedCategory === category.id ? 'ml-2' : 'ml-6'}>{category.name}</span>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </PopoverContent>
-          </Popover>
-
-          <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-            <SelectTrigger className='w-[180px]'>
-              <div className='flex items-center gap-2'>
-                <ArrowUpDown className='h-4 w-4' />
-                <SelectValue placeholder='Sắp xếp'>{getSortLabel(sortOption)}</SelectValue>
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='newest'>Mới nhất</SelectItem>
-              <SelectItem value='price-asc'>Giá: Thấp đến cao</SelectItem>
-              <SelectItem value='price-desc'>Giá: Cao đến thấp</SelectItem>
-              <SelectItem value='name-asc'>Tên: A-Z</SelectItem>
-              <SelectItem value='name-desc'>Tên: Z-A</SelectItem>
-            </SelectContent>
-          </Select>
-          <div>
-            <Button onClick={() => setIsAddDialogOpen(true)} className='gap-2 bg-green-500 px-2'>
-              <PlusCircle className='h-4 w-4' />
-              Thêm món ăn
-            </Button>
-            <AddFoodDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
-          </div>
-
+    <Card className="mt-4">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Thực đơn</CardTitle>
+          <CardDescription>Quản lý thông tin về thực đơn của bạn.</CardDescription>
         </div>
-      </div>
-
-      <div className='flex items-center gap-2'>
-        {selectedCategory && (
-          <Badge variant='secondary' className='flex items-center gap-1'>
-            Danh mục: {getCategoryName(selectedCategory)}
-            <Button variant='ghost' size='sm' className='h-4 w-4 p-0 ml-1' onClick={clearFilter}>
-              <X className='h-3 w-3' />
-              <span className='sr-only'>Xóa bộ lọc</span>
-            </Button>
-          </Badge>
-        )}
-
-        <Badge variant='outline' className='flex items-center gap-1'>
-          Sắp xếp: {getSortLabel(sortOption)}
-        </Badge>
-
-        {(selectedCategory || sortOption !== 'newest') && (
-          <Button
-            variant='default'
-            size='sm'
-            className='h-8 px-2 text-xs'
-            onClick={() => {
-              setSelectedCategory('')
-              setSortOption('newest')
-            }}
-          >
-            Đặt lại
-          </Button>
-        )}
-      </div>
-
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-        {loading
-          ? Array.from({ length: 8 }).map((_, index) => (
-            <Card key={index} className='h-full animate-pulse'>
-              <div className='w-full h-40 bg-gray-300'></div>
-              <CardContent className='p-4'>
-                <div className='h-6 bg-gray-300 rounded mb-2'></div>
-                <div className='h-4 bg-gray-300 rounded'></div>
-              </CardContent>
-              <CardFooter className='p-4 pt-0'>
-                <div className='h-6 bg-gray-300 rounded w-1/2'></div>
-              </CardFooter>
-            </Card>
-          ))
-          : displayedProducts.map((food) => (
-            <Card key={food.id} className='h-full'>
-              <div className='w-full h-64'>
-                <img
-                  src={`data:image/jpeg;base64,` + food.image}
-                  alt={food.name}
-                  className='object-cover w-full h-full'
-                />
-              </div>
-              <CardContent className='p-4'>
-                <div className='flex justify-between items-start'>
-                  <div>
-                    <h3 className='font-semibold text-lg'>{food.name}</h3>
-                    <p className='text-sm text-muted-foreground line-clamp-2 mt-1'>{food.description}</p>
-                    <Badge variant='outline' className='mt-2'>
-                      {getCategoryName(food.categoryId)}
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className='flex justify-between items-center'>
+          <h2 className='text-xl font-bold'>Danh sách món ăn</h2>
+          <div className='flex items-center gap-3'>
+            <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant='outline' size='sm' className='gap-2'>
+                  <Filter className='h-4 w-4' />
+                  Lọc
+                  {selectedCategory && (
+                    <Badge variant='secondary' className='ml-1 rounded-sm px-1'>
+                      1
                     </Badge>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant='ghost' size='icon'>
-                        <MoreVertical className='h-4 w-4' />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className='w-[200px] p-0' align='end'>
+                <div className='p-3'>
+                  <div className='flex items-center justify-between'>
+                    <h4 className='font-medium'>Danh mục</h4>
+                    {selectedCategory && (
+                      <Button variant='ghost' size='sm' className='h-8 px-2' onClick={clearFilter}>
+                        <X className='h-4 w-4' />
+                        <span className='sr-only'>Xóa bộ lọc</span>
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end'>
-                      <DropdownMenuItem onClick={() => handleEdit(food)}>
-                        <Edit className='h-4 w-4 mr-2' />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className='text-destructive focus:text-destructive'>
-                        <Trash2 className='h-4 w-4 mr-2' />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    )}
+                  </div>
+                  <Separator className='my-2' />
                 </div>
-              </CardContent>
-              <CardFooter className='p-4 pt-0 flex justify-between items-center'>
-                <span className='font-semibold text-primary'>{food.price.toLocaleString('vi-VN')} ₫</span>
-              </CardFooter>
-            </Card>
-          ))}
-      </div>
+                <ScrollArea className='h-[300px] px-3'>
+                  <div className='space-y-2'>
+                    {foodCategory.map((category) => (
+                      <Button
+                        key={category.id}
+                        variant='ghost'
+                        className='w-full justify-start font-normal'
+                        onClick={() => handleCategorySelect(category.id)}
+                      >
+                        <div className='flex items-center'>
+                          {selectedCategory === category.id && <Check className='mr-2 h-4 w-4 text-primary' />}
+                          <span className={selectedCategory === category.id ? 'ml-2' : 'ml-6'}>{category.name}</span>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </PopoverContent>
+            </Popover>
 
-      {displayedProducts.length === 0 && !loading && (
-        <div className='text-center py-10'>
-          <p className='text-muted-foreground'>Không tìm thấy món ăn nào phù hợp với bộ lọc</p>
+            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+              <SelectTrigger className='w-[180px]'>
+                <div className='flex items-center gap-2'>
+                  <ArrowUpDown className='h-4 w-4' />
+                  <SelectValue placeholder='Sắp xếp'>{getSortLabel(sortOption)}</SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='newest'>Mới nhất</SelectItem>
+                <SelectItem value='price-asc'>Giá: Thấp đến cao</SelectItem>
+                <SelectItem value='price-desc'>Giá: Cao đến thấp</SelectItem>
+                <SelectItem value='name-asc'>Tên: A-Z</SelectItem>
+                <SelectItem value='name-desc'>Tên: Z-A</SelectItem>
+              </SelectContent>
+            </Select>
+            <div>
+              <Button onClick={() => setIsAddDialogOpen(true)} className='gap-2 bg-green-500 px-2'>
+                <PlusCircle className='h-4 w-4' />
+                Thêm món ăn
+              </Button>
+              <AddFoodDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+            </div>
+          </div>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          {selectedCategory && (
+            <Badge variant='secondary' className='flex items-center gap-1'>
+              Danh mục: {getCategoryName(selectedCategory)}
+              <Button variant='ghost' size='sm' className='h-4 w-4 p-0 ml-1' onClick={clearFilter}>
+                <X className='h-3 w-3' />
+                <span className='sr-only'>Xóa bộ lọc</span>
+              </Button>
+            </Badge>
+          )}
+
+          <Badge variant='outline' className='flex items-center gap-1'>
+            Sắp xếp: {getSortLabel(sortOption)}
+          </Badge>
+
           {(selectedCategory || sortOption !== 'newest') && (
             <Button
-              variant='link'
+              variant='default'
+              size='sm'
+              className='h-8 px-2 text-xs'
               onClick={() => {
                 setSelectedCategory('')
                 setSortOption('newest')
               }}
             >
-              Đặt lại tất cả bộ lọc
+              Đặt lại
             </Button>
           )}
         </div>
-      )}
 
-      {editingFood && (
-        <EditFoodDialog
-          food={editingFood}
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          onSave={updateFood}
-        />
-      )}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+          {loading
+            ? Array.from({ length: 8 }).map((_, index) => (
+              <Card key={index} className='h-full animate-pulse'>
+                <div className='w-full h-40 bg-gray-300'></div>
+                <CardContent className='p-4'>
+                  <div className='h-6 bg-gray-300 rounded mb-2'></div>
+                  <div className='h-4 bg-gray-300 rounded'></div>
+                </CardContent>
+                <CardFooter className='p-4 pt-0'>
+                  <div className='h-6 bg-gray-300 rounded w-1/2'></div>
+                </CardFooter>
+              </Card>
+            ))
+            : displayedProducts.map((food) => (
+              <Card key={food.id} className='h-full'>
+                <div className='w-full h-64'>
+                  <img
+                    src={`data:image/jpeg;base64,` + food.image}
+                    alt={food.name}
+                    className='object-cover w-full h-full'
+                  />
+                </div>
+                <CardContent className='p-4'>
+                  <div className='flex justify-between items-start'>
+                    <div>
+                      <h3 className='font-semibold text-lg'>{food.name}</h3>
+                      <p className='text-sm text-muted-foreground line-clamp-2 mt-1'>{food.description}</p>
+                      <Badge variant='outline' className='mt-2'>
+                        {getCategoryName(food.categoryId)}
+                      </Badge>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant='ghost' size='icon'>
+                          <MoreVertical className='h-4 w-4' />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align='end'>
+                        <DropdownMenuItem onClick={() => handleEdit(food)}>
+                          <Edit className='h-4 w-4 mr-2' />
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className='text-destructive focus:text-destructive'>
+                          <Trash2 className='h-4 w-4 mr-2' />
+                          Xóa
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+                <CardFooter className='p-4 pt-0 flex justify-between items-center'>
+                  <span className='font-semibold text-primary'>{food.price.toLocaleString('vi-VN')} ₫</span>
+                </CardFooter>
+              </Card>
+            ))}
+        </div>
 
-      {/* <DeleteFoodDialog
-        food={isDeletingFood}
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={confirmDelete}
-      /> */}
-    </div>
+        {displayedProducts.length === 0 && !loading && (
+          <div className='text-center py-10'>
+            <p className='text-muted-foreground'>Không tìm thấy món ăn nào phù hợp với bộ lọc</p>
+            {(selectedCategory || sortOption !== 'newest') && (
+              <Button
+                variant='link'
+                onClick={() => {
+                  setSelectedCategory('')
+                  setSortOption('newest')
+                }}
+              >
+                Đặt lại tất cả bộ lọc
+              </Button>
+            )}
+          </div>
+        )}
+
+        {editingFood && (
+          <EditFoodDialog
+            food={editingFood}
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            onSave={updateFood}
+          />
+        )}
+
+        {/* <DeleteFoodDialog
+          food={isDeletingFood}
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={confirmDelete}
+        /> */}
+      </CardContent>
+    </Card>
   )
 }
 

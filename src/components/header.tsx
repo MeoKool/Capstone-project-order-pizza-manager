@@ -13,7 +13,7 @@ const Header: React.FC<HeaderProps> = ({ height = '64px', className = '', title 
             style={{ height }}
             className={`w-full bg-white border-b border-gray-200 flex items-center justify-between px-4 ${className}`}
         >
-            <h1 className="text-xl font-semibold">{title}</h1>
+            <h1 className="text-xl font-semibold">Manager {title}</h1>
             <div className="flex items-center space-x-4">
                 <div className="relative">
                     <input
