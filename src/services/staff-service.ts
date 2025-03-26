@@ -60,13 +60,8 @@ class StaffService {
   public async createStaff(staffData: CreateStaffDto): Promise<ApiResponse<Staff>> {
     try {
       // Convert staffType and status to numeric values based on the API documentation
-      const mappedStaffData = {
-        ...staffData,
-        staffType: this.mapStaffTypeToNumber(staffData.staffType),
-        status: this.mapStatusToNumber(staffData.status)
-      }
 
-      return await post<Staff>('/staffs', mappedStaffData)
+      return await post<Staff>('Admin/create-staff', staffData)
     } catch (error) {
       console.error('Error creating staff:', error)
       throw error
@@ -100,11 +95,11 @@ class StaffService {
   /**
    * Delete a staff member
    */
-  public async deleteStaff(id: string): Promise<ApiResponse<unknown>> {
+  public async deleteStaff(ids: string[]): Promise<ApiResponse<unknown>> {
     try {
-      return await del<unknown>(`/staffs/${id}`)
+      return await del<unknown>('/staffs?isHardDeleted=false', { data: ids })
     } catch (error) {
-      console.error(`Error deleting staff with id ${id}:`, error)
+      console.error(`Error deleting staff with ids ${ids.join(', ')}:`, error)
       throw error
     }
   }

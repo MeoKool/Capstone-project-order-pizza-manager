@@ -81,7 +81,7 @@ export function StaffProvider({ children }: { children: ReactNode }) {
 
   const deleteStaff = async (id: string) => {
     try {
-      const response = await staffService.deleteStaff(id)
+      const response = await staffService.deleteStaff([id])
 
       if (response.success) {
         // Remove the deleted staff from the local state

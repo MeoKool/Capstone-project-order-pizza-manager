@@ -29,8 +29,8 @@ export function StaffTable() {
       member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.phone.includes(searchTerm)
 
-    const matchesStatus = statusFilter === '' || member.status === statusFilter
-    const matchesType = typeFilter === '' || member.staffType === typeFilter
+    const matchesStatus = statusFilter === '' || statusFilter === 'all' || member.status === statusFilter
+    const matchesType = typeFilter === '' || typeFilter === 'all' || member.staffType === typeFilter
 
     return matchesSearch && matchesStatus && matchesType
   })
@@ -140,6 +140,7 @@ export function StaffTable() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Tên đăng nhập</TableHead>
               <TableHead>Họ và tên</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Số điện thoại</TableHead>
@@ -152,6 +153,9 @@ export function StaffTable() {
             {loading ? (
               Array.from({ length: 3 }).map((_, index) => (
                 <TableRow key={index} className='animate-pulse'>
+                  <TableCell>
+                    <div className='h-5 bg-gray-200 rounded w-32'></div>
+                  </TableCell>
                   <TableCell>
                     <div className='h-5 bg-gray-200 rounded w-32'></div>
                   </TableCell>
@@ -181,6 +185,8 @@ export function StaffTable() {
             ) : (
               filteredStaff.map((member) => (
                 <TableRow key={member.id}>
+                  <TableCell className='font-medium'>{member.username}</TableCell>
+
                   <TableCell className='font-medium'>{member.fullName}</TableCell>
                   <TableCell>{member.email}</TableCell>
                   <TableCell>{member.phone}</TableCell>

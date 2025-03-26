@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -19,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Loader2, Eye, EyeOff } from 'lucide-react'
 import { useStaff } from './staff-provider'
 import { StaffType } from '@/types/staff'
+import { toast } from 'sonner'
 
 interface AddStaffDialogProps {
   open: boolean
@@ -62,10 +61,14 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true)
     try {
+      console.log('Submitting data:', data)
+
       await addStaff(data)
+      toast.success('Tạo thành công')
       form.reset()
       onOpenChange(false)
     } catch (error) {
+      toast.error('Tạo thất bại')
       console.error('Failed to add staff:', error)
     } finally {
       setIsSubmitting(false)
@@ -187,7 +190,7 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                       <SelectContent>
                         <SelectItem value='Staff'>Nhân viên</SelectItem>
                         <SelectItem value='Manager'>Quản lý</SelectItem>
-                        <SelectItem value='Chef'>Đầu bếp</SelectItem>
+                        <SelectItem value='Cheff'>Đầu bếp</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
