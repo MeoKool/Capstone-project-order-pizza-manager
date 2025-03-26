@@ -108,7 +108,7 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                 <FormItem>
                   <FormLabel>Tên đăng nhập</FormLabel>
                   <FormControl>
-                    <Input placeholder='Nhập tên đăng nhập' {...field} />
+                    <Input placeholder='Nhập tên đăng nhập' {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -162,7 +162,7 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder='example@email.com' {...field} />
+                      <Input placeholder='example@email.com' {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -175,7 +175,7 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                   <FormItem>
                     <FormLabel>Số điện thoại</FormLabel>
                     <FormControl>
-                      <Input placeholder='0123456789' {...field} />
+                      <Input placeholder='0123456789' {...field} disabled />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
