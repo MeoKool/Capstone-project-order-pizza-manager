@@ -4,9 +4,9 @@ import { Utensils, Wheat, Ruler, SquareMenu, Pizza } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import FoodList from './components/FoodList'
 import IngredientsPage from './components/Ingredients'
 import ProductSizePage from './components/Product-Size'
+import FoodList from './components/FoodList'
 
 const MenuFood: React.FC = () => {
   const [, setActiveTab] = useState("product")

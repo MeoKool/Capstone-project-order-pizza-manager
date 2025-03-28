@@ -1,7 +1,7 @@
 import axios, { type AxiosInstance, type AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 
 const apiUrl = import.meta.env.VITE_API_URL
-console.log(apiUrl)
+
 
 // Create Axios instance
 const api: AxiosInstance = axios.create({
