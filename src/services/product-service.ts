@@ -1,5 +1,6 @@
-import ApiResponse, { get, post } from '@/apis/apiUtils'
+import ApiResponse, { get, } from '@/apis/apiUtils'
 import { ProductResponse, ProductsResult } from '@/types/product'
+import { ProductDetail } from '@/types/product-detail'
 
 class ProductService {
   private static instance: ProductService
@@ -81,9 +82,9 @@ class ProductService {
     }
   }
 
-  public async getProductById(id: string): Promise<ApiResponse<ProductsResult>> {
+  public async getProductById(id: string): Promise<ApiResponse<ProductDetail>> {
     try {
-      return await get<ProductsResult>(`/products/${id}`)
+      return await get<ProductDetail>(`products/${id}?includeProperties=ProductSizes.Recipes%2COptions.OptionItems`)
     } catch (error) {
       console.error(`Error fetching product with id ${id}:`, error)
       throw error
@@ -98,18 +99,32 @@ class ProductService {
     }
   }
 
-  public async createProduct(data: string): Promise<ProductResponse> {
+  public async createProductWithImage(formData: FormData): Promise<ProductResponse> {
     try {
-      const formDataJson = JSON.parse(data)
-      const response = await post<ProductResponse>(`/products`, formDataJson)
-      console.log("Create product response:", response)
-      return response.result
+      console.log("Creating product with image")
+
+      const response = await fetch("https://vietsac.id.vn/api/products", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log("Create product with image response:", result)
+      return result
     } catch (error) {
-      console.error(`Error creating new product:`, error)
-      throw error
+      console.error(`Error creating new product with image:`, error)
+      return {
+        success: false,
+        result: null,
+        message: `Error creating product: ${error instanceof Error ? error.message : String(error)}`,
+        statusCode: 500,
+      }
     }
   }
-
   /**
    * Upload product image
    * @param formData FormData containing productId and image file

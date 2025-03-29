@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import IngredientsPage from './components/Ingredients'
 import ProductSizePage from './components/Product-Size'
 import FoodList from './components/FoodList'
+import CategoryPage from './components/Category'
 
 const MenuFood: React.FC = () => {
   const [, setActiveTab] = useState("product")
@@ -75,13 +76,11 @@ const MenuFood: React.FC = () => {
         <TabsContent value="category">
           <Card>
             <CardHeader>
-              <CardTitle>Công thức (Recipe)</CardTitle>
-              <CardDescription>Quản lý các công thức chế biến sản phẩm.</CardDescription>
+              <CardTitle>Loại món</CardTitle>
+              <CardDescription>Quản lý các loại món ăn .</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="h-40 rounded-md border border-dashed flex items-center justify-center">
-                <p className="text-muted-foreground">Nội dung Công thức ở đây</p>
-              </div>
+              <CategoryPage />
             </CardContent>
           </Card>
         </TabsContent>

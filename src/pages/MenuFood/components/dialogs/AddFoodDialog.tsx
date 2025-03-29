@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import useCategories from "@/hooks/useCategories"
-import ProductService from "@/services/product-service"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -20,61 +19,46 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Loader2, Plus, Trash2, PlusCircle, X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle, CheckCircle } from "lucide-react"
+import FileUpload from "@/components/uploadImage"
+
 interface AddFoodDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-interface ProductOptionItemModel {
-  name: string
-  additionalPrice: number
-}
-
-interface ProductOptionModel {
-  name: string
-  description: string
-  productOptionItemModels: ProductOptionItemModel[]
-}
-
-interface ProductCreateRequest {
-  name: string
-  price: number
-  description: string
-  categoryId: string
-  productType: string
-  productOptionModels: ProductOptionModel[]
-}
-
-// Define the schema for option items
-const optionItemSchema = z.object({
-  name: z.string().min(1, "Tên lựa chọn không được để trống"),
-  additionalPrice: z.number().min(0, "Giá phụ thu không được âm"),
-})
-
-// Define the schema for options
-const optionSchema = z.object({
-  name: z.string().min(1, "Tên tùy chọn không được để trống"),
-  description: z.string().optional(),
-  productOptionItemModels: z.array(optionItemSchema).min(1, "Phải có ít nhất một lựa chọn"),
-})
-
-// Define the main form schema
+// Define the form schema with nested option groups
 const formSchema = z.object({
-  name: z.string().min(1, "Tên món ăn không được để trống"),
-  price: z.number().min(1, "Giá phải lớn hơn 0"),
-  description: z.string().optional(),
-  categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
-  productType: z.string().default("0"),
-  productOptionModels: z.array(optionSchema).optional(),
+  Name: z.string().min(1, "Tên món ăn không được để trống"),
+  Price: z.number().min(1, "Giá phải lớn hơn 0"),
+  Description: z.string().optional(),
+  CategoryId: z.string().min(1, "Vui lòng chọn danh mục"),
+  ProductType: z.enum(["HotKitchen", "ColdKitchen"]).default("HotKitchen"),
+  productOptionModels: z
+    .array(
+      z.object({
+        name: z.string().min(1, "Tên nhóm tùy chọn không được để trống"),
+        description: z.string().optional(),
+        productOptionItemModels: z
+          .array(
+            z.object({
+              name: z.string().min(1, "Tên lựa chọn không được để trống"),
+              additionalPrice: z.number().min(0, "Giá phụ thu không được âm"),
+            }),
+          )
+          .min(1, "Phải có ít nhất một lựa chọn"),
+      }),
+    )
+    .optional(),
 })
 
-type FormValues = z.infer<typeof formSchema>
 
 // Separate component for option items to avoid hook rules violations
 function OptionItemFields({
   control,
   nestIndex,
+
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: any
@@ -104,7 +88,7 @@ function OptionItemFields({
       </div>
 
       {fields.length === 0 ? (
-        <div className="text-center py-2 border border-dashed rounded-md">
+        <div className="text-center py-2 border border-dashed ">
           <p className="text-xs text-muted-foreground">Chưa có lựa chọn nào</p>
         </div>
       ) : (
@@ -165,22 +149,25 @@ function OptionItemFields({
 
 export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const { foodCategory } = useCategories()
 
-  const form = useForm<FormValues>({
+  // Update the form default values
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      price: 0,
-      description: "",
-      categoryId: "",
-      productType: "0",
+      Name: "",
+      Price: 0,
+      Description: "",
+      CategoryId: "",
+      ProductType: "HotKitchen",
       productOptionModels: [],
     },
   })
 
-  // Use field array for managing product options at the top level
+  // Update the useFieldArray to use the new structure for option groups
   const {
     fields: optionFields,
     append: appendOption,
@@ -190,6 +177,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     name: "productOptionModels",
   })
 
+  // Update the addNewOption function to add a new option group
   const addNewOption = () => {
     appendOption({
       name: "",
@@ -200,7 +188,9 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
   const resetForm = () => {
     form.reset()
-
+    setSelectedFile(null)
+    setError(null)
+    setSuccess(false)
   }
 
   const handleClose = () => {
@@ -208,38 +198,85 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     onOpenChange(false)
   }
 
-  const onSubmit = async (data: FormValues) => {
+  // Update the onSubmit function to match the new structure
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
-
+    setError(null)
+    setSuccess(false)
 
     try {
-      const requestData: ProductCreateRequest = {
-        name: data.name,
-        price: data.price,
-        description: data.description || "",
-        categoryId: data.categoryId,
-        productType: data.productType,
-        productOptionModels: (data.productOptionModels || []).map(option => ({
-          ...option,
-          description: option.description || ""
-        })),
+
+      // Convert productOptionModels to JSON string
+      const productOptionModelsJson = JSON.stringify(
+        data.productOptionModels && data.productOptionModels.length > 0 ? data.productOptionModels : null,
+      )
+      console.log(productOptionModelsJson);
+
+      // Create FormData object
+      const formData = new FormData()
+
+      // Add all product fields individually to FormData
+      formData.append("Name", data.Name)
+      formData.append("Price", data.Price.toString())
+      formData.append("Description", data.Description || "")
+      formData.append("CategoryId", data.CategoryId)
+      formData.append("ProductType", data.ProductType)
+
+      // Add ProductOptionModels as a JSON string
+      // Always send "[]" as the value for ProductOptionModels if there are no options
+      formData.append("ProductOptionModels", "")
+
+      // If there are options, then override with the actual options
+      if (data.productOptionModels && data.productOptionModels.length > 0) {
+        // Make sure all required fields are filled
+        const validOptions = data.productOptionModels.filter(
+          (option) =>
+            option.name &&
+            option.productOptionItemModels &&
+            option.productOptionItemModels.length > 0 &&
+            option.productOptionItemModels.every((item) => item.name),
+        )
+
+        if (validOptions.length > 0) {
+          formData.set("ProductOptionModels", JSON.stringify(validOptions))
+        }
+      }
+      // Add the file if one is selected
+      if (selectedFile) {
+        formData.append("file", selectedFile)
+      }
+      // Log the form data for debugging
+      console.log("Form data being sent:")
+      for (const pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1])
       }
 
-      const productService = ProductService.getInstance()
-      const response = await productService.createProduct(JSON.stringify(requestData))
+      // Send the FormData directly
+      const response = await fetch("https://vietsac.id.vn/api/products", {
+        method: "POST",
+        body: formData,
+      })
 
-      if (!response.success === false) {
-        throw new Error(response.message || "Không thể tạo sản phẩm")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
       }
-      toast.success("Tạo sản phẩm thành công!")
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.message || "Không thể tạo sản phẩm")
+      }
+
+      setSuccess(true)
 
       // Close dialog after success
       setTimeout(() => {
         handleClose()
       }, 1500)
     } catch (err) {
-      toast.error("Có lỗi xảy ra khi tạo sản phẩm")
       console.error("Error creating product:", err)
+      setError(err instanceof Error ? err.message : "Có lỗi xảy ra khi tạo sản phẩm")
     } finally {
       setIsSubmitting(false)
     }
@@ -247,19 +284,34 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto scrollbar-hide ">
         <DialogHeader>
           <DialogTitle>Thêm món ăn mới</DialogTitle>
           <DialogDescription>Vui lòng điền thông tin chi tiết về món ăn mới.</DialogDescription>
         </DialogHeader>
 
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Lỗi</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert className="mb-4 border-green-500 text-green-500">
+            <CheckCircle className="h-4 w-4" />
+            <AlertTitle>Thành công</AlertTitle>
+            <AlertDescription>Đã tạo sản phẩm mới thành công!</AlertDescription>
+          </Alert>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="Name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tên món ăn</FormLabel>
@@ -273,7 +325,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
               <FormField
                 control={form.control}
-                name="price"
+                name="Price"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Giá (VNĐ)</FormLabel>
@@ -296,7 +348,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
             <FormField
               control={form.control}
-              name="description"
+              name="Description"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Mô tả</FormLabel>
@@ -308,10 +360,21 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
               )}
             />
 
+            {/* Add file upload component */}
+            <div className="space-y-2">
+              <FormLabel>Hình ảnh sản phẩm</FormLabel>
+
+              <FileUpload
+                onFileChange={(file) => setSelectedFile(file)}
+                value={selectedFile ? URL.createObjectURL(selectedFile) : undefined}
+              />
+
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="categoryId"
+                name="CategoryId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Danh mục</FormLabel>
@@ -336,7 +399,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
               <FormField
                 control={form.control}
-                name="productType"
+                name="ProductType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Loại sản phẩm</FormLabel>
@@ -347,8 +410,8 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ColdKitchen">ColdKitchen</SelectItem>
-                        <SelectItem value="HotKitchen">HotKitchen</SelectItem>
+                        <SelectItem value="HotKitchen">Bếp nóng</SelectItem>
+                        <SelectItem value="ColdKitchen">Bếp lạnh</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -369,13 +432,15 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                   className="flex items-center gap-1"
                 >
                   <PlusCircle className="h-4 w-4" />
-                  Thêm tùy chọn
+                  Thêm nhóm tùy chọn
                 </Button>
               </div>
 
               {optionFields.length === 0 && (
                 <div className="text-center py-4 border border-dashed rounded-md">
-                  <p className="text-muted-foreground">Chưa có tùy chọn nào. Nhấn "Thêm tùy chọn" để bắt đầu.</p>
+                  <p className="text-muted-foreground">
+                    Chưa có nhóm tùy chọn nào. Nhấn "Thêm nhóm tùy chọn" để bắt đầu.
+                  </p>
                 </div>
               )}
 
@@ -384,14 +449,15 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                   <AccordionItem
                     key={optionField.id}
                     value={`option-${optionIndex}`}
-                    className="border rounded-lg overflow-hidden"
+                    className=" overflow-hidden"
                   >
                     <Card>
-                      <CardHeader className="p-4 pb-0">
+                      <CardHeader className="p-4 ">
                         <div className="flex items-center justify-between">
                           <AccordionTrigger className="hover:no-underline py-0">
                             <CardTitle className="text-base">
-                              {form.watch(`productOptionModels.${optionIndex}.name`) || `Tùy chọn ${optionIndex + 1}`}
+                              {form.watch(`productOptionModels.${optionIndex}.name`) ||
+                                `Tùy chọn ${optionIndex + 1}`}
                             </CardTitle>
                           </AccordionTrigger>
                           <Button
@@ -402,12 +468,12 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                             className="text-destructive h-8 w-8 p-0"
                           >
                             <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Xóa tùy chọn</span>
+                            <span className="sr-only">Xóa nhóm tùy chọn</span>
                           </Button>
                         </div>
                       </CardHeader>
                       <AccordionContent>
-                        <CardContent className="p-4 pt-0">
+                        <CardContent className="p-4 ">
                           <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                               <FormField
@@ -415,7 +481,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                                 name={`productOptionModels.${optionIndex}.name`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Tên tùy chọn</FormLabel>
+                                    <FormLabel>Tên nhóm tùy chọn</FormLabel>
                                     <FormControl>
                                       <Input placeholder="Ví dụ: Kích cỡ, Đường, Đá..." {...field} />
                                     </FormControl>
@@ -430,7 +496,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                                   <FormItem>
                                     <FormLabel>Mô tả (tùy chọn)</FormLabel>
                                     <FormControl>
-                                      <Input placeholder="Mô tả tùy chọn" {...field} />
+                                      <Input placeholder="Mô tả nhóm tùy chọn" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>

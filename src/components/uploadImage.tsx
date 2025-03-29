@@ -37,17 +37,21 @@ export default function FileUpload({ onFileChange, value }: FileUploadProps) {
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <label htmlFor="image-upload" className="cursor-pointer">
-          <div className="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-gray-50">
+          <div className="flex items-center gap-2 px-4 h-9 border rounded-md hover:bg-gray-50">
             <Upload className="w-4 h-4" />
             <span>Tải lên hình ảnh</span>
           </div>
           <input id="image-upload" type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
         </label>
         {preview && (
-          <Button variant="outline" size="sm" onClick={clearImage} type="button">
+
+
+          <Button variant="outline" onClick={clearImage} type="button" >
             <X className="w-4 h-4 mr-1" />
             Xóa
           </Button>
+
+
         )}
       </div>
 
