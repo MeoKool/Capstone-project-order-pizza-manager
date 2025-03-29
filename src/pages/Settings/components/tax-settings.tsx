@@ -1,6 +1,4 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -10,13 +8,20 @@ import { useSettings } from './settings-provider'
 import { toast } from 'sonner'
 
 export function TaxSettings() {
-  const { settings, updateSetting } = useSettings()
+  const { settings, loading, updateSetting } = useSettings()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Find the VAT setting
-  const vatSetting = settings.find((setting) => setting.key === 'VAT')
+  const vatSetting = settings?.find((setting) => setting.key === 'VAT')
 
   const [vatValue, setVatValue] = useState(vatSetting ? (Number.parseFloat(vatSetting.value) * 100).toString() : '8')
+
+  // Update state values when settings are loaded
+  useEffect(() => {
+    if (vatSetting) {
+      setVatValue((Number.parseFloat(vatSetting.value) * 100).toString())
+    }
+  }, [vatSetting])
 
   const handleSave = async () => {
     if (!vatSetting) return
@@ -26,13 +31,27 @@ export function TaxSettings() {
       // Convert percentage back to decimal
       const decimalValue = (Number.parseFloat(vatValue) / 100).toString()
       await updateSetting(vatSetting.id, decimalValue)
-      toast('Thuế VAT đã được cập nhật')
+      toast.success('Thuế VAT đã được cập nhật')
     } catch (error) {
       console.log(error)
-      toast('Không thể cập nhật cài đặt. Vui lòng thử lại.')
+      toast.error('Không thể cập nhật cài đặt. Vui lòng thử lại.')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Thuế & Phí</CardTitle>
+          <CardDescription>Đang tải...</CardDescription>
+        </CardHeader>
+        <CardContent className='flex justify-center py-6'>
+          <Loader2 className='h-6 w-6 animate-spin text-primary' />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (

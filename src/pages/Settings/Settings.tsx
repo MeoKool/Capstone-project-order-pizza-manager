@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2 } from 'lucide-react'
-import { SettingsProvider } from './components/settings-provider'
+import { SettingsProvider, useSettings } from './components/settings-provider'
 import { GeneralSettings } from './components/general-settings'
 import { TaxSettings } from './components/tax-settings'
+import { RegistrationSettings } from './components/registration-settings'
 
 function SettingsContent() {
   const { loading, error } = useSettings()
@@ -43,11 +44,16 @@ function SettingsContent() {
       <Tabs defaultValue='general' value={activeTab} onValueChange={setActiveTab} className='space-y-4'>
         <TabsList>
           <TabsTrigger value='general'>Cài đặt chung</TabsTrigger>
+          <TabsTrigger value='registration'>Đăng ký</TabsTrigger>
           <TabsTrigger value='tax'>Thuế & Phí</TabsTrigger>
         </TabsList>
 
         <TabsContent value='general' className='space-y-4'>
           <GeneralSettings />
+        </TabsContent>
+
+        <TabsContent value='registration' className='space-y-4'>
+          <RegistrationSettings />
         </TabsContent>
 
         <TabsContent value='tax' className='space-y-4'>
@@ -57,9 +63,6 @@ function SettingsContent() {
     </div>
   )
 }
-
-// Missing import for useSettings
-import { useSettings } from './components/settings-provider'
 
 export default function SettingsPage() {
   return (

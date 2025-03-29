@@ -14,6 +14,7 @@ interface SettingsContextType {
   error: string | null
   fetchSettings: () => Promise<void>
   updateSetting: (id: string, value: string) => Promise<void>
+  getConfigTypeAsNumber: (configType: string) => number
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -76,7 +77,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const getConfigTypeAsNumber = (configType: string): number => {
     const configTypeMap: Record<string, number> = {
       MAXIMUM_REGISTER_SLOT: 0,
-      VAT: 1
+      VAT: 1,
+      SWAP_WORKING_SLOT_CUTOFF_DAY: 2,
+      REGISTRATION_CUTOFF_DAY: 3,
+      REGISTRATION_WEEK_LIMIT: 4
       // Add more mappings as needed
     }
 
@@ -92,7 +96,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     loading,
     error,
     fetchSettings,
-    updateSetting
+    updateSetting,
+    getConfigTypeAsNumber
   }
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>

@@ -1,6 +1,4 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -10,13 +8,20 @@ import { useSettings } from './settings-provider'
 import { toast } from 'sonner'
 
 export function GeneralSettings() {
-  const { settings, updateSetting } = useSettings()
+  const { settings, loading, updateSetting } = useSettings()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Find the MAXIMUM_REGISTER_SLOT setting
-  const maxSlotSetting = settings.find((setting) => setting.key === 'MAXIMUM_REGISTER_SLOT')
+  const maxSlotSetting = settings?.find((setting) => setting.key === 'MAXIMUM_REGISTER_SLOT')
 
   const [maxSlotValue, setMaxSlotValue] = useState(maxSlotSetting ? maxSlotSetting.value : '3')
+
+  // Update state values when settings are loaded
+  useEffect(() => {
+    if (maxSlotSetting) {
+      setMaxSlotValue(maxSlotSetting.value)
+    }
+  }, [maxSlotSetting])
 
   const handleSave = async () => {
     if (!maxSlotSetting) return
@@ -31,6 +36,20 @@ export function GeneralSettings() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Cài đặt chung</CardTitle>
+          <CardDescription>Đang tải...</CardDescription>
+        </CardHeader>
+        <CardContent className='flex justify-center py-6'>
+          <Loader2 className='h-6 w-6 animate-spin text-primary' />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
