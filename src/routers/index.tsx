@@ -5,8 +5,8 @@ import WorkshopsPage from '@/pages/Workshops/WorkshopsPage'
 import WorkshopDetail from '@/pages/Workshops/components/WorkshopDetail'
 import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
 import SettingsPage from '@/pages/Settings/Settings'
-import Schedule from '@/pages/Schedule/Schedule'
 import LoginPage from '@/pages/Login/Login'
+import StaffManagement from '@/pages/Shifts/staff-management'
 
 // Lazy load the components
 const DashboardLayout = lazy(() => import('@/components/dashboard-layout'))
@@ -105,7 +105,7 @@ export const router = createBrowserRouter([
         path: 'schedule',
         element: (
           <Suspense fallback={<Loading />}>
-            <Schedule />
+            <StaffManagement />
           </Suspense>
         )
       },
