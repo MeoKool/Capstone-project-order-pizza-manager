@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import ShiftService from '@/services/shift-service'
-import type { Shift, Day } from '@/types/shift'
+import StaffScheduleService from '@/services/staff-schedule-service'
+import type { Shift, Day } from '@/types/staff-schedule'
+import { CalendarPlus, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function WorkingSlotForm() {
@@ -24,7 +25,7 @@ export default function WorkingSlotForm() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const shiftService = ShiftService.getInstance()
+        const shiftService = StaffScheduleService.getInstance()
         const [shiftsResponse, daysResponse] = await Promise.all([
           shiftService.getAllShifts(),
           shiftService.getAllDays()
@@ -38,7 +39,7 @@ export default function WorkingSlotForm() {
           setDays(daysResponse.result.items)
         }
       } catch (error) {
-        console.log(error)
+        console.error(error)
         toast.error('Không thể tải dữ liệu ca làm và ngày')
       } finally {
         setIsLoading(false)
@@ -52,14 +53,14 @@ export default function WorkingSlotForm() {
     e.preventDefault()
 
     if (!selectedShift || !selectedDay) {
-      toast('Vui lòng chọn ca làm và ngày')
+      toast.error('Vui lòng chọn ca làm và ngày')
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      const shiftService = ShiftService.getInstance()
+      const shiftService = StaffScheduleService.getInstance()
       const response = await shiftService.createWorkingSlot({
         shiftStart: `${startTime}:00`,
         shiftEnd: `${endTime}:00`,
@@ -74,8 +75,7 @@ export default function WorkingSlotForm() {
         toast.error(response.message || 'Không thể tạo lịch làm việc')
       }
     } catch (error) {
-      console.log(error)
-
+      console.error(error)
       toast.error('Đã xảy ra lỗi khi tạo lịch làm việc')
     } finally {
       setIsSubmitting(false)
@@ -83,21 +83,33 @@ export default function WorkingSlotForm() {
   }
 
   if (isLoading) {
-    return <div className='flex justify-center p-4'>Đang tải dữ liệu...</div>
+    return (
+      <div className='flex justify-center items-center p-8 h-[400px]'>
+        <div className='flex flex-col items-center gap-2'>
+          <div className='animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full'></div>
+          <div className='text-green-600 font-medium'>Đang tải dữ liệu...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Tạo lịch làm việc</CardTitle>
-        <CardDescription>Thêm lịch làm việc mới vào hệ thống</CardDescription>
+    <Card className='border-green-200 shadow-md'>
+      <CardHeader className='bg-green-50 border-b border-green-100'>
+        <CardTitle className='text-black-800 flex items-center gap-2'>
+          <CalendarPlus className='h-5 w-5 text-black-600' />
+          Tạo lịch làm việc
+        </CardTitle>
+        <CardDescription className='text-black-600'>Thêm lịch làm việc mới vào hệ thống</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent className='space-y-4'>
+        <CardContent className='space-y-4 pt-6'>
           <div className='space-y-2'>
-            <Label htmlFor='shift'>Ca làm</Label>
+            <Label htmlFor='shift' className='text-black-700'>
+              Ca làm
+            </Label>
             <Select value={selectedShift} onValueChange={setSelectedShift}>
-              <SelectTrigger id='shift'>
+              <SelectTrigger id='shift' className='border-black-200 focus:ring-green-500'>
                 <SelectValue placeholder='Chọn ca làm' />
               </SelectTrigger>
               <SelectContent>
@@ -111,9 +123,11 @@ export default function WorkingSlotForm() {
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='day'>Ngày</Label>
+            <Label htmlFor='day' className='text-black-700'>
+              Ngày
+            </Label>
             <Select value={selectedDay} onValueChange={setSelectedDay}>
-              <SelectTrigger id='day'>
+              <SelectTrigger id='day' className='border-green-200 focus:ring-green-500'>
                 <SelectValue placeholder='Chọn ngày' />
               </SelectTrigger>
               <SelectContent>
@@ -128,29 +142,54 @@ export default function WorkingSlotForm() {
 
           <div className='grid grid-cols-2 gap-4'>
             <div className='space-y-2'>
-              <Label htmlFor='startTime'>Giờ bắt đầu</Label>
-              <Input id='startTime' type='time' value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              <Label htmlFor='startTime' className='text-black-700'>
+                Giờ bắt đầu
+              </Label>
+              <div className='flex items-center'>
+                <Clock className='h-4 w-4 text-black-500 mr-2' />
+                <Input
+                  id='startTime'
+                  type='time'
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className='border-green-200 focus-visible:ring-green-500'
+                />
+              </div>
             </div>
 
             <div className='space-y-2'>
-              <Label htmlFor='endTime'>Giờ kết thúc</Label>
-              <Input id='endTime' type='time' value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              <Label htmlFor='endTime' className='text-black-700'>
+                Giờ kết thúc
+              </Label>
+              <div className='flex items-center'>
+                <Clock className='h-4 w-4 text-black-500 mr-2' />
+                <Input
+                  id='endTime'
+                  type='time'
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className='border-green-200 focus-visible:ring-green-500'
+                />
+              </div>
             </div>
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='capacity'>Số lượng nhân viên</Label>
+            <Label htmlFor='capacity' className='text-black-700'>
+              Số lượng nhân viên
+            </Label>
             <Input
               id='capacity'
               type='number'
               min='1'
               value={capacity}
               onChange={(e) => setCapacity(Number.parseInt(e.target.value))}
+              className='border-green-200 focus-visible:ring-green-500'
             />
           </div>
         </CardContent>
-        <CardFooter>
-          <Button type='submit' disabled={isSubmitting}>
+        <CardFooter className='bg-green-50/50 border-t border-green-100'>
+          <Button type='submit' disabled={isSubmitting} className='bg-green-600 hover:bg-green-700 text-white'>
             {isSubmitting ? 'Đang tạo...' : 'Tạo lịch làm việc'}
           </Button>
         </CardFooter>
