@@ -448,11 +448,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
               <Accordion type="multiple" className="space-y-4">
                 {optionFields.map((optionField, optionIndex) => (
-                  <AccordionItem
-                    key={optionField.id}
-                    value={`option-${optionIndex}`}
-                    className=" overflow-hidden"
-                  >
+                  <AccordionItem key={optionField.id} value={`option-${optionIndex}`} className=" overflow-hidden">
                     <Card>
                       <CardHeader className="p-4 ">
                         <div className="flex items-center justify-between">

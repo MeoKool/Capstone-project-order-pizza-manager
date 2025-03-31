@@ -47,7 +47,18 @@ export default class ProductSizeService {
             throw error
         }
     }
-
+    public async get1000ProductSizesSortedByCreatedDateDesc(): Promise<ApiResponse<ProductSizeResult>> {
+        try {
+            // Sử dụng TakeCount=1000 và SortBy="CreatedDate desc" (sau khi encode)
+            const response = await get<ProductSizeResult>(
+                `https://vietsac.id.vn/api/product-sizes?TakeCount=1000&SortBy=CreatedDate%20desc`
+            );
+            return response;
+        } catch (error) {
+            console.error("Error fetching 1000 products sorted by CreatedDate desc:", error);
+            throw error;
+        }
+    }
     /**
      * Get product sizes by product ID
      * @param productId The ID of the product
@@ -71,7 +82,7 @@ export default class ProductSizeService {
      */
     public async getProductSizeById(id: string): Promise<ApiResponse<ProductSize>> {
         try {
-            console.log(`Calling getProductSizeById API for ID ${id}`)
+
             const response = await get<ProductSize>(`/product-sizes/${id}?includeProperties=Recipes`)
             console.log("API response:", response)
             return response

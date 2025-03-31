@@ -14,7 +14,7 @@ export default class IngredientsService {
 
     public async getAllIngredients(): Promise<ApiResponse<IngredientResult>> {
         try {
-            return await get<IngredientResult>(`/ingredients`)
+            return await get<IngredientResult>(`/ingredients?TakeCount=1000&SortBy=CreatedDate%20desc`)
         } catch (error) {
             console.error("Error fetching all ingredients:", error)
             throw error

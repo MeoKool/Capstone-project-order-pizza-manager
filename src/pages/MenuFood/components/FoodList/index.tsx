@@ -145,6 +145,10 @@ const FoodList: React.FC = () => {
         clearFilter()
     }
 
+    // Add this function to the FoodList component
+    const handleDeleteSuccess = () => {
+        refreshProducts()
+    }
     return (
         <Card className="mt-4">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -152,9 +156,6 @@ const FoodList: React.FC = () => {
                     <CardTitle >Thực đơn</CardTitle>
                     <CardDescription>Quản lý thông tin về Thực đơn của bạn.</CardDescription>
                 </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                {/* Search and Filter Bar */}
                 <SearchFilterBar
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
@@ -175,6 +176,10 @@ const FoodList: React.FC = () => {
                     setIsFilterOpen={setIsFilterOpen}
                     getSortLabel={getSortLabel}
                 />
+
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {/* Search and Filter Bar */}
 
                 {/* Active Filters */}
                 <ActiveFilters
@@ -207,6 +212,7 @@ const FoodList: React.FC = () => {
                                 formatProductType={formatProductType}
                                 handleEdit={handleEdit}
                                 handleUploadImage={handleUploadImage}
+                                onDeleteSuccess={handleDeleteSuccess}
                             />
                         ))
                     )}

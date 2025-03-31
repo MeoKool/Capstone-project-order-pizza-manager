@@ -1,4 +1,7 @@
+"use client"
+
 import type React from "react"
+
 import { useState } from "react"
 import {
     Dialog,
@@ -22,11 +25,27 @@ interface CreateRecipeDialogProps {
         productSizeId: string
         ingredientId: string
         unit: UnitType
+        ingredientName: string
         quantity: number
     }) => Promise<void>
     productSizes: Array<{ id: string; name: string }>
     ingredients: Array<{ id: string; name: string }>
 }
+
+// Mapping đơn vị từ tiếng Anh sang tiếng Việt
+const unitTypeMapping: Record<UnitType, string> = {
+    [UnitType.Milligram]: "Miligram",
+    [UnitType.Gram]: "Gram",
+    [UnitType.Kilogram]: "Kilogram",
+    [UnitType.Milliliter]: "Mililít",
+    [UnitType.Liter]: "Lít",
+    [UnitType.Piece]: "Cái/Miếng",
+    [UnitType.Teaspoon]: "Thìa cà phê",
+    [UnitType.Tablespoon]: "Thìa canh",
+}
+
+// Mapping ngược lại từ tiếng Việt sang tiếng Anh
+
 
 export function CreateRecipeDialog({
     isOpen,
@@ -40,10 +59,12 @@ export function CreateRecipeDialog({
     const [unit, setUnit] = useState<UnitType>(UnitType.Gram)
     const [quantity, setQuantity] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [ingredientName, setIngredientName] = useState("")
     const [errors, setErrors] = useState({
         productSizeId: "",
         ingredientId: "",
         unit: "",
+        ingredientName: "",
         quantity: "",
     })
 
@@ -52,6 +73,7 @@ export function CreateRecipeDialog({
             productSizeId: "",
             ingredientId: "",
             unit: "",
+            ingredientName: "",
             quantity: "",
         }
         let isValid = true
@@ -97,6 +119,7 @@ export function CreateRecipeDialog({
                 productSizeId,
                 ingredientId,
                 unit,
+                ingredientName,
                 quantity: Number(quantity),
             })
             resetForm()
@@ -115,6 +138,7 @@ export function CreateRecipeDialog({
         setErrors({
             productSizeId: "",
             ingredientId: "",
+            ingredientName: "",
             unit: "",
             quantity: "",
         })
@@ -146,6 +170,23 @@ export function CreateRecipeDialog({
         }
     }
 
+    // Tìm tên của ProductSize dựa trên ID
+    const getProductSizeName = (id: string) => {
+        const productSize = productSizes.find((size) => size.id === id)
+        return productSize ? productSize.name : id
+    }
+
+    // Tìm tên của Ingredient dựa trên ID
+    const getIngredientName = (id: string) => {
+        const ingredient = ingredients.find((ing) => ing.id === id)
+        return ingredient ? ingredient.name : id
+    }
+    const handleIngredientChange = (id: string) => {
+        setIngredientId(id)
+        // Lưu tên nguyên liệu khi chọn
+        const name = getIngredientName(id)
+        setIngredientName(name)
+    }
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[425px]">
@@ -161,7 +202,9 @@ export function CreateRecipeDialog({
                             </Label>
                             <Select value={productSizeId} onValueChange={setProductSizeId}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chọn kích cỡ sản phẩm" />
+                                    <SelectValue placeholder="Chọn kích cỡ sản phẩm">
+                                        {productSizeId ? getProductSizeName(productSizeId) : "Chọn kích cỡ sản phẩm"}
+                                    </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {productSizes.map((size) => (
@@ -178,9 +221,11 @@ export function CreateRecipeDialog({
                             <Label htmlFor="ingredient">
                                 Nguyên liệu <span className="text-red-500">*</span>
                             </Label>
-                            <Select value={ingredientId} onValueChange={setIngredientId}>
+                            <Select value={ingredientId} onValueChange={handleIngredientChange}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chọn nguyên liệu" />
+                                    <SelectValue placeholder="Chọn nguyên liệu">
+                                        {ingredientId ? getIngredientName(ingredientId) : "Chọn nguyên liệu"}
+                                    </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                     {ingredients.map((ingredient) => (
@@ -216,12 +261,12 @@ export function CreateRecipeDialog({
                                 </Label>
                                 <Select value={unit} onValueChange={(value) => setUnit(value as UnitType)}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn đơn vị" />
+                                        <SelectValue placeholder="Chọn đơn vị">{unitTypeMapping[unit]}</SelectValue>
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Object.values(UnitType).map((unitType) => (
+                                        {Object.entries(unitTypeMapping).map(([unitType, unitName]) => (
                                             <SelectItem key={unitType} value={unitType}>
-                                                {unitType}
+                                                {unitName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
