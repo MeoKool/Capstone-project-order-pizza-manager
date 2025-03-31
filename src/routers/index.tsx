@@ -1,9 +1,12 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
+import { ProtectedRoute } from '@/components/protected-route'
 import WorkshopsPage from '@/pages/Workshops/WorkshopsPage'
 import WorkshopDetail from '@/pages/Workshops/components/WorkshopDetail'
 import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
-// import DashboardComponent from "./DashboardComponent";
+import SettingsPage from '@/pages/Settings/Settings'
+import LoginPage from '@/pages/Login/Login'
+import StaffManagement from '@/pages/Shifts/staff-management'
 
 // Lazy load the components
 const DashboardLayout = lazy(() => import('@/components/dashboard-layout'))
@@ -23,8 +26,16 @@ const Loading = () => <div>Loading...</div>
 
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    element: <LoginPage />
+  },
+  {
     path: '/',
-    element: <DashboardLayout />,
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -91,6 +102,14 @@ export const router = createBrowserRouter([
         )
       },
       {
+        path: 'schedule',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <StaffManagement />
+          </Suspense>
+        )
+      },
+      {
         path: 'workshops',
         element: (
           <Suspense fallback={<Loading />}>
@@ -103,6 +122,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <WorkshopDetail />
+          </Suspense>
+        )
+      },
+      {
+        path: 'settings',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <SettingsPage />
           </Suspense>
         )
       },
@@ -139,5 +166,9 @@ export const router = createBrowserRouter([
         )
       }
     ]
+  },
+  {
+    path: '*',
+    element: <Navigate to='/' replace />
   }
 ])
