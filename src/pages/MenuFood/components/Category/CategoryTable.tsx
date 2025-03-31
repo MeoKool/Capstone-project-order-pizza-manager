@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { CategoryModel } from "@/types/category"
+import { Edit, Trash2 } from "lucide-react"
 
 interface CategoryTableProps {
     categories: CategoryModel[]
@@ -15,7 +16,7 @@ interface CategoryTableProps {
     onDelete: (category: CategoryModel) => void
 }
 
-export function CategoryTable({ categories, isLoading }: CategoryTableProps) {
+export function CategoryTable({ categories, isLoading, onEdit, onDelete }: CategoryTableProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
 
@@ -45,15 +46,14 @@ export function CategoryTable({ categories, isLoading }: CategoryTableProps) {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="w-full">
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>ID </TableHead>
-                            <TableHead>Tên (Name)</TableHead>
+                            <TableHead className="ml-4">Tên (Loại)</TableHead>
                             <TableHead>Mô tả (Description)</TableHead>
-                            {/* Cột thao tác sẽ được thêm sau */}
+                            <TableHead className="w-[140px] text-center">Thao tác</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -62,27 +62,48 @@ export function CategoryTable({ categories, isLoading }: CategoryTableProps) {
                                 .fill(0)
                                 .map((_, index) => (
                                     <TableRow key={index}>
-
+                                        <TableCell>
+                                            <Skeleton className="h-5 w-12" />
+                                        </TableCell>
                                         <TableCell>
                                             <Skeleton className="h-5 w-full" />
                                         </TableCell>
                                         <TableCell>
                                             <Skeleton className="h-5 w-full" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-5 w-20 ml-auto" />
                                         </TableCell>
                                     </TableRow>
                                 ))
                         ) : categories.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={3} className="h-24 text-center">
+                                <TableCell colSpan={4} className="h-24 text-center">
                                     Không có danh mục nào. Hãy thêm danh mục mới.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             currentItems.map((category) => (
                                 <TableRow key={category.id}>
-                                    <TableCell> {category.id}</TableCell>
                                     <TableCell>{category.name}</TableCell>
                                     <TableCell>{category.description || "-"}</TableCell>
+                                    <TableCell className="text-center">
+                                        <div className="flex justify-around">
+                                            <Button variant="ghost" size="icon" onClick={() => onEdit(category)}>
+                                                <Edit className="h-4 w-4" />
+                                                <span className="sr-only">Edit {category.name}</span>
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-destructive"
+                                                onClick={() => onDelete(category)}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="sr-only">Delete {category.name}</span>
+                                            </Button>
+                                        </div>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         )}

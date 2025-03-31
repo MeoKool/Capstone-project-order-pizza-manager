@@ -43,7 +43,7 @@ export function CreateProductSizeDialog({ isOpen, onClose, onCreateProductSize }
     })
 
     // Assuming you have a hook to fetch products
-    const { products, loading } = useProducts()
+    const { productALL, loading } = useProducts()
 
     const validateForm = () => {
         const newErrors = {
@@ -166,12 +166,12 @@ export function CreateProductSizeDialog({ isOpen, onClose, onCreateProductSize }
                                         <SelectItem value="loading" disabled>
                                             Đang tải sản phẩm...
                                         </SelectItem>
-                                    ) : products.length === 0 ? (
+                                    ) : productALL.length === 0 ? (
                                         <SelectItem value="empty" disabled>
                                             Không có sản phẩm nào
                                         </SelectItem>
                                     ) : (
-                                        products.map((product) => (
+                                        productALL.map((product) => (
                                             <SelectItem key={product.id} value={product.id}>
                                                 {product.name}
                                             </SelectItem>

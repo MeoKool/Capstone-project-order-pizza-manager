@@ -19,7 +19,6 @@ class ProductService {
     sortBy = "CreatedDate%20desc",
   ): Promise<ApiResponse<ProductsResult>> {
     try {
-      console.log(`Calling getAllProducts API - page: ${page}, pageSize: ${pageSize}, sortBy: ${sortBy}`)
 
       // Calculate skip count based on page and page size
       const skipCount = (page - 1) * pageSize
@@ -30,34 +29,9 @@ class ProductService {
         `/products?TakeCount=${takeCount}&SkipCount=${skipCount}&SortBy=${encodeURIComponent(sortBy)}`,
       )
 
-      console.log(`API response for page ${page}:`, response)
       return response
     } catch (error) {
       console.error(`Error fetching products (page ${page}):`, error)
-      throw error
-    }
-  }
-
-  /**
-   * Get products with custom query parameters
-   * @param params Object containing query parameters
-   * @returns Promise with products result
-   */
-  public async getProductsWithParams(params: Record<string, string | number>): Promise<ApiResponse<ProductsResult>> {
-    try {
-      // Convert params object to URL query string
-      const queryString = Object.entries(params)
-        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-        .join("&")
-
-      console.log(`Calling getProductsWithParams API with query: ${queryString}`)
-
-      const response = await get<ProductsResult>(`/products?${queryString}`)
-
-      console.log(`API response for custom query:`, response)
-      return response
-    } catch (error) {
-      console.error(`Error fetching products with custom params:`, error)
       throw error
     }
   }
@@ -68,20 +42,29 @@ class ProductService {
    * @param sortBy Sort field and direction (default: "CreatedDate desc")
    * @returns Promise with products result
    */
-  public async getAllProductsAtOnce(limit = 1000, sortBy = "CreatedDate%20desc"): Promise<ApiResponse<ProductsResult>> {
+  public async getAllProductsAtOnce(limit = 1000, sortBy = "CreatedDate desc"): Promise<ApiResponse<ProductsResult>> {
     try {
-      console.log(`Calling getAllProductsAtOnce API with limit: ${limit}, sortBy: ${sortBy}`)
 
       const response = await get<ProductsResult>(`/products?TakeCount=${limit}&SortBy=${encodeURIComponent(sortBy)}`)
 
-      console.log(`API response for all products:`, response)
       return response
     } catch (error) {
       console.error(`Error fetching all products:`, error)
       throw error
     }
   }
-
+  public async get1000ProductsSortedByCreatedDateDesc(): Promise<ApiResponse<ProductsResult>> {
+    try {
+      // Sử dụng TakeCount=1000 và SortBy="CreatedDate desc" (sau khi encode)
+      const response = await get<ProductsResult>(
+        `/products?TakeCount=1000&SortBy=${encodeURIComponent("CreatedDate desc")}`
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching 1000 products sorted by CreatedDate desc:", error);
+      throw error;
+    }
+  }
   public async getProductById(id: string): Promise<ApiResponse<ProductDetail>> {
     try {
       return await get<ProductDetail>(`products/${id}?includeProperties=ProductSizes.Recipes%2COptions.OptionItems`)
@@ -101,7 +84,6 @@ class ProductService {
 
   public async createProductWithImage(formData: FormData): Promise<ProductResponse> {
     try {
-      console.log("Creating product with image")
 
       const response = await fetch("https://vietsac.id.vn/api/products", {
         method: "POST",

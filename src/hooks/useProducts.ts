@@ -15,6 +15,7 @@ export function useProducts() {
     const [sortBy, setSortBy] = useState("CreatedDate desc")
     const [categoryId, setCategoryId] = useState("")
     const [searchQuery, setSearchQuery] = useState("")
+    const [productALL, setProductALL] = useState<ProductModel[]>([]);
 
     // Fetch all products from the API
     const fetchAllProducts = useCallback(async () => {
@@ -41,11 +42,32 @@ export function useProducts() {
             setLoading(false)
         }
     }, [sortBy])
+    const fetchProductALL = useCallback(async () => {
+        try {
+            const productService = ProductService.getInstance();
+            const response = await productService.get1000ProductsSortedByCreatedDateDesc();
 
+            if (response.success && response.result) {
+                const productsData = Array.isArray(response.result.items)
+                    ? response.result.items
+                    : [response.result.items];
+                setProductALL(productsData);
+                console.log(`Fetched ${productsData.length} products (ALL)`);
+            } else {
+                throw new Error(response.message || "Failed to fetch all products");
+            }
+        } catch (error) {
+            console.error("Error fetching productALL:", error);
+        }
+    }, []);
     // Initial fetch
     useEffect(() => {
         fetchAllProducts()
     }, [fetchAllProducts])
+    // Gọi fetchProductALL khi mount để lấy toàn bộ sản phẩm
+    useEffect(() => {
+        fetchProductALL();
+    }, [fetchProductALL]);
 
     // Helper function to sort products - MOVE THIS BEFORE filteredProducts
     const sortProducts = (products: ProductModel[], sortOption: string) => {
@@ -158,6 +180,7 @@ export function useProducts() {
     return {
         products,
         loading,
+        productALL, // State lưu toàn bộ sản phẩm
         error,
         totalCount: filteredProducts.length, // Update total count to reflect filtered results
         currentPage,

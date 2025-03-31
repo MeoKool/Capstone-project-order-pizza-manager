@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import useProducts from "@/hooks/useProducts"
 import useCategories from "@/hooks/useCategories"
 import type { ProductModel } from "@/types/product"
-import { EditFoodDialog } from "../dialogs/edit-food-dialog"
-import { AddFoodDialog } from "../dialogs/AddFoodDialog"
-import { UploadImageDialog } from "../dialogs/UploadImageDialog"
+import { EditFoodDialog } from "./dialogs/edit-food-dialog"
+import { AddFoodDialog } from "./dialogs/AddFoodDialog"
+import { UploadImageDialog } from "./dialogs/UploadImageDialog"
 
 // Import the new components
 import SearchFilterBar from "./SearchFilterBar"
@@ -19,7 +19,7 @@ import LoadingSpinner from "./LoadingSpinner"
 import EmptyState from "./EmptyState"
 
 // Update the SortOption type to include the correct sort options
-type SortOption = "CreatedDate%20desc" | "Price desc" | "Price asc" | "Name asc" | "Name desc"
+type SortOption = "CreatedDate desc" | "Price desc" | "Price asc" | "Name asc" | "Name desc"
 
 const FoodList: React.FC = () => {
     const [editingFood, setEditingFood] = useState<ProductModel | null>(null)
@@ -151,8 +151,8 @@ const FoodList: React.FC = () => {
     return (
         <Card className="mt-4">
             <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Thực đơn</CardTitle>
+                <div className="space-y-2">
+                    <CardTitle >Thực đơn</CardTitle>
                     <CardDescription>Quản lý thông tin về Thực đơn của bạn.</CardDescription>
                 </div>
             </CardHeader>

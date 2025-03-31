@@ -22,6 +22,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle } from "lucide-react"
 import FileUpload from "@/components/uploadImage"
+import { toast } from "sonner"
 
 interface AddFoodDialogProps {
   open: boolean
@@ -256,9 +257,10 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
         method: "POST",
         body: formData,
       })
-
+      toast.success("Thêm món ăn thành công!")
       if (!response.ok) {
         const errorData = await response.json()
+        toast.error("Thêm món ăn thất bạn!")
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
       }
 

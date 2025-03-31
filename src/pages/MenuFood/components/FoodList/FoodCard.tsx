@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { ProductModel } from "@/types/product"
 import { useState } from "react"
-import { ProductDetailDialog } from "../dialogs/ProductDetailDialog"
+import { ProductDetailDialog } from "./dialogs/ProductDetailDialog"
 
 interface FoodCardProps {
     food: ProductModel

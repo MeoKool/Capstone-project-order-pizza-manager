@@ -1,21 +1,41 @@
-import { useState } from "react"
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Filter } from 'lucide-react'
+"use client"
+
+import { useState, useEffect } from "react"
+import {
+    ChevronLeft,
+    ChevronRight,
+    ChevronsLeft,
+    ChevronsRight,
+    Filter,
+    MoreHorizontal,
+    Eye,
+    Edit,
+    Trash2,
+} from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { ProductSize } from "@/types/product-sizes"
+import ProductService from "@/services/product-service"
+import { ViewProductSizeDialog } from "./dialogs/ViewProductSizeDialog"
 
+// Cập nhật interface để nhận tên sản phẩm
 interface ProductSizeTableProps {
     productSizes: ProductSize[]
     isLoading: boolean
-    onFilterByProduct: (productId: string) => void
+    onFilterByProduct: (productId: string, productName: string) => void
 }
 
 export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }: ProductSizeTableProps) {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [productNames, setProductNames] = useState<Record<string, string>>({})
+    const [loadingProductNames, setLoadingProductNames] = useState(false)
+    const [viewingProductSizeId, setViewingProductSizeId] = useState<string | null>(null)
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
 
     // Calculate pagination values
     const totalItems = productSizes.length
@@ -23,6 +43,87 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = Math.min(startIndex + itemsPerPage, totalItems)
     const currentItems = productSizes.slice(startIndex, endIndex)
+
+    // Fetch product names for the current page items
+    useEffect(() => {
+        const fetchProductNames = async () => {
+            if (isLoading || currentItems.length === 0) return
+
+            setLoadingProductNames(true)
+
+            // Get unique product IDs from current page
+            const uniqueProductIds = Array.from(new Set(currentItems.map((size) => size.productId)))
+
+            // Filter out product IDs we already have names for
+            const idsToFetch = uniqueProductIds.filter((id) => !productNames[id])
+
+            if (idsToFetch.length === 0) {
+                setLoadingProductNames(false)
+                return
+            }
+
+            try {
+                const productService = ProductService.getInstance()
+                const newProductNames: Record<string, string> = { ...productNames }
+
+                // Fetch product names in parallel
+                await Promise.all(
+                    idsToFetch.map(async (productId) => {
+                        try {
+                            // Sử dụng getProductById để lấy thông tin sản phẩm
+                            const response = await productService.getProductById(productId)
+
+                            // Nếu API trả về thành công và có dữ liệu
+                            if (response.success && response.result) {
+                                // Lưu tên sản phẩm vào cache
+                                newProductNames[productId] = response.result.name
+                                console.log(`Fetched product name for ID ${productId}: ${response.result.name}`)
+                            } else {
+                                // Nếu không có dữ liệu, hiển thị ID sản phẩm
+                                newProductNames[productId] = `Sản phẩm #${productId}`
+                                console.warn(`No product data found for ID ${productId}`)
+                            }
+                        } catch (error) {
+                            console.error(`Error fetching product ${productId}:`, error)
+                            newProductNames[productId] = `Sản phẩm #${productId}`
+                        }
+                    }),
+                )
+
+                // Cập nhật state với tên sản phẩm mới
+                setProductNames(newProductNames)
+                console.log(`Fetched names for ${idsToFetch.length} products`)
+            } catch (error) {
+                console.error("Error fetching product names:", error)
+            } finally {
+                setLoadingProductNames(false)
+            }
+        }
+
+        fetchProductNames()
+    }, [currentItems, isLoading, productNames])
+
+    // Get product name by ID
+    const getProductName = (productId: string) => {
+        if (productNames[productId]) {
+            return productNames[productId]
+        }
+
+        return loadingProductNames ? (
+            <span className="flex items-center">
+                <Skeleton className="h-4 w-4 mr-2 rounded-full animate-pulse" />
+                Đang tải...
+            </span>
+        ) : (
+            `Sản phẩm #${productId}`
+        )
+    }
+
+    // Handle view product size details
+    const handleViewDetails = (productSizeId: string) => {
+        setViewingProductSizeId(productSizeId)
+        setIsViewDialogOpen(true)
+    }
 
     // Handle page changes
     const goToPage = (page: number) => {
@@ -36,7 +137,7 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
 
     // Handle items per page change
     const handleItemsPerPageChange = (value: string) => {
-        const newItemsPerPage = parseInt(value)
+        const newItemsPerPage = Number.parseInt(value)
         setItemsPerPage(newItemsPerPage)
         // Reset to first page when changing items per page
         setCurrentPage(1)
@@ -48,11 +149,10 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
-                            <TableHead>Tên (Name)</TableHead>
-                            <TableHead className="w-[150px]">Đường kính (Diameter)</TableHead>
-                            <TableHead>Mô tả (Description)</TableHead>
-                            <TableHead className="w-[150px]">
+                            <TableHead className="w-[200px]">Tên kích cỡ</TableHead>
+                            <TableHead>Mô tả</TableHead>
+                            <TableHead className="w-[100px] text-right">Đường kính</TableHead>
+                            <TableHead className="w-[200px]">
                                 <div className="flex items-center">
                                     Sản phẩm (Product)
                                     <Button variant="ghost" size="sm" className="ml-1 p-0">
@@ -60,7 +160,8 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
                                     </Button>
                                 </div>
                             </TableHead>
-                            <TableHead className="w-[150px]">Công thức (Recipes)</TableHead>
+                            <TableHead className="w-[200px]">Công thức (Recipes)</TableHead>
+                            <TableHead className="w-[100px] text-right">Thao tác</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -87,36 +188,69 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
                                         <TableCell>
                                             <Skeleton className="h-5 w-16" />
                                         </TableCell>
+                                        <TableCell>
+                                            <Skeleton className="h-5 w-8 ml-auto" />
+                                        </TableCell>
                                     </TableRow>
                                 ))
                         ) : productSizes.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
+                                <TableCell colSpan={7} className="h-24 text-center">
                                     Không có kích cỡ sản phẩm nào. Hãy thêm kích cỡ mới.
                                 </TableCell>
                             </TableRow>
                         ) : (
                             currentItems.map((size) => (
                                 <TableRow key={size.id}>
-                                    <TableCell className="font-medium">{size.id}</TableCell>
                                     <TableCell>{size.name}</TableCell>
-                                    <TableCell>{size.diameter} cm</TableCell>
                                     <TableCell>{size.description || "-"}</TableCell>
+                                    <TableCell className="w-[100px] text-right">{size.diameter}cm</TableCell>
                                     <TableCell>
+                                        {/* Cập nhật hàm xử lý khi click vào tên sản phẩm */}
                                         <Button
                                             variant="link"
-                                            className="p-0 h-auto"
-                                            onClick={() => onFilterByProduct(size.productId)}
+                                            className="p-0 h-auto text-left"
+                                            onClick={() => {
+                                                const productName =
+                                                    typeof getProductName(size.productId) === "string"
+                                                        ? (getProductName(size.productId) as string)
+                                                        : `Sản phẩm #${size.productId}`
+                                                onFilterByProduct(size.productId, productName)
+                                            }}
                                         >
-                                            {size.productId}
+                                            {getProductName(size.productId)}
                                         </Button>
                                     </TableCell>
                                     <TableCell>
                                         {size.recipes ? (
-                                            <Badge>{Array.isArray(size.recipes) ? `${size.recipes.length} công thức` : '1 công thức'}</Badge>
+                                            <Badge>{Array.isArray(size.recipes) ? `${size.recipes.length} công thức` : "1 công thức"}</Badge>
                                         ) : (
                                             <Badge variant="outline">Không có</Badge>
                                         )}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Mở menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => handleViewDetails(size.id)}>
+                                                    <Eye className="mr-2 h-4 w-4" />
+                                                    Xem chi tiết
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem>
+                                                    <Edit className="mr-2 h-4 w-4" />
+                                                    Chỉnh sửa
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Xóa
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -134,10 +268,7 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
                     <div className="flex items-center space-x-6">
                         <div className="flex items-center space-x-2">
                             <span className="text-sm font-medium">Hiển thị:</span>
-                            <Select
-                                value={itemsPerPage.toString()}
-                                onValueChange={handleItemsPerPageChange}
-                            >
+                            <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
                                 <SelectTrigger className="h-8 w-[70px]">
                                     <SelectValue placeholder={itemsPerPage.toString()} />
                                 </SelectTrigger>
@@ -200,6 +331,13 @@ export function ProductSizeTable({ productSizes, isLoading, onFilterByProduct }:
                     </div>
                 </div>
             )}
+
+            <ViewProductSizeDialog
+                productSizeId={viewingProductSizeId}
+                open={isViewDialogOpen}
+                onOpenChange={setIsViewDialogOpen}
+            />
         </div>
     )
 }
+

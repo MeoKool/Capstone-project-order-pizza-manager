@@ -29,10 +29,10 @@ import useCategories from "@/hooks/useCategories"
 import type { ProductModel } from "@/types/product"
 
 import PaginationControls from "./PaginationControls"
-import { EditFoodDialog } from "../dialogs/edit-food-dialog"
-import { UploadImageDialog } from "../dialogs/UploadImageDialog"
-import { ProductDetailDialog } from "../dialogs/ProductDetailDialog"
-import { AddFoodDialog } from "../dialogs/AddFoodDialog"
+import { EditFoodDialog } from "./dialogs/edit-food-dialog"
+import { UploadImageDialog } from "./dialogs/UploadImageDialog"
+import { ProductDetailDialog } from "./dialogs/ProductDetailDialog"
+import { AddFoodDialog } from "./dialogs/AddFoodDialog"
 
 // Thay đổi định nghĩa SortOption
 type SortOption = "Price desc" | "Price asc" | "Name asc" | "Name desc" | "CreatedDate desc"

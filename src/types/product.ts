@@ -1,5 +1,6 @@
 import type { CategoryModel } from "./category"
 import type { ProductOption } from "./product-option"
+import { ProductSize } from "./product-sizes"
 
 export interface ProductModel {
   id: string
@@ -12,8 +13,7 @@ export interface ProductModel {
   categoryId: string
   productType: string
   category: CategoryModel | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  productSizes: any[]
+  productSizes: ProductSize[]
   options: ProductOption[]
 }
 
