@@ -10,7 +10,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Loader2, Info, Utensils } from "lucide-react"
+import { Loader2, Info, Utensils, Box } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -20,16 +20,33 @@ import type { Recipe } from "@/types/recipe"
 import RecipeService from "@/services/recipe-service"
 import ProductSizeService from "@/services/productsize-service"
 import IngredientsService from "@/services/ingredients-serivce"
+import { UnitType } from "@/types/recipe"
 
 interface ViewRecipeDialogProps {
     recipeId: string | null
     open: boolean
     onOpenChange: (open: boolean) => void
 }
+const unitTypeMapping: Record<string, string> = {
+    [UnitType.Milligram]: "Miligram",
+    [UnitType.Gram]: "Gram",
+    [UnitType.Kilogram]: "Kilogram",
+    [UnitType.Milliliter]: "Mililít",
+    [UnitType.Liter]: "Lít",
+    [UnitType.Piece]: "Cái/Miếng",
+    [UnitType.Teaspoon]: "Thìa cà phê",
+    [UnitType.Tablespoon]: "Thìa canh",
+}
 
 export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDialogProps) {
     const [recipe, setRecipe] = useState<Recipe | null>(null)
-    const [productSizeName, setProductSizeName] = useState<string>("")
+    const [productSizeDetails, setProductSizeDetails] = useState<{
+        id: string
+        name: string
+        diameter: number
+        description: string | null
+        productId: string
+    } | null>(null)
     const [ingredientDetails, setIngredientDetails] = useState<{ name: string; description: string } | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -48,18 +65,22 @@ export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDia
                 if (response.success && response.result) {
                     setRecipe(response.result)
 
-                    // Fetch product size name
+                    // Fetch product size details
                     try {
                         const productSizeService = ProductSizeService.getInstance()
                         const productSizeResponse = await productSizeService.getProductSizeById(response.result.productSizeId)
                         if (productSizeResponse.success && productSizeResponse.result) {
-                            setProductSizeName(productSizeResponse.result.name)
-                        } else {
-                            setProductSizeName(`Kích cỡ #${response.result.productSizeId}`)
+                            const productSize = productSizeResponse.result
+                            setProductSizeDetails({
+                                id: productSize.id,
+                                name: productSize.name,
+                                diameter: productSize.diameter,
+                                description: productSize.description,
+                                productId: productSize.productId,
+                            })
                         }
                     } catch (error) {
-                        console.error("Error fetching product size name:", error)
-                        setProductSizeName(`Kích cỡ #${response.result.productSizeId}`)
+                        console.error("Error fetching product size details:", error)
                     }
 
                     // Fetch ingredient details if not already included
@@ -97,7 +118,7 @@ export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDia
         setTimeout(() => {
             if (!open) {
                 setRecipe(null)
-                setProductSizeName("")
+                setProductSizeDetails(null)
                 setIngredientDetails(null)
                 setError(null)
             }
@@ -106,19 +127,9 @@ export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDia
 
     // Format unit for display
     const formatUnit = (unit: string): string => {
-        // Abbreviate units for display
-        const unitAbbreviations: Record<string, string> = {
-            Milligram: "mg",
-            Gram: "g",
-            Kilogram: "kg",
-            Milliliter: "ml",
-            Liter: "L",
-            Piece: "pc",
-            Teaspoon: "tsp",
-            Tablespoon: "tbsp",
-        }
 
-        return unitAbbreviations[unit] || unit
+
+        return unitTypeMapping[unit] || unit
     }
 
     return (
@@ -147,16 +158,34 @@ export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDia
                     </div>
                 ) : recipe ? (
                     <div className="space-y-6 py-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        {productSizeDetails && (
                             <div>
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1">ID</h3>
-                                <p className="font-medium">{recipe.id}</p>
+                                <h3 className="text-base font-medium flex items-center mb-3">
+                                    <Box className="h-4 w-4 mr-2" />
+                                    Thông tin kích cỡ sản phẩm
+                                </h3>
+
+                                <Card>
+                                    <CardContent className="p-4 space-y-4">
+
+
+                                        <div className="grid grid-cols-2 gap-6">
+
+                                            <div>
+                                                <h4 className="font-medium">{productSizeDetails.name}</h4>
+                                                {productSizeDetails.description && (
+                                                    <p className="text-sm text-muted-foreground mt-1">{productSizeDetails.description}</p>
+                                                )}
+                                            </div><div>
+                                                <h4 className="font-medium  ">Đường kính</h4>
+                                                <p className="text-sm  text-muted-foreground mt-1">{productSizeDetails.diameter} cm</p>
+                                            </div>
+
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
-                            <div>
-                                <h3 className="text-sm font-medium text-muted-foreground mb-1">Kích cỡ sản phẩm</h3>
-                                <p className="font-medium">{productSizeName}</p>
-                            </div>
-                        </div>
+                        )}
 
                         <Separator />
 
@@ -175,23 +204,21 @@ export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDia
                                                 <p className="text-sm text-muted-foreground mt-1">{ingredientDetails.description}</p>
                                             )}
                                         </div>
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-lg font-bold">{recipe.quantity}</span>
-                                                <Badge variant="outline">{formatUnit(recipe.unit)}</Badge>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Số lượng / Đơn vị</p>
-                                        </div>
+
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 mt-4">
+
                                         <div>
-                                            <h3 className="text-sm font-medium text-muted-foreground mb-1">ID Nguyên liệu</h3>
-                                            <p className="text-sm">{recipe.ingredientId}</p>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-medium text-muted-foreground mb-1">Đơn vị đầy đủ</h3>
+                                            <h3 className="text-sm font-medium  mb-1">Đơn vị đầy đủ</h3>
                                             <p className="text-sm">{recipe.unit}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs text-muted-foreground mb-1">Số lượng / Đơn vị</p>
+                                            <div className=" flex items-center justify-end  gap-2 h-6 mt-3">
+                                                <span className="text-lg font-bold">{recipe.quantity}</span>
+                                                <Badge variant="outline" className="h-7">{formatUnit(recipe.unit)}</Badge>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>

@@ -52,7 +52,6 @@ export function useProducts() {
                     ? response.result.items
                     : [response.result.items];
                 setProductALL(productsData);
-                console.log(`Fetched ${productsData.length} products (ALL)`);
             } else {
                 throw new Error(response.message || "Failed to fetch all products");
             }

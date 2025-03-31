@@ -30,23 +30,6 @@ export function RecipesTable({ recipes, isLoading, onView, onEdit, onDelete }: R
     const currentItems = recipes.slice(startIndex, endIndex)
 
     // Format unit for display
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const formatUnit = (unit: string, quantity: number): string => {
-    //     // Abbreviate units for display
-    //     const unitAbbreviations: Record<string, string> = {
-    //         Milligram: "mg",
-    //         Gram: "g",
-    //         Kilogram: "kg",
-    //         Milliliter: "ml",
-    //         Liter: "L",
-    //         Piece: "pc",
-    //         Teaspoon: "tsp",
-    //         Tablespoon: "tbsp",
-    //     }
-
-    //     const abbreviation = unitAbbreviations[unit] || unit
-    //     return `${quantity} ${abbreviation}`
-    // }
 
     // Handle page changes
     const goToPage = (page: number) => {
@@ -72,12 +55,10 @@ export function RecipesTable({ recipes, isLoading, onView, onEdit, onDelete }: R
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[100px]">ID</TableHead>
                             <TableHead>Nguyên liệu</TableHead>
                             <TableHead className="w-[150px]">Số lượng</TableHead>
                             <TableHead className="w-[150px]">Đơn vị</TableHead>
-                            <TableHead className="w-[200px]">Kích cỡ sản phẩm</TableHead>
-                            <TableHead className="w-[80px] text-right">Thao tác</TableHead>
+                            <TableHead className="w-[150px] text-center">Thao tác</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -115,14 +96,12 @@ export function RecipesTable({ recipes, isLoading, onView, onEdit, onDelete }: R
                         ) : (
                             currentItems.map((recipe) => (
                                 <TableRow key={recipe.id}>
-                                    <TableCell className="font-medium">{recipe.id.substring(0, 8)}...</TableCell>
-                                    <TableCell>{recipe.ingredientName}</TableCell>
+                                    <TableCell className="ml-2">{recipe.ingredientName}</TableCell>
                                     <TableCell>{recipe.quantity}</TableCell>
                                     <TableCell>
                                         <Badge variant="outline">{recipe.unit}</Badge>
                                     </TableCell>
-                                    <TableCell>{recipe.productSizeId.substring(0, 8)}...</TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="w-[150px] text-center">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon">

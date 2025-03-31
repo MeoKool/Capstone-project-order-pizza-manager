@@ -15,6 +15,7 @@ import {
 import type { ProductModel } from "@/types/product"
 import { useState } from "react"
 import { ProductDetailDialog } from "./dialogs/ProductDetailDialog"
+import { DeleteProductDialog } from "./dialogs/delete-food-dialog"
 
 interface FoodCardProps {
     food: ProductModel
@@ -22,6 +23,7 @@ interface FoodCardProps {
     formatProductType: (type: string) => string
     handleEdit: (food: ProductModel) => void
     handleUploadImage: (food: ProductModel) => void
+    onDeleteSuccess?: () => void
 }
 
 const FoodCard: React.FC<FoodCardProps> = ({
@@ -30,10 +32,11 @@ const FoodCard: React.FC<FoodCardProps> = ({
     formatProductType,
     handleEdit,
     handleUploadImage,
+    onDeleteSuccess,
 }) => {
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [isImageHovered, setIsImageHovered] = useState(false)
-
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     // Function to get product image URL or placeholder
     const getProductImageUrl = (product: ProductModel) => {
         if (product.imageUrl) {
@@ -44,7 +47,22 @@ const FoodCard: React.FC<FoodCardProps> = ({
             return "/placeholder.svg?height=256&width=256"
         }
     }
+    const handleDeleteClick = () => {
+        setIsDeleteDialogOpen(true)
+    }
 
+    // Update the handleDeleteSuccess function to use the passed callback
+    const handleDeleteSuccess = () => {
+        // Call the parent's onDeleteSuccess if provided
+        if (onDeleteSuccess) {
+            onDeleteSuccess()
+        } else {
+            // Fallback to reloading the page if no callback provided
+            if (typeof window !== "undefined") {
+                window.location.reload()
+            }
+        }
+    }
     return (
         <>
             <Card className="h-full overflow-hidden group transition-all duration-200 hover:shadow-md">
@@ -132,7 +150,7 @@ const FoodCard: React.FC<FoodCardProps> = ({
                                     </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                <DropdownMenuItem onClick={handleDeleteClick} className="text-destructive focus:text-destructive">
                                     <Trash2 className="h-4 w-4 mr-2" />
                                     Xóa
                                 </DropdownMenuItem>
@@ -152,6 +170,12 @@ const FoodCard: React.FC<FoodCardProps> = ({
                 productId={isDetailOpen ? food.id : null}
                 open={isDetailOpen}
                 onOpenChange={setIsDetailOpen}
+            />
+            <DeleteProductDialog
+                product={food}
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                onSuccess={handleDeleteSuccess}
             />
         </>
     )

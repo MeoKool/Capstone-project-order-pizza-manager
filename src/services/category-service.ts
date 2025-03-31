@@ -21,14 +21,10 @@ export default class CategoryService {
      */
     public async getAllCategories(sortBy = "CreatedDate desc"): Promise<ApiResponse<CategoriesResult>> {
         try {
-            console.log(`Calling getAllCategories API with sorting: ${sortBy}`)
-
             // Encode the sortBy parameter for URL
             const encodedSortBy = encodeURIComponent(sortBy)
             const url = `/categories?SortBy=${encodedSortBy}`
-
             const response = await get<CategoriesResult>(url)
-            console.log("API response:", response)
             return response
         } catch (error) {
             console.error("Error fetching all categories:", error)
@@ -43,7 +39,6 @@ export default class CategoryService {
      */
     public async createCategory(data: Omit<CategoryModel, "id">): Promise<ApiResponse<void>> {
         try {
-            console.log("Creating category with data:", data)
             const response = await post<void>(`/categories`, data)
             console.log("Create category response:", response)
             return response
@@ -61,7 +56,6 @@ export default class CategoryService {
      */
     public async updateCategory(id: string, data: Partial<CategoryModel>): Promise<ApiResponse<void>> {
         try {
-            console.log(`Updating category ${id} with data:`, data)
             const response = await put<void>(`/categories/${id}`, data)
             console.log("Update category response:", response)
             return response
@@ -78,9 +72,7 @@ export default class CategoryService {
      */
     public async deleteCategory(id: string): Promise<ApiResponse<void>> {
         try {
-            console.log(`Deleting category ${id}`)
             const response = await del<void>(`/categories/${id}`)
-            console.log("Delete category response:", response)
             return response
         } catch (error) {
             console.error(`Error deleting category ${id}:`, error)
