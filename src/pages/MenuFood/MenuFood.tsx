@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
-// import FoodList from './components/FoodList'
 import { Utensils, Wheat, Ruler, SquareMenu, Pizza } from "lucide-react"
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import IngredientsPage from './components/Ingredients'
 import ProductSizePage from './components/ProductSize/Product-Size'
 import FoodList from './components/FoodList'
 import CategoryPage from './components/Category'
+import RecipesPage from './components/Recipe'
 
 const MenuFood: React.FC = () => {
   const [, setActiveTab] = useState("product")
@@ -46,17 +44,7 @@ const MenuFood: React.FC = () => {
           <FoodList />
         </TabsContent>
         <TabsContent value="recipe">
-          <Card>
-            <CardHeader>
-              <CardTitle>Công thức (Recipe)</CardTitle>
-              <CardDescription>Quản lý các công thức chế biến sản phẩm.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="h-40 rounded-md border border-dashed flex items-center justify-center">
-                <p className="text-muted-foreground">Nội dung Công thức ở đây</p>
-              </div>
-            </CardContent>
-          </Card>
+          <RecipesPage />
         </TabsContent>
         {/*  */}
         <TabsContent value="productSize">
