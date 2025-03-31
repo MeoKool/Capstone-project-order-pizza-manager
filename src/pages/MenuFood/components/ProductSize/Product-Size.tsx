@@ -22,7 +22,7 @@ function ProductSizePage() {
     const [isLoading, setIsLoading] = useState(true)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
     const productSizeService = ProductSizeService.getInstance()
-    const { products, loading: productsLoading } = useProducts()
+    const { loading: productsLoading } = useProducts()
 
     // Sorting and filtering
     const [sortOption, setSortOption] = useState<SortOption>("newest")
@@ -157,11 +157,6 @@ function ProductSizePage() {
     }
 
     // Function to get product name by ID
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const getProductName = (productId: string) => {
-        const product = products.find((p) => p.id === productId)
-        return product ? product.name : productId
-    }
 
     // Thêm hàm để xử lý khi chọn lọc theo sản phẩm
     const handleFilterByProduct = (productId: string, productName: string) => {

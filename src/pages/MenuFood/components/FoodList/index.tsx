@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -91,8 +89,7 @@ const FoodList: React.FC = () => {
         setIsUploadImageDialogOpen(true)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const updateFood = (updatedFood: ProductModel) => {
+    const updateFood = () => {
         refreshProducts()
         setIsEditDialogOpen(false)
         setEditingFood(null)

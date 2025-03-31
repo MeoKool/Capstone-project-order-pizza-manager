@@ -1,5 +1,5 @@
 import type React from 'react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { ProductModel } from '@/types/product'
 import useCategories from '@/hooks/useCategories'
-import FileUpload from '@/components/uploadImage'
 import { Loader2 } from 'lucide-react'
 
 interface EditFoodDialogProps {
@@ -62,9 +61,7 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleImageChange = useCallback((base64: string) => {
-    setFormData((prev) => ({ ...prev, image: base64 }))
-  }, [])
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,7 +77,7 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
         price: Number.parseFloat(formData.price),
         description: formData.description,
         categoryId: formData.categoryId,
-        productType: Number.parseInt(formData.productType),
+        productType: formData.productType,
         image: formData.image,
         category: foodCategory.find((c) => c.id === formData.categoryId) || food.category
       }
@@ -168,7 +165,6 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
 
           <div className='space-y-2'>
             <Label htmlFor='image'>Hình ảnh món ăn</Label>
-            <FileUpload onImageChange={handleImageChange} value={formData.image} />
           </div>
 
           <DialogFooter>
