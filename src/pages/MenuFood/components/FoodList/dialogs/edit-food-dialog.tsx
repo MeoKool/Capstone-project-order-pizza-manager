@@ -197,6 +197,7 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
         productOptionModels: transformOptionsToProductOptionModels(),
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [food, form])
 
   // Update the useFieldArray to use the new structure for option groups
