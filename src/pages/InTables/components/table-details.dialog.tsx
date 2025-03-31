@@ -35,7 +35,7 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
   const { zones_ } = useZone()
 
   const apiPublic = import.meta.env.VITE_PUBLIC_WEBSITE_URL || 'https://example.com'
-  const qrCodeData = `${apiPublic}/${table.id}/?tableCode=${table.code}`
+  const qrCodeData = `${apiPublic}${table.id}/?tableCode=${table.code}`
 
   const getQrSize = () => {
     switch (qrSize) {
