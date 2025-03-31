@@ -31,22 +31,22 @@ export function RecipesTable({ recipes, isLoading, onView, onEdit, onDelete }: R
 
     // Format unit for display
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const formatUnit = (unit: string, quantity: number): string => {
-        // Abbreviate units for display
-        const unitAbbreviations: Record<string, string> = {
-            Milligram: "mg",
-            Gram: "g",
-            Kilogram: "kg",
-            Milliliter: "ml",
-            Liter: "L",
-            Piece: "pc",
-            Teaspoon: "tsp",
-            Tablespoon: "tbsp",
-        }
+    // const formatUnit = (unit: string, quantity: number): string => {
+    //     // Abbreviate units for display
+    //     const unitAbbreviations: Record<string, string> = {
+    //         Milligram: "mg",
+    //         Gram: "g",
+    //         Kilogram: "kg",
+    //         Milliliter: "ml",
+    //         Liter: "L",
+    //         Piece: "pc",
+    //         Teaspoon: "tsp",
+    //         Tablespoon: "tbsp",
+    //     }
 
-        const abbreviation = unitAbbreviations[unit] || unit
-        return `${quantity} ${abbreviation}`
-    }
+    //     const abbreviation = unitAbbreviations[unit] || unit
+    //     return `${quantity} ${abbreviation}`
+    // }
 
     // Handle page changes
     const goToPage = (page: number) => {
