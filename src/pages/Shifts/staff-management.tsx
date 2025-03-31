@@ -45,10 +45,6 @@ export default function StaffManagement() {
 
         <TabsContent value='calendar'>
           <div className='bg-white rounded-lg p-6 shadow-sm'>
-            <div className='mb-4'>
-              <h2 className='text-lg font-medium text-blue-800'>Lịch làm việc nhân viên</h2>
-              <p className='text-sm text-blue-600'>Xem lịch làm việc của nhân viên theo tuần hoặc tháng.</p>
-            </div>
             <StaffScheduleCalendar />
           </div>
         </TabsContent>

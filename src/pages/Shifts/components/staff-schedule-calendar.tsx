@@ -165,10 +165,10 @@ export default function StaffScheduleCalendar() {
       <Dialog>
         <DialogTrigger asChild>
           <div
-            className='h-full w-full flex flex-col items-center justify-center cursor-pointer hover:bg-greennn-50/50 transition-colors rounded-md p-2'
+            className='h-full w-full flex flex-col items-center justify-center cursor-pointer hover:bg-green-50/50 transition-colors rounded-md p-2'
             onClick={() => handleDateClick(date, schedules)}
           >
-            <Badge className='bg-green-100 text-greenn-800 border border-green-300 hover:bg-green-200 flex items-center gap-1 px-3 py-1.5 rounded-full'>
+            <Badge className='bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 flex items-center gap-1 px-3 py-1.5 rounded-full'>
               <Users className='h-3.5 w-3.5' />
               <span className='font-medium'>{schedules.length}</span>
             </Badge>

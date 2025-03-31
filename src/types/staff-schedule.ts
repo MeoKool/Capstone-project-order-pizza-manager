@@ -77,6 +77,7 @@ export interface WorkingSlotRegister {
   workingSlotId: string
   staff: Staff | null
   workingSlot: WorkingSlot | null
+  zoneId: string
 }
 
 export interface WorkingSlotRegistersResult {

@@ -1,5 +1,5 @@
 import type ApiResponse from '@/apis/apiUtils'
-import { get, post, put } from '@/apis/apiUtils'
+import { get, post } from '@/apis/apiUtils'
 import type {
   ShiftsResult,
   Shift,
@@ -82,9 +82,20 @@ class StaffScheduleService {
 
       const queryParams = { ...defaultParams, ...params }
 
-      return await get<StaffSchedulesResult>('https://vietsac.id.vn/api/staff-zone-schedules', queryParams)
+      return await get<StaffSchedulesResult>('/staff-zone-schedules', queryParams)
     } catch (error) {
       console.error('Error fetching staff schedules:', error)
+      throw error
+    }
+  }
+
+  public async getStaffSchedulesByDate(workingDate: string): Promise<ApiResponse<StaffSchedulesResult>> {
+    try {
+      return await get<StaffSchedulesResult>('/staff-zone-schedules', {
+        WorkingDate: workingDate
+      })
+    } catch (error) {
+      console.error('Error fetching staff schedules by date:', error)
       throw error
     }
   }
@@ -98,7 +109,7 @@ class StaffScheduleService {
         dayOfWeek: 0
       }
 
-      return await get<WorkingSlotRegistersResult>('https://vietsac.id.vn/api/working-slot-registers', params)
+      return await get<WorkingSlotRegistersResult>('/working-slot-registers', params)
     } catch (error) {
       console.error('Error fetching working slot registers:', error)
       throw error
@@ -107,7 +118,7 @@ class StaffScheduleService {
 
   public async getZones(): Promise<ApiResponse<ZonesResult>> {
     try {
-      return await get<ZonesResult>('https://vietsac.id.vn/api/zones')
+      return await get<ZonesResult>('/zones')
     } catch (error) {
       console.error('Error fetching zones:', error)
       throw error
@@ -116,7 +127,7 @@ class StaffScheduleService {
 
   public async getConfigs(): Promise<ApiResponse<ConfigsResult>> {
     try {
-      return await get<ConfigsResult>('https://vietsac.id.vn/api/configs')
+      return await get<ConfigsResult>('/configs')
     } catch (error) {
       console.error('Error fetching configs:', error)
       throw error
@@ -125,7 +136,7 @@ class StaffScheduleService {
 
   public async approveWorkingSlotRegister(registerId: string): Promise<ApiResponse<any>> {
     try {
-      return await put<any>(`https://vietsac.id.vn/api/working-slot-registers/approved/${registerId}`, {})
+      return await post<any>(`/working-slot-registers/approved/${registerId}`, {})
     } catch (error) {
       console.error('Error approving working slot register:', error)
       throw error
@@ -134,7 +145,7 @@ class StaffScheduleService {
 
   public async createStaffZoneSchedule(data: StaffZoneScheduleRequest): Promise<ApiResponse<any>> {
     try {
-      return await post<any>('https://vietsac.id.vn/api/staff-zone-schedules', data)
+      return await post<any>('/staff-zone-schedules', data)
     } catch (error) {
       console.error('Error creating staff zone schedule:', error)
       throw error

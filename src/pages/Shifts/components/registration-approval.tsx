@@ -7,24 +7,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, User, CalendarDays } from 'lucide-react'
+import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, User, CalendarDays, MapPin, Users } from 'lucide-react'
 import StaffScheduleService from '@/services/staff-schedule-service'
-import type { WorkingSlotRegister, Zone, Config, StaffZoneScheduleRequest } from '@/types/staff-schedule'
+import type { WorkingSlotRegister, Zone, Config, StaffZoneScheduleRequest, StaffSchedule } from '@/types/staff-schedule'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 
 export default function RegistrationApproval() {
   const [, setRegistrations] = useState<WorkingSlotRegister[]>([])
   const [zones, setZones] = useState<Zone[]>([])
   const [, setConfigs] = useState<Config[]>([])
-  const [weekLimit, setWeekLimit] = useState(3)
+  const [, setWeekLimit] = useState(3)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRegistration, setSelectedRegistration] = useState<WorkingSlotRegister | null>(null)
   const [selectedZone, setSelectedZone] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentWeekRegistrations, setCurrentWeekRegistrations] = useState<WorkingSlotRegister[]>([])
   const [otherRegistrations, setOtherRegistrations] = useState<WorkingSlotRegister[]>([])
+  const [assignedStaff, setAssignedStaff] = useState<StaffSchedule[]>([])
+  const [isLoadingAssignedStaff, setIsLoadingAssignedStaff] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -70,7 +73,7 @@ export default function RegistrationApproval() {
       if (configsResponse.success && configsResponse.result) {
         const weekLimitConfig = configsResponse.result.items.find((config) => config.key === 'REGISTRATION_WEEK_LIMIT')
         if (weekLimitConfig) {
-          setWeekLimit(parseInt(weekLimitConfig.value))
+          setWeekLimit(Number.parseInt(weekLimitConfig.value))
         }
         setConfigs(configsResponse.result.items)
       }
@@ -82,9 +85,29 @@ export default function RegistrationApproval() {
     }
   }
 
-  const handleOpenDetails = (registration: WorkingSlotRegister) => {
+  const fetchAssignedStaff = async (workingDate: string) => {
+    try {
+      setIsLoadingAssignedStaff(true)
+      const staffScheduleService = StaffScheduleService.getInstance()
+      const response = await staffScheduleService.getStaffSchedulesByDate(workingDate)
+
+      if (response.success && response.result) {
+        setAssignedStaff(response.result.items)
+      } else {
+        setAssignedStaff([])
+      }
+    } catch (error) {
+      console.error('Error fetching assigned staff:', error)
+      setAssignedStaff([])
+    } finally {
+      setIsLoadingAssignedStaff(false)
+    }
+  }
+
+  const handleOpenDetails = async (registration: WorkingSlotRegister) => {
     setSelectedRegistration(registration)
     setSelectedZone('')
+    await fetchAssignedStaff(registration.workingDate)
   }
 
   const getStatusBadge = (status: string) => {
@@ -135,38 +158,68 @@ export default function RegistrationApproval() {
     try {
       const staffScheduleService = StaffScheduleService.getInstance()
 
-      // Duyệt đăng ký
-      const approveResponse = await staffScheduleService.approveWorkingSlotRegister(selectedRegistration.id)
+      // Nếu trạng thái là Onhold, duyệt đăng ký trước
+      if (selectedRegistration.status === 'Onhold') {
+        const approveResponse = await staffScheduleService.approveWorkingSlotRegister(selectedRegistration.id)
 
-      if (approveResponse.success) {
-        // Tạo lịch làm việc với khu vực đã chọn
-        const scheduleData: StaffZoneScheduleRequest = {
-          workingDate: selectedRegistration.workingDate,
-          staffId: selectedRegistration.staffId,
-          zoneId: selectedZone,
-          workingSlotId: selectedRegistration.workingSlotId
+        if (!approveResponse.success) {
+          toast.error(approveResponse.message || 'Không thể duyệt đăng ký')
+          setIsSubmitting(false)
+          return
         }
+      }
 
-        const scheduleResponse = await staffScheduleService.createStaffZoneSchedule(scheduleData)
+      // Tạo lịch làm việc với khu vực đã chọn
+      const scheduleData: StaffZoneScheduleRequest = {
+        workingDate: selectedRegistration.workingDate,
+        staffId: selectedRegistration.staffId,
+        zoneId: selectedZone,
+        workingSlotId: selectedRegistration.workingSlotId
+      }
 
-        if (scheduleResponse.success) {
-          toast.success('Đã duyệt đăng ký và phân công khu vực làm việc')
+      const scheduleResponse = await staffScheduleService.createStaffZoneSchedule(scheduleData)
 
-          // Cập nhật lại danh sách đăng ký
-          await fetchData()
-          setSelectedRegistration(null)
-        } else {
-          toast.error(scheduleResponse.message || 'Không thể phân công khu vực làm việc')
-        }
+      if (scheduleResponse.success) {
+        toast.success(
+          selectedRegistration.status === 'Onhold'
+            ? 'Đã duyệt đăng ký và phân công khu vực làm việc'
+            : 'Đã phân công khu vực làm việc'
+        )
+
+        // Cập nhật lại danh sách đăng ký
+        await fetchData()
+        // Cập nhật lại danh sách nhân viên đã phân công
+        await fetchAssignedStaff(selectedRegistration.workingDate)
+        setSelectedRegistration(null)
       } else {
-        toast.error(approveResponse.message || 'Không thể duyệt đăng ký')
+        toast.error(scheduleResponse.message || 'Không thể phân công khu vực làm việc')
       }
     } catch (error) {
       console.error('Error approving registration:', error)
-      toast.error('Đã xảy ra lỗi khi duyệt đăng ký')
+      toast.error('Đã xảy ra lỗi khi xử lý yêu cầu')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Nhóm nhân viên đã phân công theo khu vực
+  const groupStaffByZone = () => {
+    const grouped: Record<string, StaffSchedule[]> = {}
+
+    assignedStaff.forEach((staff) => {
+      if (!grouped[staff.zoneId]) {
+        grouped[staff.zoneId] = []
+      }
+      grouped[staff.zoneId].push(staff)
+    })
+
+    return grouped
+  }
+
+  // Lấy tên khu vực từ ID
+  const getZoneName = (zoneId: string) => {
+    const zone = zones.find((z) => z.id === zoneId)
+    return zone ? zone.name : 'Không xác định'
   }
 
   const renderRegistrationList = (registrations: WorkingSlotRegister[]) => {
@@ -183,7 +236,9 @@ export default function RegistrationApproval() {
               registration.status === 'Onhold'
                 ? 'border-amber-300 bg-amber-50/30'
                 : registration.status === 'Approved'
-                  ? 'border-green-300 bg-green-50/30'
+                  ? registration.zoneId
+                    ? 'border-green-300 bg-green-50/30'
+                    : 'border-blue-300 bg-blue-50/30'
                   : 'border-red-300 bg-red-50/30'
             }`}
             onClick={() => handleOpenDetails(registration)}
@@ -197,7 +252,15 @@ export default function RegistrationApproval() {
                 <div className='flex-1'>
                   <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
                     <h3 className='font-semibold text-blue-900'>{registration.staffName}</h3>
-                    {getStatusBadge(registration.status)}
+                    <div className='flex flex-wrap gap-2'>
+                      {getStatusBadge(registration.status)}
+                      {registration.status === 'Approved' && registration.zoneId === null && (
+                        <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1'>
+                          <AlertCircle className='h-3.5 w-3.5' />
+                          <span>Chưa phân khu vực</span>
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   <div className='mt-2 space-y-1 text-sm'>
@@ -216,6 +279,65 @@ export default function RegistrationApproval() {
           </Card>
         ))}
       </div>
+    )
+  }
+
+  const renderAssignedStaffTable = () => {
+    if (isLoadingAssignedStaff) {
+      return (
+        <div className='flex justify-center items-center py-4'>
+          <div className='flex flex-col items-center gap-2'>
+            <div className='animate-spin h-6 w-6 border-3 border-blue-500 border-t-transparent rounded-full'></div>
+            <div className='text-blue-600 text-sm'>Đang tải dữ liệu...</div>
+          </div>
+        </div>
+      )
+    }
+
+    if (assignedStaff.length === 0) {
+      return (
+        <div className='text-center py-4 text-gray-500 text-sm'>Chưa có nhân viên nào được phân công vào ngày này</div>
+      )
+    }
+
+    const groupedByZone = groupStaffByZone()
+
+    return (
+      <ScrollArea className='max-h-[300px]'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className='w-[180px]'>Khu vực</TableHead>
+              <TableHead>Nhân viên đã phân công</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Object.entries(groupedByZone).map(([zoneId, staffList]) => (
+              <TableRow key={zoneId}>
+                <TableCell className='font-medium'>
+                  <div className='flex items-center gap-2'>
+                    <MapPin className='h-4 w-4 text-blue-600' />
+                    <span>{getZoneName(zoneId)}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className='flex flex-wrap gap-2'>
+                    {staffList.map((staff) => (
+                      <Badge
+                        key={staff.id}
+                        variant='outline'
+                        className='bg-white border-blue-200 text-blue-800 py-1 px-2'
+                      >
+                        {staff.staffName}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </ScrollArea>
     )
   }
 
@@ -238,9 +360,6 @@ export default function RegistrationApproval() {
             <User className='h-5 w-5 text-blue-600' />
             Duyệt yêu cầu đăng ký
           </h2>
-          <p className='text-blue-600 mt-1'>
-            Giới hạn đăng ký mỗi tuần: <span className='font-semibold'>{weekLimit}</span> ca
-          </p>
         </div>
         <Button onClick={fetchData} variant='outline' className='border-blue-200 text-blue-700 hover:bg-blue-50'>
           Làm mới
@@ -282,7 +401,7 @@ export default function RegistrationApproval() {
 
       {selectedRegistration && (
         <Dialog open={!!selectedRegistration} onOpenChange={(open) => !open && setSelectedRegistration(null)}>
-          <DialogContent className='max-w-md'>
+          <DialogContent className='max-w-3xl'>
             <DialogHeader>
               <DialogTitle className='text-xl flex items-center gap-2 text-blue-700'>
                 <User className='h-5 w-5' />
@@ -290,53 +409,74 @@ export default function RegistrationApproval() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className='py-4 space-y-4'>
+            <div className='py-4 space-y-6'>
               <div className='flex items-center gap-3'>
                 <Avatar className='h-12 w-12 bg-blue-100 text-blue-700 border border-blue-200'>
                   <AvatarFallback>{getInitials(selectedRegistration.staffName)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className='font-semibold text-lg text-blue-900'>{selectedRegistration.staffName}</h3>
-                  {getStatusBadge(selectedRegistration.status)}
-                </div>
-              </div>
-
-              <Separator className='bg-blue-100' />
-
-              <div className='space-y-3'>
-                <div className='flex items-center gap-2 text-gray-700'>
-                  <CalendarDays className='h-4 w-4 text-blue-600' />
-                  <span>Ngày làm: {format(parseISO(selectedRegistration.workingDate), 'dd/MM/yyyy')}</span>
-                </div>
-                <div className='flex items-center gap-2 text-gray-700'>
-                  <Clock className='h-4 w-4 text-blue-600' />
-                  <span>Đăng ký: {format(parseISO(selectedRegistration.registerDate), 'dd/MM/yyyy HH:mm')}</span>
-                </div>
-              </div>
-
-              {selectedRegistration.status === 'Onhold' && (
-                <>
-                  <Separator className='bg-blue-100' />
-
-                  <div className='space-y-3'>
-                    <Label htmlFor='zone' className='text-blue-700'>
-                      Chọn khu vực làm việc
-                    </Label>
-                    <Select value={selectedZone} onValueChange={setSelectedZone}>
-                      <SelectTrigger id='zone' className='border-blue-200 focus:ring-blue-500'>
-                        <SelectValue placeholder='Chọn khu vực' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {zones.map((zone) => (
-                          <SelectItem key={zone.id} value={zone.id}>
-                            {zone.name} - {zone.description}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className='flex flex-wrap gap-2 mt-1'>
+                    {getStatusBadge(selectedRegistration.status)}
+                    {selectedRegistration.status === 'Approved' && selectedRegistration.zoneId === null && (
+                      <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1'>
+                        <AlertCircle className='h-3.5 w-3.5' />
+                        <span>Chưa phân khu vực</span>
+                      </Badge>
+                    )}
                   </div>
-                </>
-              )}
+                </div>
+              </div>
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className='space-y-3'>
+                  <h4 className='font-medium text-blue-800'>Thông tin đăng ký</h4>
+                  <div className='space-y-3 bg-blue-50/50 p-3 rounded-md border border-blue-100'>
+                    <div className='flex items-center gap-2 text-gray-700'>
+                      <CalendarDays className='h-4 w-4 text-blue-600' />
+                      <span>Ngày làm: {format(parseISO(selectedRegistration.workingDate), 'dd/MM/yyyy')}</span>
+                    </div>
+                    <div className='flex items-center gap-2 text-gray-700'>
+                      <Clock className='h-4 w-4 text-blue-600' />
+                      <span>Đăng ký: {format(parseISO(selectedRegistration.registerDate), 'dd/MM/yyyy HH:mm')}</span>
+                    </div>
+                  </div>
+
+                  {(selectedRegistration.status === 'Onhold' ||
+                    (selectedRegistration.status === 'Approved' && selectedRegistration.zoneId === null)) && (
+                    <div className='space-y-3 mt-4'>
+                      <Label htmlFor='zone' className='text-blue-700'>
+                        Chọn khu vực làm việc
+                      </Label>
+                      <Select value={selectedZone} onValueChange={setSelectedZone}>
+                        <SelectTrigger id='zone' className='border-blue-200 focus:ring-blue-500'>
+                          <SelectValue placeholder='Chọn khu vực' />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {zones.map((zone) => (
+                            <SelectItem key={zone.id} value={zone.id}>
+                              {zone.name} - {zone.description}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                <div className='space-y-3'>
+                  <div className='flex items-center justify-between'>
+                    <h4 className='font-medium text-blue-800 flex items-center gap-2'>
+                      <Users className='h-4 w-4 text-blue-600' />
+                      Nhân viên đã phân công
+                    </h4>
+                    <Badge className='bg-blue-100 text-blue-800 border border-blue-300'>
+                      {assignedStaff.length} nhân viên
+                    </Badge>
+                  </div>
+                  {renderAssignedStaffTable()}
+                </div>
+              </div>
             </div>
 
             <DialogFooter className='flex items-center justify-between sm:justify-between'>
@@ -346,13 +486,18 @@ export default function RegistrationApproval() {
                 </Button>
               </DialogClose>
 
-              {selectedRegistration.status === 'Onhold' && (
+              {(selectedRegistration.status === 'Onhold' ||
+                (selectedRegistration.status === 'Approved' && selectedRegistration.zoneId === null)) && (
                 <Button
                   onClick={handleApprove}
                   disabled={isSubmitting || !selectedZone}
                   className='bg-blue-600 hover:bg-blue-700 text-white'
                 >
-                  {isSubmitting ? 'Đang xử lý...' : 'Duyệt và phân công'}
+                  {isSubmitting
+                    ? 'Đang xử lý...'
+                    : selectedRegistration.status === 'Onhold'
+                      ? 'Duyệt và phân công'
+                      : 'Phân công khu vực'}
                 </Button>
               )}
             </DialogFooter>
