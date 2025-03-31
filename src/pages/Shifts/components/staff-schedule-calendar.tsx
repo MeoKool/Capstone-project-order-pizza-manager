@@ -23,11 +23,19 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { ChevronLeft, ChevronRight, Calendar, Users, MapPin, Phone, Clock, CalendarDays } from 'lucide-react'
 import StaffScheduleService from '@/services/staff-schedule-service'
 import type { StaffSchedule } from '@/types/staff-schedule'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter
+} from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function StaffScheduleCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -143,23 +151,28 @@ export default function StaffScheduleCalendar() {
       .substring(0, 2)
   }
 
-  //   // Group schedules by zone
-  //   const groupSchedulesByZone = (schedules: StaffSchedule[]) => {
-  //     const grouped: Record<string, StaffSchedule[]> = {}
+  // Group schedules by zone and slot
+  const groupSchedulesByZoneAndSlot = (schedules: StaffSchedule[]) => {
+    const grouped: Record<string, StaffSchedule[]> = {}
 
-  //     schedules.forEach((schedule) => {
-  //       const key = schedule.zone.id
-  //       if (!grouped[key]) {
-  //         grouped[key] = []
-  //       }
-  //       grouped[key].push(schedule)
-  //     })
+    schedules.forEach((schedule) => {
+      // Create a unique key based on zone and working slot
+      const slotId = schedule.workingSlot?.id || 'no-slot'
+      const zoneId = schedule.zone.id
+      const key = `${zoneId}-${slotId}`
 
-  //     return grouped
-  //   }
+      if (!grouped[key]) {
+        grouped[key] = []
+      }
+      grouped[key].push(schedule)
+    })
+
+    return grouped
+  }
 
   const renderStaffDialog = (date: Date, schedules: StaffSchedule[]) => {
     const formattedDate = format(date, 'EEEE, dd/MM/yyyy', { locale: vi })
+    const groupedSchedules = groupSchedulesByZoneAndSlot(schedules)
 
     return (
       <Dialog>
@@ -174,86 +187,95 @@ export default function StaffScheduleCalendar() {
             </Badge>
           </div>
         </DialogTrigger>
-        <DialogContent className='max-w-3xl'>
+        <DialogContent className='max-w-3xl max-h-[80vh] flex flex-col'>
           <DialogHeader>
             <DialogTitle className='text-xl flex items-center gap-2 text-green-700'>
               <CalendarDays className='h-5 w-5' />
               Lịch làm việc - {formattedDate}
             </DialogTitle>
           </DialogHeader>
-          <div className='py-4'>
-            {schedules.map((schedule) => (
-              <div
-                key={schedule.id}
-                className='mb-6 last:mb-0 bg-white rounded-lg border border-green-200 p-4 shadow-sm hover:shadow-md transition-shadow'
-              >
-                <div className='flex flex-col md:flex-row gap-4'>
-                  <div className='flex-1'>
-                    <div className='flex items-start gap-3'>
-                      <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
-                        <AvatarFallback>{getInitials(schedule.staffName)}</AvatarFallback>
-                      </Avatar>
-                      <div className='flex-1'>
-                        <h3 className='text-lg font-semibold text-green-900'>{schedule.staffName}</h3>
-                        <div className='flex flex-wrap gap-2 mt-1'>
-                          <Badge variant='outline' className={`${getStaffTypeColor(schedule.staff.staffType)} border`}>
-                            {getStaffTypeLabel(schedule.staff.staffType)}
-                          </Badge>
-                          <Badge variant='outline' className={`${getStaffStatusColor(schedule.staff.status)} border`}>
-                            {getStaffStatusLabel(schedule.staff.status)}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
+          <ScrollArea className='flex-1 overflow-y-auto pr-4 max-h-[calc(80vh-120px)]'>
+            <div className='py-4'>
+              {Object.entries(groupedSchedules).map(([, groupedStaff], groupIndex) => {
+                // Use the first schedule in the group to get zone and slot info
+                const firstSchedule = groupedStaff[0]
 
-                    <div className='mt-4 space-y-2 pl-[52px]'>
-                      <div className='flex items-center gap-2 text-gray-700'>
-                        <Phone className='h-4 w-4 text-green-600' />
-                        <span>{schedule.staff.phone}</span>
+                return (
+                  <div
+                    key={groupIndex}
+                    className='mb-6 last:mb-0 bg-white rounded-lg border border-green-200 p-4 shadow-sm hover:shadow-md transition-shadow'
+                  >
+                    <div className='flex flex-col gap-4'>
+                      {/* Zone and Shift Information */}
+                      <div className='flex items-center justify-between border-b border-green-100 pb-3'>
+                        <div className='flex items-center gap-3'>
+                          <div className='h-10 w-10 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
+                            <MapPin className='h-5 w-5 text-green-700' />
+                          </div>
+                          <div>
+                            <div className='font-medium text-green-900'>{firstSchedule.zoneName}</div>
+                            <div className='text-sm text-gray-600'>{firstSchedule.zone.description}</div>
+                          </div>
+                        </div>
+
+                        {firstSchedule.workingSlot && (
+                          <div className='flex items-center gap-3'>
+                            <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>
+                              {firstSchedule.workingSlot.shiftName}
+                            </Badge>
+                            <div className='flex items-center gap-1 text-gray-700'>
+                              <Clock className='h-4 w-4 text-amber-600' />
+                              <span>
+                                {firstSchedule.workingSlot.shiftStart.substring(0, 5)} -{' '}
+                                {firstSchedule.workingSlot.shiftEnd.substring(0, 5)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Staff List */}
+                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                        {groupedStaff.map((schedule, staffIndex) => (
+                          <div key={staffIndex} className='flex items-start gap-3 p-2 rounded-md hover:bg-green-50/50'>
+                            <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
+                              <AvatarFallback>{getInitials(schedule.staffName)}</AvatarFallback>
+                            </Avatar>
+                            <div className='flex-1'>
+                              <h3 className='font-semibold text-green-900'>{schedule.staffName}</h3>
+                              <div className='flex flex-wrap gap-2 mt-1'>
+                                <Badge
+                                  variant='outline'
+                                  className={`${getStaffTypeColor(schedule.staff.staffType)} border text-xs`}
+                                >
+                                  {getStaffTypeLabel(schedule.staff.staffType)}
+                                </Badge>
+                                <Badge
+                                  variant='outline'
+                                  className={`${getStaffStatusColor(schedule.staff.status)} border text-xs`}
+                                >
+                                  {getStaffStatusLabel(schedule.staff.status)}
+                                </Badge>
+                              </div>
+                              <div className='mt-1 text-sm text-gray-700'>
+                                <Phone className='h-3.5 w-3.5 inline mr-1 text-green-600' />
+                                {schedule.staff.phone}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
-
-                  <Separator orientation='vertical' className='hidden md:block bg-green-100' />
-                  <Separator className='md:hidden bg-green-100' />
-
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-3 mb-4'>
-                      <div className='h-10 w-10 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
-                        <MapPin className='h-5 w-5 text-green-700' />
-                      </div>
-                      <div>
-                        <div className='font-medium text-green-900'>{schedule.zoneName}</div>
-                        <div className='text-sm text-gray-600'>{schedule.zone.description}</div>
-                      </div>
-                    </div>
-
-                    {schedule.workingSlot && (
-                      <div className='space-y-3 pl-[52px]'>
-                        <div className='flex items-center gap-2'>
-                          <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>
-                            {schedule.workingSlot.shiftName}
-                          </Badge>
-                        </div>
-                        <div className='flex items-center gap-2 text-gray-700'>
-                          <Clock className='h-4 w-4 text-amber-600' />
-                          <span>
-                            {schedule.workingSlot.shiftStart.substring(0, 5)} -{' '}
-                            {schedule.workingSlot.shiftEnd.substring(0, 5)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className='flex justify-end'>
+                )
+              })}
+            </div>
+          </ScrollArea>
+          <DialogFooter className='mt-4 border-t pt-4'>
             <DialogClose asChild>
               <Button className='bg-green-600 hover:bg-green-700 text-white'>Đóng</Button>
             </DialogClose>
-          </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     )
