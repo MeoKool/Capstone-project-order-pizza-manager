@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { ArrowUpDown, X, PlusCircle, RefreshCw } from "lucide-react"
+import { ArrowUpDown, X, PlusCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -128,52 +128,48 @@ function IngredientsPage() {
         <div className="mx-auto mt-4">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-
-                    <div>
+                    <div className="space-y-2">
                         <CardTitle>Nguyên liệu</CardTitle>
                         <CardDescription className="mt-2">Quản lý thông tin về nguyên liệu của bạn.</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm nguyên liệu..."
+                                className="px-2 border rounded-md w-64 h-9"
+                                value={searchTerm}
+                                onChange={handleSearch}
+                            />
+                            {searchTerm && (
+                                <button className="absolute right-3 top-1/2 transform -translate-y-1/2" onClick={clearSearch}>
+                                    <X className="h-4 w-4 text-gray-500" />
+                                </button>
+                            )}
+                        </div>
+                        <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+                            <SelectTrigger className="w-[150px]">
+                                <div className="flex items-center gap-2">
+                                    <ArrowUpDown className="h-4 w-4" />
+                                    <SelectValue placeholder="Sắp xếp">{getSortLabel(sortOption)}</SelectValue>
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="newest">Mới nhất</SelectItem>
+                                <SelectItem value="name-asc">Tên: A-Z</SelectItem>
+                                <SelectItem value="name-desc">Tên: Z-A</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Button variant="green" onClick={() => setIsAddDialogOpen(true)}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Thêm Nguyên Liệu
+                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="flex justify-between items-center mb-2">
-                        <h1>Danh sách nguyên liệu</h1>
-                        <div className="flex gap-2">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Tìm kiếm nguyên liệu..."
-                                    className="px-2 border rounded-md w-64 h-9"
-                                    value={searchTerm}
-                                    onChange={handleSearch}
-                                />
-                                {searchTerm && (
-                                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2" onClick={clearSearch}>
-                                        <X className="h-4 w-4 text-gray-500" />
-                                    </button>
-                                )}
-                            </div>
-                            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-                                <SelectTrigger className="w-[150px]">
-                                    <div className="flex items-center gap-2">
-                                        <ArrowUpDown className="h-4 w-4" />
-                                        <SelectValue placeholder="Sắp xếp">{getSortLabel(sortOption)}</SelectValue>
-                                    </div>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="newest">Mới nhất</SelectItem>
-                                    <SelectItem value="name-asc">Tên: A-Z</SelectItem>
-                                    <SelectItem value="name-desc">Tên: Z-A</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Button variant="outline" onClick={fetchIngredients} disabled={isLoading}>
-                                <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-                                Làm mới
-                            </Button>
-                            <Button onClick={() => setIsAddDialogOpen(true)}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Thêm Nguyên Liệu
-                            </Button>
-                        </div>
+
                     </div>
                     {searchTerm && (
                         <div className="flex items-center gap-2 mb-4">

@@ -1,4 +1,4 @@
-import ApiResponse, { get, } from '@/apis/apiUtils'
+import ApiResponse, { del, get, } from '@/apis/apiUtils'
 import { ProductResponse, ProductsResult } from '@/types/product'
 import { ProductDetail } from '@/types/product-detail'
 
@@ -143,6 +143,67 @@ class ProductService {
         success: false,
         result: null,
         message: `Error uploading image: ${error instanceof Error ? error.message : String(error)}`,
+        statusCode: 500,
+      }
+    }
+  }
+  /**
+ * Update an existing product
+ * @param id The ID of the product to update
+ * @param formData FormData containing the updated product data
+ * @returns Promise with the update result
+ */
+  public async updateProduct(id: string, formData: FormData): Promise<ProductResponse> {
+    try {
+      console.log(`Updating product ${id} with form data`)
+
+      // Log the form data for debugging
+      console.log("Form data being sent:")
+      for (const pair of formData.entries()) {
+        console.log(pair[0] + ": " + pair[1])
+      }
+
+      const response = await fetch(`https://vietsac.id.vn/api/products/${id}`, {
+        method: "PUT",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log("Update product response:", result)
+      return result
+    } catch (error) {
+      console.error(`Error updating product ${id}:`, error)
+      return {
+        success: false,
+        result: null,
+        message: `Error updating product: ${error instanceof Error ? error.message : String(error)}`,
+        statusCode: 500,
+      }
+    }
+  }
+
+  /**
+   * Delete a product
+   * @param id The ID of the product to delete
+   * @returns Promise with the deletion result
+   */
+  public async deleteProduct(id: string): Promise<ApiResponse<unknown>> {
+    try {
+      console.log(`Deleting product ${id}`)
+
+      const response = await del<void>(`/products/${id}?isHardDeleted=false`)
+      console.log("Delete product response:", response)
+      return response
+    } catch (error) {
+      console.error(`Error deleting product ${id}:`, error)
+      return {
+        success: false,
+        result: null,
+        message: `Error deleting product: ${error instanceof Error ? error.message : String(error)}`,
         statusCode: 500,
       }
     }

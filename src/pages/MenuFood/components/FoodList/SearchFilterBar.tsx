@@ -57,8 +57,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
 
     return (
         <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Danh sách món ăn</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
                 <div className="relative w-64">
                     <Input
                         placeholder="Tìm kiếm món ăn..."

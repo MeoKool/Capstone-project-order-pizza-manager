@@ -97,7 +97,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
         }
 
         return (
-            <div className="space-y-6">
+            <div className="">
                 {product.options.map((option: ProductDetailOption) => (
                     <Card key={option.id} className="max-h-[90vh] overflow-y-auto scrollbar-hide">
                         <CardHeader className="p-4 pb-2">
@@ -179,7 +179,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                         </Button>
                     </div>
                 ) : product ? (
-                    <div className="space-y-6">
+                    <div className="space-y-0">
                         <div className="flex flex-col md:flex-row gap-6 ">
                             {/* Product Image */}
                             <div className="w-full md:w-1/3">
@@ -243,7 +243,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
                             {/* Product Sizes & Recipes Tab */}
                             <TabsContent value="sizes">
-                                <Card className="mb-52">
+                                <Card className="">
                                     <CardHeader>
                                         <CardTitle>Kích cỡ & Công thức</CardTitle>
                                         <CardDescription className="pb-1">Các kích cỡ và công thức của sản phẩm</CardDescription>
@@ -302,7 +302,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
                             {/* Options Tab */}
                             <TabsContent value="options">
-                                <Card className="mb-52">
+                                <Card className="">
                                     <CardHeader>
                                         <CardTitle>Tùy chọn sản phẩm</CardTitle>
                                         <CardDescription className="pb-1">Các tùy chọn có thể thêm vào sản phẩm</CardDescription>
@@ -314,7 +314,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
                             {/* Details Tab */}
                             <TabsContent value="details">
-                                <Card className="mb-52">
+                                <Card className="">
                                     <CardHeader>
                                         <CardTitle>Thông tin</CardTitle>
                                         <CardDescription className="pb-1">Những thông tin chi tiết về món ăn</CardDescription>

@@ -32,6 +32,7 @@ export interface RecipesResult {
 export interface CreateRecipe {
     productSizeId: string
     ingredientId: string
+    ingredientName: string
     unit: UnitType
     quantity: number
 }
