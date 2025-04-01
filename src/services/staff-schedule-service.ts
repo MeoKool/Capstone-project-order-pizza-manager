@@ -73,11 +73,8 @@ class StaffScheduleService {
   }): Promise<ApiResponse<StaffSchedulesResult>> {
     try {
       const defaultParams = {
-        year: 0,
-        month: 0,
-        day: 0,
-        dayOfWeek: 0,
-        IncludeProperties: 'Zone,Staff,WorkingSlot'
+        IncludeProperties: 'Zone,Staff,WorkingSlot',
+        SortBy: 'workingDate,WorkingSlot.dayName,WorkingSlot.shiftStart asc,WorkingSlot.shiftEnd asc'
       }
 
       const queryParams = { ...defaultParams, ...params }
