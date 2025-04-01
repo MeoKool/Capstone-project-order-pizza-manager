@@ -92,7 +92,8 @@ class StaffScheduleService {
   public async getStaffSchedulesByDate(workingDate: string): Promise<ApiResponse<StaffSchedulesResult>> {
     try {
       return await get<StaffSchedulesResult>('/staff-zone-schedules', {
-        WorkingDate: workingDate
+        WorkingDate: workingDate,
+        IncludeProperties: 'WorkingSlot'
       })
     } catch (error) {
       console.error('Error fetching staff schedules by date:', error)
@@ -106,7 +107,8 @@ class StaffScheduleService {
         year: 0,
         month: 0,
         day: 0,
-        dayOfWeek: 0
+        dayOfWeek: 0,
+        IncludeProperties: 'WorkingSlot'
       }
 
       return await get<WorkingSlotRegistersResult>('/working-slot-registers', params)

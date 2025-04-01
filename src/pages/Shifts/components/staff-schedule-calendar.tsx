@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import {
   format,
@@ -151,20 +153,17 @@ export default function StaffScheduleCalendar() {
       .substring(0, 2)
   }
 
-  // Group schedules by zone and slot
-  const groupSchedulesByZoneAndSlot = (schedules: StaffSchedule[]) => {
+  // Group schedules by zone only
+  const groupSchedulesByZone = (schedules: StaffSchedule[]) => {
     const grouped: Record<string, StaffSchedule[]> = {}
 
     schedules.forEach((schedule) => {
-      // Create a unique key based on zone and working slot
-      const slotId = schedule.workingSlot?.id || 'no-slot'
       const zoneId = schedule.zone.id
-      const key = `${zoneId}-${slotId}`
 
-      if (!grouped[key]) {
-        grouped[key] = []
+      if (!grouped[zoneId]) {
+        grouped[zoneId] = []
       }
-      grouped[key].push(schedule)
+      grouped[zoneId].push(schedule)
     })
 
     return grouped
@@ -172,7 +171,7 @@ export default function StaffScheduleCalendar() {
 
   const renderStaffDialog = (date: Date, schedules: StaffSchedule[]) => {
     const formattedDate = format(date, 'EEEE, dd/MM/yyyy', { locale: vi })
-    const groupedSchedules = groupSchedulesByZoneAndSlot(schedules)
+    const groupedSchedules = groupSchedulesByZone(schedules)
 
     return (
       <Dialog>
@@ -196,75 +195,92 @@ export default function StaffScheduleCalendar() {
           </DialogHeader>
           <ScrollArea className='flex-1 overflow-y-auto pr-4 max-h-[calc(80vh-120px)]'>
             <div className='py-4'>
-              {Object.entries(groupedSchedules).map(([, groupedStaff], groupIndex) => {
-                // Use the first schedule in the group to get zone and slot info
-                const firstSchedule = groupedStaff[0]
+              {Object.entries(groupedSchedules).map(([, zoneStaff], zoneIndex) => {
+                // Get the zone information from the first staff member
+                const zone = zoneStaff[0].zone
+
+                // Group staff by working slot within this zone
+                const staffBySlot: Record<string, StaffSchedule[]> = {}
+                zoneStaff.forEach((staff) => {
+                  const slotId = staff.workingSlot?.id || 'unknown'
+                  if (!staffBySlot[slotId]) {
+                    staffBySlot[slotId] = []
+                  }
+                  staffBySlot[slotId].push(staff)
+                })
 
                 return (
                   <div
-                    key={groupIndex}
+                    key={zoneIndex}
                     className='mb-6 last:mb-0 bg-white rounded-lg border border-green-200 p-4 shadow-sm hover:shadow-md transition-shadow'
                   >
                     <div className='flex flex-col gap-4'>
-                      {/* Zone and Shift Information */}
-                      <div className='flex items-center justify-between border-b border-green-100 pb-3'>
-                        <div className='flex items-center gap-3'>
-                          <div className='h-10 w-10 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
-                            <MapPin className='h-5 w-5 text-green-700' />
-                          </div>
-                          <div>
-                            <div className='font-medium text-green-900'>{firstSchedule.zoneName}</div>
-                            <div className='text-sm text-gray-600'>{firstSchedule.zone.description}</div>
-                          </div>
+                      {/* Zone Information */}
+                      <div className='flex items-center gap-3 border-b border-green-100 pb-3'>
+                        <div className='h-10 w-10 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
+                          <MapPin className='h-5 w-5 text-green-700' />
                         </div>
-
-                        {firstSchedule.workingSlot && (
-                          <div className='flex items-center gap-3'>
-                            <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>
-                              {firstSchedule.workingSlot.shiftName}
-                            </Badge>
-                            <div className='flex items-center gap-1 text-gray-700'>
-                              <Clock className='h-4 w-4 text-amber-600' />
-                              <span>
-                                {firstSchedule.workingSlot.shiftStart.substring(0, 5)} -{' '}
-                                {firstSchedule.workingSlot.shiftEnd.substring(0, 5)}
-                              </span>
-                            </div>
-                          </div>
-                        )}
+                        <div>
+                          <div className='font-medium text-green-900'>{zone.name}</div>
+                        </div>
                       </div>
 
-                      {/* Staff List */}
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        {groupedStaff.map((schedule, staffIndex) => (
-                          <div key={staffIndex} className='flex items-start gap-3 p-2 rounded-md hover:bg-green-50/50'>
-                            <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
-                              <AvatarFallback>{getInitials(schedule.staffName)}</AvatarFallback>
-                            </Avatar>
-                            <div className='flex-1'>
-                              <h3 className='font-semibold text-green-900'>{schedule.staffName}</h3>
-                              <div className='flex flex-wrap gap-2 mt-1'>
-                                <Badge
-                                  variant='outline'
-                                  className={`${getStaffTypeColor(schedule.staff.staffType)} border text-xs`}
-                                >
-                                  {getStaffTypeLabel(schedule.staff.staffType)}
+                      {/* Working Slots and Staff */}
+                      {Object.entries(staffBySlot).map(([, slotStaff], slotIndex) => {
+                        const workingSlot = slotStaff[0].workingSlot
+
+                        return (
+                          <div key={slotIndex} className='border-b border-green-50 pb-3 last:border-0 last:pb-0'>
+                            {workingSlot && (
+                              <div className='flex items-center gap-3 mb-3'>
+                                <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>
+                                  {workingSlot.shiftName}
                                 </Badge>
-                                <Badge
-                                  variant='outline'
-                                  className={`${getStaffStatusColor(schedule.staff.status)} border text-xs`}
+                                <div className='flex items-center gap-1 text-gray-700'>
+                                  <Clock className='h-4 w-4 text-amber-600' />
+                                  <span>
+                                    {workingSlot.shiftStart.substring(0, 5)} - {workingSlot.shiftEnd.substring(0, 5)}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                              {slotStaff.map((staff, staffIndex) => (
+                                <div
+                                  key={staffIndex}
+                                  className='flex items-start gap-3 p-2 rounded-md hover:bg-green-50/50'
                                 >
-                                  {getStaffStatusLabel(schedule.staff.status)}
-                                </Badge>
-                              </div>
-                              <div className='mt-1 text-sm text-gray-700'>
-                                <Phone className='h-3.5 w-3.5 inline mr-1 text-green-600' />
-                                {schedule.staff.phone}
-                              </div>
+                                  <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
+                                    <AvatarFallback>{getInitials(staff.staffName)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className='flex-1'>
+                                    <h3 className='font-semibold text-green-900'>{staff.staffName}</h3>
+                                    <div className='flex flex-wrap gap-2 mt-1'>
+                                      <Badge
+                                        variant='outline'
+                                        className={`${getStaffTypeColor(staff.staff.staffType)} border text-xs`}
+                                      >
+                                        {getStaffTypeLabel(staff.staff.staffType)}
+                                      </Badge>
+                                      <Badge
+                                        variant='outline'
+                                        className={`${getStaffStatusColor(staff.staff.status)} border text-xs`}
+                                      >
+                                        {getStaffStatusLabel(staff.staff.status)}
+                                      </Badge>
+                                    </div>
+                                    <div className='mt-1 text-sm text-gray-700'>
+                                      <Phone className='h-3.5 w-3.5 inline mr-1 text-green-600' />
+                                      {staff.staff.phone}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )

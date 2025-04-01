@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { format, parseISO, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns'
 import { Button } from '@/components/ui/button'
@@ -85,14 +87,16 @@ export default function RegistrationApproval() {
     }
   }
 
-  const fetchAssignedStaff = async (workingDate: string) => {
+  const fetchAssignedStaff = async (workingDate: string, workingSlotId: string) => {
     try {
       setIsLoadingAssignedStaff(true)
       const staffScheduleService = StaffScheduleService.getInstance()
       const response = await staffScheduleService.getStaffSchedulesByDate(workingDate)
 
       if (response.success && response.result) {
-        setAssignedStaff(response.result.items)
+        // Filter staff by the selected working slot
+        const filteredStaff = response.result.items.filter((staff) => staff.workingSlotId === workingSlotId)
+        setAssignedStaff(filteredStaff)
       } else {
         setAssignedStaff([])
       }
@@ -107,7 +111,7 @@ export default function RegistrationApproval() {
   const handleOpenDetails = async (registration: WorkingSlotRegister) => {
     setSelectedRegistration(registration)
     setSelectedZone('')
-    await fetchAssignedStaff(registration.workingDate)
+    await fetchAssignedStaff(registration.workingDate, registration.workingSlotId)
   }
 
   const getStatusBadge = (status: string) => {
@@ -189,7 +193,7 @@ export default function RegistrationApproval() {
         // Cập nhật lại danh sách đăng ký
         await fetchData()
         // Cập nhật lại danh sách nhân viên đã phân công
-        await fetchAssignedStaff(selectedRegistration.workingDate)
+        await fetchAssignedStaff(selectedRegistration.workingDate, selectedRegistration.workingSlotId)
         setSelectedRegistration(null)
       } else {
         toast.error(scheduleResponse.message || 'Không thể phân công khu vực làm việc')
@@ -270,6 +274,12 @@ export default function RegistrationApproval() {
                     </div>
                     <div className='flex items-center gap-2 text-gray-700'>
                       <Clock className='h-4 w-4 text-blue-600' />
+                      <span>
+                        Giờ làm: {registration.workingSlot?.shiftStart} - {registration.workingSlot?.shiftEnd}
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-2 text-gray-700'>
+                      <Clock className='h-4 w-4 text-blue-600' />
                       <span>Đăng ký: {format(parseISO(registration.registerDate), 'dd/MM/yyyy HH:mm')}</span>
                     </div>
                   </div>
@@ -296,7 +306,7 @@ export default function RegistrationApproval() {
 
     if (assignedStaff.length === 0) {
       return (
-        <div className='text-center py-4 text-gray-500 text-sm'>Chưa có nhân viên nào được phân công vào ngày này</div>
+        <div className='text-center py-4 text-gray-500 text-sm'>Chưa có nhân viên nào được phân công vào ca này</div>
       )
     }
 
@@ -354,18 +364,6 @@ export default function RegistrationApproval() {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h2 className='text-xl font-semibold text-blue-800 flex items-center gap-2'>
-            <User className='h-5 w-5 text-blue-600' />
-            Duyệt yêu cầu đăng ký
-          </h2>
-        </div>
-        <Button onClick={fetchData} variant='outline' className='border-blue-200 text-blue-700 hover:bg-blue-50'>
-          Làm mới
-        </Button>
-      </div>
-
       <Tabs defaultValue='current-week' className='w-full'>
         <TabsList className='bg-blue-100 mb-4'>
           <TabsTrigger
@@ -388,6 +386,14 @@ export default function RegistrationApproval() {
               <Badge className='ml-1 bg-blue-200 text-blue-800'>{otherRegistrations.length}</Badge>
             )}
           </TabsTrigger>
+          <TabsTrigger
+            value='refresh'
+            className='flex items-center gap-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white'
+          >
+            <Button onClick={fetchData} variant='green' className='border-blue-200 text-white hover:bg-green-400'>
+              Làm mới
+            </Button>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value='current-week' className='mt-0'>
@@ -406,6 +412,11 @@ export default function RegistrationApproval() {
               <DialogTitle className='text-xl flex items-center gap-2 text-blue-700'>
                 <User className='h-5 w-5' />
                 Chi tiết đăng ký
+                {selectedRegistration.workingSlot && (
+                  <span className='ml-2 text-sm font-normal text-blue-500'>
+                    ({selectedRegistration.workingSlot.shiftStart} - {selectedRegistration.workingSlot.shiftEnd})
+                  </span>
+                )}
               </DialogTitle>
             </DialogHeader>
 
@@ -435,6 +446,13 @@ export default function RegistrationApproval() {
                     <div className='flex items-center gap-2 text-gray-700'>
                       <CalendarDays className='h-4 w-4 text-blue-600' />
                       <span>Ngày làm: {format(parseISO(selectedRegistration.workingDate), 'dd/MM/yyyy')}</span>
+                    </div>
+                    <div className='flex items-center gap-2 text-gray-700'>
+                      <Clock className='h-4 w-4 text-blue-600' />
+                      <span>
+                        Giờ làm: {selectedRegistration.workingSlot?.shiftStart} -{' '}
+                        {selectedRegistration.workingSlot?.shiftEnd}
+                      </span>
                     </div>
                     <div className='flex items-center gap-2 text-gray-700'>
                       <Clock className='h-4 w-4 text-blue-600' />
