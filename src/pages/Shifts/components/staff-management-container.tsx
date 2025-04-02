@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { Calendar, CheckCircle, Plus, Settings } from 'lucide-react'
+import { Calendar, Plus, Settings } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import CalendarView from './calendar-view'
-import RegistrationApproval from './registration-approval'
 import CreateScheduleForm from './create-schedule-form'
 import ManageSchedules from './manage-schedules'
+import StaffScheduleCalendar from './staff-schedule-calendar'
 
 export default function StaffManagementContainer() {
   const [activeTab, setActiveTab] = useState('calendar')
@@ -23,13 +22,7 @@ export default function StaffManagementContainer() {
                 <Calendar className='h-4 w-4' />
                 <span>Lịch</span>
               </TabsTrigger>
-              <TabsTrigger
-                value='approval'
-                className='flex items-center gap-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white'
-              >
-                <CheckCircle className='h-4 w-4' />
-                <span>Duyệt đăng ký</span>
-              </TabsTrigger>
+
               <TabsTrigger
                 value='create'
                 className='flex items-center gap-1 data-[state=active]:bg-purple-600 data-[state=active]:text-white'
@@ -50,8 +43,7 @@ export default function StaffManagementContainer() {
       </div>
 
       <div className='bg-white p-6 rounded-lg shadow-sm'>
-        {activeTab === 'calendar' && <CalendarView />}
-        {activeTab === 'approval' && <RegistrationApproval />}
+        {activeTab === 'calendar' && <StaffScheduleCalendar />}
         {activeTab === 'create' && <CreateScheduleForm />}
         {activeTab === 'manage' && <ManageSchedules />}
       </div>

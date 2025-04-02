@@ -1,54 +1,55 @@
-'use client'
-
 import { useEffect, useState } from 'react'
-import {
-  format,
-  parseISO,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
-  addWeeks,
-  subWeeks,
-  isSameDay,
-  startOfMonth,
-  endOfMonth,
-  getDay,
-  addMonths,
-  subMonths,
-  addDays,
-  isToday,
-  isSameMonth
-} from 'date-fns'
-import { vi } from 'date-fns/locale'
-import { Button } from '@/components/ui/button'
+import { parseISO, addWeeks, subWeeks, isSameDay, addMonths, subMonths } from 'date-fns'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight, Calendar, Users, MapPin, Phone, Clock, CalendarDays } from 'lucide-react'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import StaffScheduleService from '@/services/staff-schedule-service'
-import type { StaffSchedule } from '@/types/staff-schedule'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-  DialogFooter
-} from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import type {
+  StaffSchedule,
+  WorkingSlotRegister,
+  Zone,
+  StaffZoneScheduleRequest,
+  SwapWorkingSlotRequest
+} from '@/types/staff-schedule'
+
+import { toast } from 'sonner'
+import { LoadingSpinner } from './StaffScheduleCalendar/loading-spinner'
+import { CalendarHeader } from './StaffScheduleCalendar/calendar-header'
+import { CalendarLegend } from './StaffScheduleCalendar/calendar-legend'
+import { MonthView } from './StaffScheduleCalendar/month-view'
+import { DayDetailsDialog } from './StaffScheduleCalendar/day-details-dialog'
+import { RegistrationDialog } from './StaffScheduleCalendar/registration-dialog'
+import { SwapRequestDialog } from './StaffScheduleCalendar/swap-request-dialog'
+import { SwapActionDialog } from './StaffScheduleCalendar/swap-action-dialog'
+import { WeekView } from './StaffScheduleCalendar/week-view'
 
 export default function StaffScheduleCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<'week' | 'month'>('month')
   const [staffSchedules, setStaffSchedules] = useState<StaffSchedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [, setSelectedDate] = useState<Date | null>(null)
-  const [, setSelectedDaySchedules] = useState<StaffSchedule[]>([])
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedDaySchedules, setSelectedDaySchedules] = useState<StaffSchedule[]>([])
+
+  // Registration approval states
+  const [registrations, setRegistrations] = useState<WorkingSlotRegister[]>([])
+  const [zones, setZones] = useState<Zone[]>([])
+  const [selectedRegistration, setSelectedRegistration] = useState<WorkingSlotRegister | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Swap requests state
+  const [swapRequests, setSwapRequests] = useState<SwapWorkingSlotRequest[]>([])
+  const [selectedSwapRequest, setSelectedSwapRequest] = useState<SwapWorkingSlotRequest | null>(null)
+  const [isSwapActionDialogOpen, setIsSwapActionDialogOpen] = useState(false)
+  const [swapAction, setSwapAction] = useState<'approve' | 'reject' | null>(null)
+
+  // Dialog states
+  const [isDayDialogOpen, setIsDayDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'schedules' | 'registrations' | 'swaps'>('schedules')
 
   useEffect(() => {
     fetchSchedules()
+    fetchRegistrations()
+    fetchSwapRequests()
   }, [])
 
   const fetchSchedules = async () => {
@@ -64,6 +65,60 @@ export default function StaffScheduleCalendar() {
       console.error('Error fetching staff schedules:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchRegistrations = async () => {
+    try {
+      const staffScheduleService = StaffScheduleService.getInstance()
+      const response = await staffScheduleService.getWorkingSlotRegisters()
+
+      if (response.success && response.result) {
+        setRegistrations(response.result.items)
+      }
+
+      const zonesResponse = await staffScheduleService.getZones()
+      if (zonesResponse.success && zonesResponse.result) {
+        setZones(zonesResponse.result.items)
+      }
+    } catch (error) {
+      console.error('Error fetching registrations:', error)
+    }
+  }
+
+  const fetchSwapRequests = async () => {
+    try {
+      const staffScheduleService = StaffScheduleService.getInstance()
+      const response = await staffScheduleService.getSwapWorkingSlotRequests()
+
+      if (response.success && response.result) {
+        const requests = response.result.items
+
+        // Fetch working slot details for each request
+        const requestsWithDetails = await Promise.all(
+          requests.map(async (request) => {
+            try {
+              const [fromSlotResponse, toSlotResponse] = await Promise.all([
+                staffScheduleService.getWorkingSlotById(request.workingSlotFromId),
+                staffScheduleService.getWorkingSlotById(request.workingSlotToId)
+              ])
+
+              return {
+                ...request,
+                workingSlotFrom: fromSlotResponse.success ? fromSlotResponse.result : undefined,
+                workingSlotTo: toSlotResponse.success ? toSlotResponse.result : undefined
+              }
+            } catch (error) {
+              console.error('Error fetching working slot details:', error)
+              return request
+            }
+          })
+        )
+
+        setSwapRequests(requestsWithDetails)
+      }
+    } catch (error) {
+      console.error('Error fetching swap requests:', error)
     }
   }
 
@@ -87,6 +142,12 @@ export default function StaffScheduleCalendar() {
     setCurrentDate(new Date())
   }
 
+  const handleRefresh = async () => {
+    await Promise.all([fetchSchedules(), fetchRegistrations(), fetchSwapRequests()])
+
+    toast.success('Dữ liệu lịch làm việc và yêu cầu đã được cập nhật')
+  }
+
   const getSchedulesForDate = (date: Date) => {
     return staffSchedules.filter((schedule) => {
       const scheduleDate = parseISO(schedule.workingDate)
@@ -94,440 +155,212 @@ export default function StaffScheduleCalendar() {
     })
   }
 
-  const handleDateClick = (date: Date, schedules: StaffSchedule[]) => {
-    setSelectedDate(date)
-    setSelectedDaySchedules(schedules)
-  }
-
-  const getStaffTypeLabel = (staffType: string) => {
-    switch (staffType) {
-      case 'Manager':
-        return 'Quản lý'
-      case 'Staff':
-        return 'Nhân viên'
-      default:
-        return staffType
-    }
-  }
-
-  const getStaffStatusLabel = (status: string) => {
-    switch (status) {
-      case 'FullTime':
-        return 'Toàn thời gian'
-      case 'PartTime':
-        return 'Bán thời gian'
-      default:
-        return status
-    }
-  }
-
-  const getStaffTypeColor = (staffType: string) => {
-    switch (staffType) {
-      case 'Manager':
-        return 'bg-green-100 text-green-800 border-green-300'
-      case 'Staff':
-        return 'bg-green-100 text-green-800 border-green-300'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300'
-    }
-  }
-
-  const getStaffStatusColor = (status: string) => {
-    switch (status) {
-      case 'FullTime':
-        return 'bg-purple-100 text-purple-800 border-purple-300'
-      case 'PartTime':
-        return 'bg-amber-100 text-amber-800 border-amber-300'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300'
-    }
-  }
-
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((part) => part.charAt(0))
-      .join('')
-      .toUpperCase()
-      .substring(0, 2)
-  }
-
-  // Group schedules by zone only
-  const groupSchedulesByZone = (schedules: StaffSchedule[]) => {
-    const grouped: Record<string, StaffSchedule[]> = {}
-
-    schedules.forEach((schedule) => {
-      const zoneId = schedule.zone.id
-
-      if (!grouped[zoneId]) {
-        grouped[zoneId] = []
-      }
-      grouped[zoneId].push(schedule)
+  const getRegistrationsForDate = (date: Date) => {
+    return registrations.filter((registration) => {
+      const registrationDate = parseISO(registration.workingDate)
+      return isSameDay(registrationDate, date)
     })
-
-    return grouped
   }
 
-  const renderStaffDialog = (date: Date, schedules: StaffSchedule[]) => {
-    const formattedDate = format(date, 'EEEE, dd/MM/yyyy', { locale: vi })
-    const groupedSchedules = groupSchedulesByZone(schedules)
-
-    return (
-      <Dialog>
-        <DialogTrigger asChild>
-          <div
-            className='h-full w-full flex flex-col items-center justify-center cursor-pointer hover:bg-green-50/50 transition-colors rounded-md p-2'
-            onClick={() => handleDateClick(date, schedules)}
-          >
-            <Badge className='bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 flex items-center gap-1 px-3 py-1.5 rounded-full'>
-              <Users className='h-3.5 w-3.5' />
-              <span className='font-medium'>{schedules.length}</span>
-            </Badge>
-          </div>
-        </DialogTrigger>
-        <DialogContent className='max-w-3xl max-h-[80vh] flex flex-col'>
-          <DialogHeader>
-            <DialogTitle className='text-xl flex items-center gap-2 text-green-700'>
-              <CalendarDays className='h-5 w-5' />
-              Lịch làm việc - {formattedDate}
-            </DialogTitle>
-          </DialogHeader>
-          <ScrollArea className='flex-1 overflow-y-auto pr-4 max-h-[calc(80vh-120px)]'>
-            <div className='py-4'>
-              {Object.entries(groupedSchedules).map(([, zoneStaff], zoneIndex) => {
-                // Get the zone information from the first staff member
-                const zone = zoneStaff[0].zone
-
-                // Group staff by working slot within this zone
-                const staffBySlot: Record<string, StaffSchedule[]> = {}
-                zoneStaff.forEach((staff) => {
-                  const slotId = staff.workingSlot?.id || 'unknown'
-                  if (!staffBySlot[slotId]) {
-                    staffBySlot[slotId] = []
-                  }
-                  staffBySlot[slotId].push(staff)
-                })
-
-                return (
-                  <div
-                    key={zoneIndex}
-                    className='mb-6 last:mb-0 bg-white rounded-lg border border-green-200 p-4 shadow-sm hover:shadow-md transition-shadow'
-                  >
-                    <div className='flex flex-col gap-4'>
-                      {/* Zone Information */}
-                      <div className='flex items-center gap-3 border-b border-green-100 pb-3'>
-                        <div className='h-10 w-10 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
-                          <MapPin className='h-5 w-5 text-green-700' />
-                        </div>
-                        <div>
-                          <div className='font-medium text-green-900'>{zone.name}</div>
-                        </div>
-                      </div>
-
-                      {/* Working Slots and Staff */}
-                      {Object.entries(staffBySlot).map(([, slotStaff], slotIndex) => {
-                        const workingSlot = slotStaff[0].workingSlot
-
-                        return (
-                          <div key={slotIndex} className='border-b border-green-50 pb-3 last:border-0 last:pb-0'>
-                            {workingSlot && (
-                              <div className='flex items-center gap-3 mb-3'>
-                                <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>
-                                  {workingSlot.shiftName}
-                                </Badge>
-                                <div className='flex items-center gap-1 text-gray-700'>
-                                  <Clock className='h-4 w-4 text-amber-600' />
-                                  <span>
-                                    {workingSlot.shiftStart.substring(0, 5)} - {workingSlot.shiftEnd.substring(0, 5)}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                              {slotStaff.map((staff, staffIndex) => (
-                                <div
-                                  key={staffIndex}
-                                  className='flex items-start gap-3 p-2 rounded-md hover:bg-green-50/50'
-                                >
-                                  <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
-                                    <AvatarFallback>{getInitials(staff.staffName)}</AvatarFallback>
-                                  </Avatar>
-                                  <div className='flex-1'>
-                                    <h3 className='font-semibold text-green-900'>{staff.staffName}</h3>
-                                    <div className='flex flex-wrap gap-2 mt-1'>
-                                      <Badge
-                                        variant='outline'
-                                        className={`${getStaffTypeColor(staff.staff.staffType)} border text-xs`}
-                                      >
-                                        {getStaffTypeLabel(staff.staff.staffType)}
-                                      </Badge>
-                                      <Badge
-                                        variant='outline'
-                                        className={`${getStaffStatusColor(staff.staff.status)} border text-xs`}
-                                      >
-                                        {getStaffStatusLabel(staff.staff.status)}
-                                      </Badge>
-                                    </div>
-                                    <div className='mt-1 text-sm text-gray-700'>
-                                      <Phone className='h-3.5 w-3.5 inline mr-1 text-green-600' />
-                                      {staff.staff.phone}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </ScrollArea>
-          <DialogFooter className='mt-4 border-t pt-4'>
-            <DialogClose asChild>
-              <Button className='bg-green-600 hover:bg-green-700 text-white'>Đóng</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    )
+  const getSwapRequestsForDate = (date: Date) => {
+    return swapRequests.filter((request) => {
+      const fromDate = parseISO(request.workingDateFrom)
+      const toDate = parseISO(request.workingDateTo)
+      return isSameDay(fromDate, date) || isSameDay(toDate, date)
+    })
   }
 
-  const renderWeekView = () => {
-    const start = startOfWeek(currentDate, { weekStartsOn: 1 })
-    const end = endOfWeek(currentDate, { weekStartsOn: 1 })
-    const weekDays = eachDayOfInterval({ start, end })
-
-    return (
-      <div className='grid grid-cols-7 gap-3'>
-        {weekDays.map((day, index) => {
-          const daySchedules = getSchedulesForDate(day)
-          const hasSchedules = daySchedules.length > 0
-          const isCurrentDay = isToday(day)
-          const isWeekend = index >= 5 // Saturday and Sunday
-
-          return (
-            <div
-              key={index}
-              className={`border rounded-lg overflow-hidden shadow-sm transition-all hover:shadow-md ${
-                isCurrentDay
-                  ? 'border-green-400 bg-green-50'
-                  : isWeekend
-                    ? 'border-amber-200 bg-amber-50/30'
-                    : 'border-gray-200'
-              }`}
-            >
-              <div
-                className={`font-medium text-center py-2 ${
-                  isCurrentDay
-                    ? 'bg-green-500 text-white'
-                    : isWeekend
-                      ? 'bg-amber-100 text-amber-900'
-                      : 'bg-gray-100 text-gray-700'
-                }`}
-              >
-                <div>{format(day, 'EEEE', { locale: vi })}</div>
-                <div className='text-sm'>{format(day, 'dd/MM')}</div>
-              </div>
-              <div className='p-3 min-h-[100px] flex items-center justify-center'>
-                {hasSchedules ? (
-                  renderStaffDialog(day, daySchedules)
-                ) : (
-                  <div
-                    className={`text-xs text-center h-full w-full flex items-center justify-center ${
-                      isWeekend ? 'text-amber-700' : 'text-gray-500'
-                    }`}
-                  >
-                    Không có ca làm
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    )
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date)
+    setSelectedDaySchedules(getSchedulesForDate(date))
+    setIsDayDialogOpen(true)
+    setActiveTab('schedules')
   }
 
-  const renderMonthView = () => {
-    const start = startOfMonth(currentDate)
-    const end = endOfMonth(currentDate)
-
-    // Create a 6x7 grid for the month view
-    const firstDayOfMonth = getDay(start)
-    const daysToAdd = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1 // Adjust for Monday start
-
-    const calendarDays = []
-
-    // Add days from previous month
-    for (let i = daysToAdd; i > 0; i--) {
-      calendarDays.push(addDays(start, -i))
+  const handleApproveRegistration = async (registration: WorkingSlotRegister, zoneId: string) => {
+    if (!zoneId) {
+      toast.error('Vui lòng chọn khu vực làm việc')
+      return
     }
 
-    // Add days of current month
-    const monthDays = eachDayOfInterval({ start, end })
-    calendarDays.push(...monthDays)
+    setIsSubmitting(true)
 
-    // Add days from next month to fill the grid
-    const remainingDays = 42 - calendarDays.length
-    for (let i = 1; i <= remainingDays; i++) {
-      calendarDays.push(addDays(end, i))
+    try {
+      const staffScheduleService = StaffScheduleService.getInstance()
+
+      // Nếu trạng thái là Onhold, duyệt đăng ký trước
+      if (registration.status === 'Onhold') {
+        const approveResponse = await staffScheduleService.approveWorkingSlotRegister(registration.id)
+
+        if (!approveResponse.success) {
+          toast.error(approveResponse.message || 'Không thể duyệt đăng ký')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      // Tạo lịch làm việc với khu vực đã chọn
+      const scheduleData: StaffZoneScheduleRequest = {
+        workingDate: registration.workingDate,
+        staffId: registration.staffId,
+        zoneId: zoneId,
+        workingSlotId: registration.workingSlotId
+      }
+
+      const scheduleResponse = await staffScheduleService.createStaffZoneSchedule(scheduleData)
+
+      if (scheduleResponse.success) {
+        toast.success(
+          registration.status === 'Onhold'
+            ? 'Đã duyệt đăng ký và phân công khu vực làm việc'
+            : 'Đã phân công khu vực làm việc'
+        )
+
+        // Cập nhật lại danh sách
+        await Promise.all([fetchSchedules(), fetchRegistrations()])
+
+        if (selectedDate) {
+          setSelectedDaySchedules(getSchedulesForDate(selectedDate))
+        }
+
+        setSelectedRegistration(null)
+      } else {
+        toast.error(scheduleResponse.message || 'Không thể phân công khu vực làm việc')
+      }
+    } catch (error) {
+      console.error('Error approving registration:', error)
+      toast.error('Đã xảy ra lỗi khi xử lý yêu cầu')
+    } finally {
+      setIsSubmitting(false)
     }
+  }
 
-    // Split into weeks
-    const weeks = []
-    for (let i = 0; i < calendarDays.length; i += 7) {
-      weeks.push(calendarDays.slice(i, i + 7))
+  const handleSwapAction = (action: 'approve' | 'reject') => {
+    if (!selectedSwapRequest) return
+
+    setSwapAction(action)
+    setIsSwapActionDialogOpen(true)
+  }
+
+  const confirmSwapAction = async () => {
+    if (!selectedSwapRequest || !swapAction) return
+
+    setIsSubmitting(true)
+
+    try {
+      const staffScheduleService = StaffScheduleService.getInstance()
+      let response
+
+      if (swapAction === 'approve') {
+        response = await staffScheduleService.approveSwapWorkingSlot(selectedSwapRequest.id)
+      } else {
+        response = await staffScheduleService.rejectSwapWorkingSlot(selectedSwapRequest.id)
+      }
+
+      if (response.success) {
+        toast.success(swapAction === 'approve' ? 'Đã duyệt yêu cầu đổi ca' : 'Đã từ chối yêu cầu đổi ca')
+
+        // Refresh data
+        await Promise.all([fetchSchedules(), fetchSwapRequests()])
+
+        if (selectedDate) {
+          setSelectedDaySchedules(getSchedulesForDate(selectedDate))
+        }
+
+        setSelectedSwapRequest(null)
+      } else {
+        toast.error(response.message || `Không thể ${swapAction === 'approve' ? 'duyệt' : 'từ chối'} yêu cầu đổi ca`)
+      }
+    } catch (error) {
+      console.error(`Error ${swapAction === 'approve' ? 'approving' : 'rejecting'} swap request:`, error)
+      toast.error(`Đã xảy ra lỗi khi ${swapAction === 'approve' ? 'duyệt' : 'từ chối'} yêu cầu đổi ca`)
+    } finally {
+      setIsSubmitting(false)
+      setIsSwapActionDialogOpen(false)
+      setSwapAction(null)
     }
-
-    return (
-      <div className='space-y-3'>
-        <div className='grid grid-cols-7 gap-3 text-center font-medium text-gray-700'>
-          <div className='py-1'>T2</div>
-          <div className='py-1'>T3</div>
-          <div className='py-1'>T4</div>
-          <div className='py-1'>T5</div>
-          <div className='py-1'>T6</div>
-          <div className='py-1 text-amber-700'>T7</div>
-          <div className='py-1 text-amber-700'>CN</div>
-        </div>
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className='grid grid-cols-7 gap-3'>
-            {week.map((day, dayIndex) => {
-              const isCurrentMonth = isSameMonth(day, currentDate)
-              const daySchedules = getSchedulesForDate(day)
-              const hasSchedules = daySchedules.length > 0
-              const isCurrentDay = isToday(day)
-              const isWeekend = dayIndex >= 5 // Saturday and Sunday
-
-              return (
-                <div
-                  key={dayIndex}
-                  className={`border rounded-lg p-2 min-h-[110px] transition-all ${
-                    !isCurrentMonth
-                      ? 'bg-gray-50 text-gray-400 border-gray-100'
-                      : isCurrentDay
-                        ? 'border-green-400 bg-green-50 shadow-sm'
-                        : isWeekend
-                          ? 'border-amber-200 bg-amber-50/30'
-                          : 'border-gray-200 hover:border-green-300 hover:bg-green-50/30'
-                  }`}
-                >
-                  <div
-                    className={`text-right text-sm font-medium p-1 rounded-full w-7 h-7 flex items-center justify-center ml-auto ${
-                      isCurrentDay
-                        ? 'bg-green-500 text-white'
-                        : isWeekend && isCurrentMonth
-                          ? 'bg-amber-100 text-amber-900'
-                          : ''
-                    }`}
-                  >
-                    {format(day, 'd')}
-                  </div>
-                  <div className='mt-2 flex items-center justify-center h-[60px]'>
-                    {hasSchedules && isCurrentMonth
-                      ? renderStaffDialog(day, daySchedules)
-                      : isCurrentMonth && (
-                          <div
-                            className={`text-xs text-center h-full flex items-center justify-center ${
-                              isWeekend ? 'text-amber-700' : 'text-gray-500'
-                            }`}
-                          >
-                            Không có ca làm
-                          </div>
-                        )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ))}
-      </div>
-    )
   }
 
   if (isLoading) {
-    return (
-      <div className='flex justify-center items-center p-8 h-[400px]'>
-        <div className='flex flex-col items-center gap-2'>
-          <div className='animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full'></div>
-          <div className='text-green-600 font-medium'>Đang tải dữ liệu...</div>
-        </div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
     <Card className='border-none shadow-none'>
       <CardHeader className='pb-2'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center space-x-2'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handlePrevious}
-              className='border-green-200 text-green-700 hover:bg-green-50'
-            >
-              <ChevronLeft className='h-4 w-4' />
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleToday}
-              className='border-green-200 text-green-700 hover:bg-green-50'
-            >
-              Hôm nay
-            </Button>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={handleNext}
-              className='border-green-200 text-green-700 hover:bg-green-50'
-            >
-              <ChevronRight className='h-4 w-4' />
-            </Button>
-          </div>
-        </div>
-        <div className='flex items-center justify-between mt-2'>
-          <div className='text-lg font-medium text-green-700'>
-            {view === 'week'
-              ? `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'dd/MM')} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'dd/MM/yyyy')}`
-              : format(currentDate, 'MMMM yyyy', { locale: vi })}
-          </div>
-          <Tabs value={view} onValueChange={(v) => setView(v as 'week' | 'month')}>
-            <TabsList className='bg-green-100'>
-              <TabsTrigger
-                value='week'
-                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white'
-              >
-                <Calendar className='h-4 w-4' />
-                <span>Tuần</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value='month'
-                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white'
-              >
-                <CalendarDays className='h-4 w-4' />
-                <span>Tháng</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        <CalendarHeader
+          currentDate={currentDate}
+          view={view}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onToday={handleToday}
+          onRefresh={handleRefresh}
+          onViewChange={setView}
+        />
+        <CalendarLegend />
       </CardHeader>
       <CardContent>
         <Tabs value={view} className='w-full'>
           <TabsContent value='week' className='mt-0'>
-            {renderWeekView()}
+            <WeekView
+              currentDate={currentDate}
+              staffSchedules={staffSchedules}
+              registrations={registrations}
+              swapRequests={swapRequests}
+              onDateClick={handleDateClick}
+            />
           </TabsContent>
           <TabsContent value='month' className='mt-0'>
-            {renderMonthView()}
+            <MonthView
+              currentDate={currentDate}
+              staffSchedules={staffSchedules}
+              registrations={registrations}
+              swapRequests={swapRequests}
+              onDateClick={handleDateClick}
+            />
           </TabsContent>
         </Tabs>
       </CardContent>
+
+      {/* Day Dialog */}
+      <DayDetailsDialog
+        isOpen={isDayDialogOpen}
+        onOpenChange={setIsDayDialogOpen}
+        selectedDate={selectedDate}
+        schedules={selectedDaySchedules}
+        registrations={selectedDate ? getRegistrationsForDate(selectedDate) : []}
+        swapRequests={selectedDate ? getSwapRequestsForDate(selectedDate) : []}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onRegistrationSelect={setSelectedRegistration}
+        onSwapRequestSelect={setSelectedSwapRequest}
+        zones={zones}
+      />
+
+      {/* Registration Approval Dialog */}
+      <RegistrationDialog
+        registration={selectedRegistration}
+        zones={zones}
+        isSubmitting={isSubmitting}
+        onClose={() => setSelectedRegistration(null)}
+        onApprove={handleApproveRegistration}
+      />
+
+      {/* Swap Request Dialog */}
+      <SwapRequestDialog
+        swapRequest={selectedSwapRequest}
+        onClose={() => setSelectedSwapRequest(null)}
+        onAction={handleSwapAction}
+      />
+
+      {/* Swap Action Confirmation Dialog */}
+      <SwapActionDialog
+        isOpen={isSwapActionDialogOpen}
+        onOpenChange={setIsSwapActionDialogOpen}
+        action={swapAction}
+        isSubmitting={isSubmitting}
+        onConfirm={confirmSwapAction}
+      />
     </Card>
   )
 }

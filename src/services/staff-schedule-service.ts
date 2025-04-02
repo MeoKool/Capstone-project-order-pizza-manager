@@ -106,10 +106,8 @@ class StaffScheduleService {
   public async getWorkingSlotRegisters(): Promise<ApiResponse<WorkingSlotRegistersResult>> {
     try {
       const params = {
-        year: 0,
-        month: 0,
-        day: 0,
-        dayOfWeek: 0
+        SortBy: 'registerDate',
+        IncludeProperties: 'WorkingSlot'
       }
 
       return await get<WorkingSlotRegistersResult>('https://vietsac.id.vn/api/working-slot-registers', params)
