@@ -11,8 +11,11 @@ interface RegistrationsListProps {
 }
 
 export function RegistrationsList({ registrations, onSelect }: RegistrationsListProps) {
-  if (registrations.length === 0) {
-    return <div className='text-center py-6 text-gray-500'>Không có yêu cầu đăng ký nào cho ngày này</div>
+  // Filter out approved registrations that already have a zoneId
+  const filteredRegistrations = registrations.filter((reg) => !(reg.status === 'Approved' && reg.zoneId !== null))
+
+  if (filteredRegistrations.length === 0) {
+    return <div className='text-center py-6 text-gray-500'>Không có yêu cầu đăng ký nào cần xử lý</div>
   }
 
   // Get initials from name
@@ -63,7 +66,7 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
 
   return (
     <div className='space-y-4 pb-4'>
-      {registrations.map((registration) => (
+      {filteredRegistrations.map((registration) => (
         <Card
           key={registration.id}
           className={`border hover:shadow-md transition-shadow cursor-pointer ${

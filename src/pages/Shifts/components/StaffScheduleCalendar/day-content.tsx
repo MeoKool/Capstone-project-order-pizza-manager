@@ -11,6 +11,8 @@ interface DayContentProps {
 
 export function DayContent({ date, schedules, registrations, swapRequests }: DayContentProps) {
   console.log(date)
+
+  // Only count registrations that are pending or approved without a zone
   const pendingRegistrations = registrations.filter(
     (reg) => reg.status === 'Onhold' || (reg.status === 'Approved' && reg.zoneId === null)
   )

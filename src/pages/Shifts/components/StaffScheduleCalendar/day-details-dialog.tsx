@@ -39,6 +39,11 @@ export function DayDetailsDialog({
 }: DayDetailsDialogProps) {
   if (!selectedDate) return null
 
+  // Count pending registrations (excluding approved ones with zoneId)
+  const pendingRegistrationsCount = registrations.filter(
+    (reg) => !(reg.status === 'Approved' && reg.zoneId !== null)
+  ).length
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-4xl max-h-[90vh] overflow-hidden flex flex-col'>
@@ -69,7 +74,7 @@ export function DayDetailsDialog({
               >
                 <AlertCircle className='h-4 w-4' />
                 <span>Yêu cầu đăng ký</span>
-                <Badge className='ml-1 bg-green-200 text-green-800'>{registrations.length}</Badge>
+                <Badge className='ml-1 bg-green-200 text-green-800'>{pendingRegistrationsCount}</Badge>
               </TabsTrigger>
               <TabsTrigger
                 value='swaps'
