@@ -1,5 +1,5 @@
 import type ApiResponse from '@/apis/apiUtils'
-import { get, post } from '@/apis/apiUtils'
+import { get, post, put } from '@/apis/apiUtils'
 import type {
   ShiftsResult,
   Shift,
@@ -177,7 +177,7 @@ class StaffScheduleService {
 
   public async approveSwapWorkingSlot(id: string): Promise<ApiResponse<any>> {
     try {
-      return await post<any>(`https://vietsac.id.vn/api/swap-working-slots/approved/${id}`, {})
+      return await put<any>(`https://vietsac.id.vn/api/swap-working-slots/approved/${id}`, {})
     } catch (error) {
       console.error('Error approving swap working slot:', error)
       throw error
@@ -186,7 +186,7 @@ class StaffScheduleService {
 
   public async rejectSwapWorkingSlot(id: string): Promise<ApiResponse<any>> {
     try {
-      return await post<any>(`https://vietsac.id.vn/api/swap-working-slots/rejected/${id}`, {})
+      return await put<any>(`https://vietsac.id.vn/api/swap-working-slots/rejected/${id}`, {})
     } catch (error) {
       console.error('Error rejecting swap working slot:', error)
       throw error
