@@ -94,23 +94,25 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[500px]'>
-        <DialogHeader>
-          <DialogTitle>Chỉnh sửa thông tin nhân viên</DialogTitle>
-          <DialogDescription>Cập nhật thông tin chi tiết của nhân viên.</DialogDescription>
+      <DialogContent className='sm:max-w-[500px] rounded-xl shadow-lg border-0'>
+        <DialogHeader className='pb-4 mb-4 border-b'>
+          <DialogTitle className='text-xl font-bold'>Chỉnh sửa thông tin nhân viên</DialogTitle>
+          <DialogDescription className='text-muted-foreground mt-1'>
+            Cập nhật thông tin chi tiết của nhân viên.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             <FormField
               control={form.control}
               name='username'
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tên đăng nhập</FormLabel>
+                <FormItem className='space-y-1.5'>
+                  <FormLabel className='font-medium'>Tên đăng nhập</FormLabel>
                   <FormControl>
-                    <Input placeholder='Nhập tên đăng nhập' {...field} disabled />
+                    <Input placeholder='Nhập tên đăng nhập' {...field} disabled className='bg-gray-50 border-input' />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className='text-xs font-medium text-destructive' />
                 </FormItem>
               )}
             />
@@ -119,23 +121,28 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
               control={form.control}
               name='password'
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mật khẩu (để trống nếu không thay đổi)</FormLabel>
+                <FormItem className='space-y-1.5'>
+                  <FormLabel className='font-medium'>Mật khẩu (để trống nếu không thay đổi)</FormLabel>
                   <FormControl>
                     <div className='relative'>
-                      <Input type={showPassword ? 'text' : 'password'} placeholder='Nhập mật khẩu mới' {...field} />
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder='Nhập mật khẩu mới'
+                        {...field}
+                        className='pr-10 border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
+                      />
                       <Button
                         type='button'
                         variant='ghost'
                         size='sm'
-                        className='absolute right-0 top-0 h-full px-3'
+                        className='absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground transition-colors'
                         onClick={togglePasswordVisibility}
                       >
                         {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
                       </Button>
                     </div>
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className='text-xs font-medium text-destructive' />
                 </FormItem>
               )}
             />
@@ -144,12 +151,12 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
               control={form.control}
               name='fullName'
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Họ và tên</FormLabel>
+                <FormItem className='space-y-1.5'>
+                  <FormLabel className='font-medium'>Họ và tên</FormLabel>
                   <FormControl>
                     <Input placeholder='Nhập họ và tên' {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className='text-xs font-medium text-destructive' />
                 </FormItem>
               )}
             />
@@ -159,12 +166,12 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                 control={form.control}
                 name='email'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder='example@email.com' {...field} disabled />
+                      <Input placeholder='example@email.com' {...field} disabled className='bg-gray-50 border-input' />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -172,12 +179,12 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                 control={form.control}
                 name='phone'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Số điện thoại</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Số điện thoại</FormLabel>
                     <FormControl>
-                      <Input placeholder='0123456789' {...field} disabled />
+                      <Input placeholder='0123456789' {...field} disabled className='bg-gray-50 border-input' />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -188,8 +195,8 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                 control={form.control}
                 name='staffType'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loại nhân viên</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Loại nhân viên</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
@@ -202,7 +209,7 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                         <SelectItem value='Cheff'>Đầu bếp</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -211,8 +218,8 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                 control={form.control}
                 name='status'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trạng thái</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Trạng thái</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
@@ -224,17 +231,27 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                         <SelectItem value='PartTime'>Bán thời gian</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
             </div>
 
-            <DialogFooter>
-              <Button type='button' variant='outline' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <DialogFooter className='mt-6 gap-2'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+                className='border-gray-300 hover:bg-gray-50'
+              >
                 Hủy
               </Button>
-              <Button type='submit' disabled={isSubmitting} className='bg-black hover:bg-black/90'>
+              <Button
+                type='submit'
+                disabled={isSubmitting}
+                className='bg-gradient-to-r from-primary to-primary/90 hover:opacity-90 transition-opacity'
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />

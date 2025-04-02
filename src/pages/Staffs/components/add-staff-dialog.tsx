@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -81,24 +83,30 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-[500px]'>
-        <DialogHeader>
-          <DialogTitle>Thêm nhân viên mới</DialogTitle>
-          <DialogDescription>Điền thông tin chi tiết để thêm nhân viên mới vào hệ thống.</DialogDescription>
+      <DialogContent className='sm:max-w-[500px] rounded-xl shadow-lg border-0'>
+        <DialogHeader className='pb-4 mb-4 border-b'>
+          <DialogTitle className='text-xl font-bold'>Thêm nhân viên mới</DialogTitle>
+          <DialogDescription className='text-muted-foreground mt-1'>
+            Điền thông tin chi tiết để thêm nhân viên mới vào hệ thống.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
               <FormField
                 control={form.control}
                 name='username'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên đăng nhập</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Tên đăng nhập</FormLabel>
                     <FormControl>
-                      <Input placeholder='Nhập tên đăng nhập' {...field} />
+                      <Input
+                        placeholder='Nhập tên đăng nhập'
+                        {...field}
+                        className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -106,8 +114,8 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                 control={form.control}
                 name='password'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mật khẩu</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Mật khẩu</FormLabel>
                     <FormControl>
                       <div className='relative'>
                         <Input
@@ -115,12 +123,13 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                           placeholder='Nhập mật khẩu'
                           {...field}
                           value={field.value || 'Dev123@123a'}
+                          className='pr-10 border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
                         />
                         <Button
                           type='button'
                           variant='ghost'
                           size='sm'
-                          className='absolute right-0 top-0 h-full px-3'
+                          className='absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground transition-colors'
                           onClick={togglePasswordVisibility}
                         >
                           {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
@@ -128,7 +137,7 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                         </Button>
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -137,12 +146,16 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
               control={form.control}
               name='fullName'
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Họ và tên</FormLabel>
+                <FormItem className='space-y-1.5'>
+                  <FormLabel className='font-medium'>Họ và tên</FormLabel>
                   <FormControl>
-                    <Input placeholder='Nhập họ và tên' {...field} />
+                    <Input
+                      placeholder='Nhập họ và tên'
+                      {...field}
+                      className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
+                    />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className='text-xs font-medium text-destructive' />
                 </FormItem>
               )}
             />
@@ -151,12 +164,16 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                 control={form.control}
                 name='email'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder='example@email.com' {...field} />
+                      <Input
+                        placeholder='example@email.com'
+                        {...field}
+                        className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -164,12 +181,16 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                 control={form.control}
                 name='phone'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Số điện thoại</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Số điện thoại</FormLabel>
                     <FormControl>
-                      <Input placeholder='0123456789' {...field} />
+                      <Input
+                        placeholder='0123456789'
+                        {...field}
+                        className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -179,8 +200,8 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                 control={form.control}
                 name='staffType'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loại nhân viên</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Loại nhân viên</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -193,7 +214,7 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                         <SelectItem value='Cheff'>Đầu bếp</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
@@ -201,8 +222,8 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                 control={form.control}
                 name='status'
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trạng thái</FormLabel>
+                  <FormItem className='space-y-1.5'>
+                    <FormLabel className='font-medium'>Trạng thái</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -214,16 +235,26 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                         <SelectItem value='PartTime'>Bán thời gian</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage className='text-xs font-medium text-destructive' />
                   </FormItem>
                 )}
               />
             </div>
-            <DialogFooter>
-              <Button type='button' variant='outline' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <DialogFooter className='mt-6 gap-2'>
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+                className='border-gray-300 hover:bg-gray-50'
+              >
                 Hủy
               </Button>
-              <Button type='submit' disabled={isSubmitting}>
+              <Button
+                type='submit'
+                disabled={isSubmitting}
+                className='bg-gradient-to-r from-primary to-primary/90 hover:opacity-90 transition-opacity'
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />

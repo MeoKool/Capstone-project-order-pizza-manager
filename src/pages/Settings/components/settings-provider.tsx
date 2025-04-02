@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import SettingsService from '@/services/settings-service'
 
+// Định nghĩa kiểu cho từng item trong settings
 export interface ConfigItem {
   id: string
   configType: string
   key: string
   value: string
 }
+
+// Kiểu dữ liệu cho phần result của API getAllSettings
 
 interface SettingsContextType {
   settings: ConfigItem[]
@@ -15,6 +18,7 @@ interface SettingsContextType {
   fetchSettings: () => Promise<void>
   updateSetting: (id: string, value: string) => Promise<void>
   getConfigTypeAsNumber: (configType: string) => number
+  getSettingValue: (configType: string) => string
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
@@ -29,9 +33,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     try {
       const response = await settingsService.getAllSettings()
-
       if (response.success) {
-        setSettings(response.result.items)
+        // Fix the inconsistency between key and configType by using configType as the standard
+        const processedSettings = response.result.items.map((item: { configType: any }) => ({
+          ...item,
+          key: item.configType // Force key to match configType
+        }))
+
+        setSettings(processedSettings)
       } else {
         setError(response.message || 'Failed to fetch settings')
       }
@@ -43,10 +52,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Helper function to get setting value by configType
+  const getSettingValue = (configType: string): string => {
+    const setting = settings.find((s) => s.configType === configType)
+    return setting ? setting.value : ''
+  }
+
+  // Phương thức cập nhật setting theo API mới
   const updateSetting = async (id: string, value: string) => {
     try {
       const settingToUpdate = settings.find((setting) => setting.id === id)
-
       if (!settingToUpdate) {
         throw new Error('Setting not found')
       }
@@ -54,12 +69,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       const response = await settingsService.updateSetting(id, {
         id,
         configType: getConfigTypeAsNumber(settingToUpdate.configType),
-        key: settingToUpdate.key,
+        key: settingToUpdate.configType, // Always use configType as key
         value
       })
 
       if (response.success) {
-        // Update local state
+        // Update the setting in local state
         setSettings((prev) => prev.map((setting) => (setting.id === id ? { ...setting, value } : setting)))
         return
       } else {
@@ -73,7 +88,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Helper function to convert configType string to number
+  // Hàm chuyển đổi configType từ string sang number theo mapping định nghĩa
   const getConfigTypeAsNumber = (configType: string): number => {
     const configTypeMap: Record<string, number> = {
       MAXIMUM_REGISTER_SLOT: 0,
@@ -83,8 +98,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       REGISTRATION_WEEK_LIMIT: 4
       // Add more mappings as needed
     }
-
-    return configTypeMap[configType] || 0
+    return configTypeMap[configType] ?? 0 // Use nullish coalescing for safety
   }
 
   useEffect(() => {
@@ -97,7 +111,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     error,
     fetchSettings,
     updateSetting,
-    getConfigTypeAsNumber
+    getConfigTypeAsNumber,
+    getSettingValue
   }
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
