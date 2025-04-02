@@ -52,7 +52,7 @@ export default function WorkshopsPage() {
       case 'Closed':
         return <Badge className='bg-gray-500'>Đã đóng</Badge>
       case 'Approved':
-        return <Badge className='bg-purple-500'>Đã duyệt</Badge>
+        return <Badge className='bg-blue-500'>Đã duyệt</Badge>
       case 'Cancelled':
         return <Badge className='bg-red-500'>Đã hủy</Badge>
       default:

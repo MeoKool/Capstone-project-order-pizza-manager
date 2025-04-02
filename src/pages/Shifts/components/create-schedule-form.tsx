@@ -138,8 +138,8 @@ export default function CreateScheduleForm() {
     return (
       <div className='flex justify-center items-center p-8 h-[400px]'>
         <div className='flex flex-col items-center gap-2'>
-          <div className='animate-spin h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full'></div>
-          <div className='text-purple-600 font-medium'>Đang tải dữ liệu...</div>
+          <div className='animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full'></div>
+          <div className='text-blue-600 font-medium'>Đang tải dữ liệu...</div>
         </div>
       </div>
     )
@@ -154,21 +154,21 @@ export default function CreateScheduleForm() {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <div
           className={`rounded-md p-4 flex items-center gap-3 cursor-pointer ${
-            activeStep === 1 ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-800'
+            activeStep === 1 ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
           }`}
           onClick={() => setActiveStep(1)}
         >
-          <CircleCheck className={`h-5 w-5 ${activeStep === 1 ? 'text-white' : 'text-purple-600'}`} />
+          <CircleCheck className={`h-5 w-5 ${activeStep === 1 ? 'text-white' : 'text-blue-600'}`} />
           <span className='font-medium'>Bước 1: Tạo ca làm</span>
         </div>
 
         <div
           className={`rounded-md p-4 flex items-center gap-3 cursor-pointer ${
-            activeStep === 2 ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-800'
+            activeStep === 2 ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-800'
           }`}
           onClick={() => setActiveStep(2)}
         >
-          <CircleCheck className={`h-5 w-5 ${activeStep === 2 ? 'text-white' : 'text-purple-600'}`} />
+          <CircleCheck className={`h-5 w-5 ${activeStep === 2 ? 'text-white' : 'text-blue-600'}`} />
           <span className='font-medium'>Bước 2: Tạo lịch làm việc</span>
         </div>
       </div>
@@ -178,7 +178,7 @@ export default function CreateScheduleForm() {
           {activeStep === 1 ? (
             <div>
               <div className='flex items-center gap-2 mb-4'>
-                <Clock className='h-5 w-5 text-purple-600' />
+                <Clock className='h-5 w-5 text-blue-600' />
                 <h3 className='text-lg font-medium text-gray-800'>Tạo ca làm mới</h3>
               </div>
               <p className='text-gray-500 text-sm mb-6'>Thêm ca làm mới vào hệ thống</p>
@@ -193,7 +193,7 @@ export default function CreateScheduleForm() {
                     value={shiftName}
                     onChange={(e) => setShiftName(e.target.value)}
                     placeholder='Ví dụ: Ca sáng, Ca chiều...'
-                    className='border-gray-300 focus-visible:ring-purple-500'
+                    className='border-gray-300 focus-visible:ring-blue-500'
                   />
                 </div>
                 <div className='space-y-2'>
@@ -205,7 +205,7 @@ export default function CreateScheduleForm() {
                     value={shiftDescription}
                     onChange={(e) => setShiftDescription(e.target.value)}
                     placeholder='Mô tả chi tiết về ca làm'
-                    className='border-gray-300 focus-visible:ring-purple-500 min-h-[120px]'
+                    className='border-gray-300 focus-visible:ring-blue-500 min-h-[120px]'
                   />
                 </div>
 
@@ -218,11 +218,7 @@ export default function CreateScheduleForm() {
                   >
                     Bỏ qua
                   </Button>
-                  <Button
-                    type='submit'
-                    disabled={isSubmitting}
-                    className='bg-purple-600 hover:bg-purple-700 text-white'
-                  >
+                  <Button type='submit' disabled={isSubmitting} className='bg-blue-600 hover:bg-blue-700 text-white'>
                     {isSubmitting ? (
                       'Đang tạo...'
                     ) : (
@@ -238,7 +234,7 @@ export default function CreateScheduleForm() {
           ) : (
             <div>
               <div className='flex items-center gap-2 mb-4'>
-                <Plus className='h-5 w-5 text-purple-600' />
+                <Plus className='h-5 w-5 text-blue-600' />
                 <h3 className='text-lg font-medium text-gray-800'>Tạo lịch làm việc</h3>
               </div>
               <p className='text-gray-500 text-sm mb-6'>Thêm lịch làm việc mới vào hệ thống</p>
@@ -249,7 +245,7 @@ export default function CreateScheduleForm() {
                     Ca làm
                   </Label>
                   <Select value={selectedShift} onValueChange={setSelectedShift}>
-                    <SelectTrigger id='shift' className='border-gray-300 focus:ring-purple-500'>
+                    <SelectTrigger id='shift' className='border-gray-300 focus:ring-blue-500'>
                       <SelectValue placeholder='Chọn ca làm' />
                     </SelectTrigger>
                     <SelectContent>
@@ -267,7 +263,7 @@ export default function CreateScheduleForm() {
                     Ngày
                   </Label>
                   <Select value={selectedDay} onValueChange={setSelectedDay}>
-                    <SelectTrigger id='day' className='border-gray-300 focus:ring-purple-500'>
+                    <SelectTrigger id='day' className='border-gray-300 focus:ring-blue-500'>
                       <SelectValue placeholder='Chọn ngày' />
                     </SelectTrigger>
                     <SelectContent>
@@ -290,7 +286,7 @@ export default function CreateScheduleForm() {
                       type='time'
                       value={startTime}
                       onChange={(e) => setStartTime(e.target.value)}
-                      className='border-gray-300 focus-visible:ring-purple-500'
+                      className='border-gray-300 focus-visible:ring-blue-500'
                     />
                   </div>
 
@@ -303,7 +299,7 @@ export default function CreateScheduleForm() {
                       type='time'
                       value={endTime}
                       onChange={(e) => setEndTime(e.target.value)}
-                      className='border-gray-300 focus-visible:ring-purple-500'
+                      className='border-gray-300 focus-visible:ring-blue-500'
                     />
                   </div>
                 </div>
@@ -318,7 +314,7 @@ export default function CreateScheduleForm() {
                     min='1'
                     value={capacity}
                     onChange={(e) => setCapacity(Number.parseInt(e.target.value))}
-                    className='border-gray-300 focus-visible:ring-purple-500'
+                    className='border-gray-300 focus-visible:ring-blue-500'
                   />
                 </div>
 
@@ -331,11 +327,7 @@ export default function CreateScheduleForm() {
                   >
                     Quay lại
                   </Button>
-                  <Button
-                    type='submit'
-                    disabled={isSubmitting}
-                    className='bg-purple-600 hover:bg-purple-700 text-white'
-                  >
+                  <Button type='submit' disabled={isSubmitting} className='bg-blue-600 hover:bg-blue-700 text-white'>
                     {isSubmitting ? 'Đang tạo...' : 'Tạo lịch làm việc'}
                   </Button>
                 </div>

@@ -25,7 +25,7 @@ export default function StaffManagementContainer() {
 
               <TabsTrigger
                 value='create'
-                className='flex items-center gap-1 data-[state=active]:bg-purple-600 data-[state=active]:text-white'
+                className='flex items-center gap-1 data-[state=active]:bg-blue-600 data-[state=active]:text-white'
               >
                 <Plus className='h-4 w-4' />
                 <span>Tạo mới</span>

@@ -99,7 +99,7 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
   const getStaffStatusColor = (status: string) => {
     switch (status) {
       case 'FullTime':
-        return 'bg-purple-100 text-purple-800 border-purple-300'
+        return 'bg-blue-100 text-blue-800 border-blue-300'
       case 'PartTime':
         return 'bg-amber-100 text-amber-800 border-amber-300'
       default:
