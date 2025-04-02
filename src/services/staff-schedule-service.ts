@@ -8,7 +8,9 @@ import type {
   WorkingSlotRegistersResult,
   ZonesResult,
   ConfigsResult,
-  StaffZoneScheduleRequest
+  StaffZoneScheduleRequest,
+  SwapWorkingSlotRequestsResult,
+  WorkingSlot
 } from '@/types/staff-schedule'
 
 class StaffScheduleService {
@@ -73,13 +75,16 @@ class StaffScheduleService {
   }): Promise<ApiResponse<StaffSchedulesResult>> {
     try {
       const defaultParams = {
-        IncludeProperties: 'Zone,Staff,WorkingSlot',
-        SortBy: 'workingDate,WorkingSlot.dayName,WorkingSlot.shiftStart asc,WorkingSlot.shiftEnd asc'
+        year: 0,
+        month: 0,
+        day: 0,
+        dayOfWeek: 0,
+        IncludeProperties: 'Zone,Staff,WorkingSlot'
       }
 
       const queryParams = { ...defaultParams, ...params }
 
-      return await get<StaffSchedulesResult>('/staff-zone-schedules', queryParams)
+      return await get<StaffSchedulesResult>('https://vietsac.id.vn/api/staff-zone-schedules', queryParams)
     } catch (error) {
       console.error('Error fetching staff schedules:', error)
       throw error
@@ -88,9 +93,9 @@ class StaffScheduleService {
 
   public async getStaffSchedulesByDate(workingDate: string): Promise<ApiResponse<StaffSchedulesResult>> {
     try {
-      return await get<StaffSchedulesResult>('/staff-zone-schedules', {
+      return await get<StaffSchedulesResult>('https://vietsac.id.vn/api/staff-zone-schedules', {
         WorkingDate: workingDate,
-        IncludeProperties: 'WorkingSlot'
+        IncludeProperties: 'Zone,Staff,WorkingSlot'
       })
     } catch (error) {
       console.error('Error fetching staff schedules by date:', error)
@@ -101,11 +106,13 @@ class StaffScheduleService {
   public async getWorkingSlotRegisters(): Promise<ApiResponse<WorkingSlotRegistersResult>> {
     try {
       const params = {
-        IncludeProperties: 'WorkingSlot',
-        SortBy: 'workingDate,WorkingSlot.dayName,WorkingSlot.shiftStart asc,WorkingSlot.shiftEnd asc,registerDate asc'
+        year: 0,
+        month: 0,
+        day: 0,
+        dayOfWeek: 0
       }
 
-      return await get<WorkingSlotRegistersResult>('/working-slot-registers', params)
+      return await get<WorkingSlotRegistersResult>('https://vietsac.id.vn/api/working-slot-registers', params)
     } catch (error) {
       console.error('Error fetching working slot registers:', error)
       throw error
@@ -114,7 +121,7 @@ class StaffScheduleService {
 
   public async getZones(): Promise<ApiResponse<ZonesResult>> {
     try {
-      return await get<ZonesResult>('/zones')
+      return await get<ZonesResult>('https://vietsac.id.vn/api/zones')
     } catch (error) {
       console.error('Error fetching zones:', error)
       throw error
@@ -123,7 +130,7 @@ class StaffScheduleService {
 
   public async getConfigs(): Promise<ApiResponse<ConfigsResult>> {
     try {
-      return await get<ConfigsResult>('/configs')
+      return await get<ConfigsResult>('https://vietsac.id.vn/api/configs')
     } catch (error) {
       console.error('Error fetching configs:', error)
       throw error
@@ -132,7 +139,7 @@ class StaffScheduleService {
 
   public async approveWorkingSlotRegister(registerId: string): Promise<ApiResponse<any>> {
     try {
-      return await post<any>(`/working-slot-registers/approved/${registerId}`, {})
+      return await post<any>(`https://vietsac.id.vn/api/working-slot-registers/approved/${registerId}`, {})
     } catch (error) {
       console.error('Error approving working slot register:', error)
       throw error
@@ -141,9 +148,47 @@ class StaffScheduleService {
 
   public async createStaffZoneSchedule(data: StaffZoneScheduleRequest): Promise<ApiResponse<any>> {
     try {
-      return await post<any>('/staff-zone-schedules', data)
+      return await post<any>('https://vietsac.id.vn/api/staff-zone-schedules', data)
     } catch (error) {
       console.error('Error creating staff zone schedule:', error)
+      throw error
+    }
+  }
+
+  public async getSwapWorkingSlotRequests(): Promise<ApiResponse<SwapWorkingSlotRequestsResult>> {
+    try {
+      return await get<SwapWorkingSlotRequestsResult>(
+        'https://vietsac.id.vn/api/swap-working-slots?Status=PendingManagerApprove&SortBy=requestDate'
+      )
+    } catch (error) {
+      console.error('Error fetching swap working slot requests:', error)
+      throw error
+    }
+  }
+
+  public async getWorkingSlotById(id: string): Promise<ApiResponse<WorkingSlot>> {
+    try {
+      return await get<WorkingSlot>(`https://vietsac.id.vn/api/working-slots/${id}`)
+    } catch (error) {
+      console.error('Error fetching working slot by id:', error)
+      throw error
+    }
+  }
+
+  public async approveSwapWorkingSlot(id: string): Promise<ApiResponse<any>> {
+    try {
+      return await post<any>(`https://vietsac.id.vn/api/swap-working-slots/approved/${id}`, {})
+    } catch (error) {
+      console.error('Error approving swap working slot:', error)
+      throw error
+    }
+  }
+
+  public async rejectSwapWorkingSlot(id: string): Promise<ApiResponse<any>> {
+    try {
+      return await post<any>(`https://vietsac.id.vn/api/swap-working-slots/rejected/${id}`, {})
+    } catch (error) {
+      console.error('Error rejecting swap working slot:', error)
       throw error
     }
   }

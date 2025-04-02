@@ -73,11 +73,11 @@ export interface WorkingSlotRegister {
   workingDate: string
   registerDate: string
   status: 'Approved' | 'Onhold' | 'Rejected'
+  zoneId: string | null
   staffId: string
   workingSlotId: string
   staff: Staff | null
   workingSlot: WorkingSlot | null
-  zoneId: string
 }
 
 export interface WorkingSlotRegistersResult {
@@ -107,4 +107,25 @@ export interface StaffZoneScheduleRequest {
   staffId: string
   zoneId: string
   workingSlotId: string
+}
+
+export interface SwapWorkingSlotRequest {
+  id: string
+  requestDate: string
+  status: string
+  workingDateFrom: string
+  employeeFromName: string
+  employeeFromId: string
+  workingSlotFromId: string
+  workingDateTo: string
+  employeeToName: string
+  employeeToId: string
+  workingSlotToId: string
+  workingSlotFrom?: WorkingSlot
+  workingSlotTo?: WorkingSlot
+}
+
+export interface SwapWorkingSlotRequestsResult {
+  items: SwapWorkingSlotRequest[]
+  totalCount: number
 }
