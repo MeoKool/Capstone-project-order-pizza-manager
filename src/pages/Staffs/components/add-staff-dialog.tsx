@@ -241,20 +241,10 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
               />
             </div>
             <DialogFooter className='mt-6 gap-2'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
-                className='border-gray-300 hover:bg-gray-50'
-              >
+              <Button type='button' variant='destructive' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                 Hủy
               </Button>
-              <Button
-                type='submit'
-                disabled={isSubmitting}
-                className='bg-gradient-to-r from-primary to-primary/90 hover:opacity-90 transition-opacity'
-              >
+              <Button type='submit' disabled={isSubmitting} variant='green'>
                 {isSubmitting ? (
                   <>
                     <Loader2 className='mr-2 h-4 w-4 animate-spin' />

@@ -19,10 +19,7 @@ export function StaffHeader({ onAddStaff }: StaffHeaderProps) {
           Tổng số nhân viên: <span className='font-medium ml-1'>{totalCount}</span>
         </p>
       </div>
-      <Button
-        onClick={onAddStaff}
-        className='gap-2 bg-gradient-to-r from-primary to-primary/90 hover:opacity-90 transition-opacity shadow-sm'
-      >
+      <Button variant='green' onClick={onAddStaff}>
         <PlusCircle className='h-4 w-4' />
         Thêm nhân viên
       </Button>
