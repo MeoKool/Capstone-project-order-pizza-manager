@@ -9,16 +9,21 @@ const InTables: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tables')
 
   return (
-    <div className='mx-auto p-4 max-w-full'>
-      <h1 className='text-2xl font-bold mb-6'>Quản lý nhà hàng</h1>
+    <div className='mx-auto p-4 max-w-full bg-[#f8f9fa]'>
       <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
         <div className='flex items-center justify-between'>
-          <TabsList className='grid w-full max-w-md grid-cols-2'>
-            <TabsTrigger value='tables' className='flex items-center gap-2'>
+          <TabsList className='grid w-full max-w-md grid-cols-2 p-1 bg-amber-50 border border-amber-100'>
+            <TabsTrigger
+              value='tables'
+              className='flex items-center gap-2 data-[state=active]:bg-amber-600 data-[state=active]:text-white'
+            >
               <LayoutGrid className='h-4 w-4' />
               <span>Quản lý bàn ăn</span>
             </TabsTrigger>
-            <TabsTrigger value='zones' className='flex items-center gap-2'>
+            <TabsTrigger
+              value='zones'
+              className='flex items-center gap-2 data-[state=active]:bg-amber-600 data-[state=active]:text-white'
+            >
               <ListFilter className='h-4 w-4' />
               <span>Quản lý khu vực</span>
             </TabsTrigger>

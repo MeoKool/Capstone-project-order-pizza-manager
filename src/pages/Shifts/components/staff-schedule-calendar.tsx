@@ -144,8 +144,6 @@ export default function StaffScheduleCalendar() {
 
   const handleRefresh = async () => {
     await Promise.all([fetchSchedules(), fetchRegistrations(), fetchSwapRequests()])
-
-    toast.success('Dữ liệu lịch làm việc và yêu cầu đã được cập nhật')
   }
 
   const getSchedulesForDate = (date: Date) => {

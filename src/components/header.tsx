@@ -48,7 +48,6 @@ const Header = ({ title }: HeaderProps) => {
   const navigate = useNavigate()
   const [showDialog, setShowDialog] = useState(false)
 
-
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -61,7 +60,7 @@ const Header = ({ title }: HeaderProps) => {
 
   return (
     <header className='bg-white border-b p-4 flex justify-between items-center'>
-      <h1 className='text-xl font-semibold'>{title}</h1>
+      <h1 className='text-xl font-semibold'>Quản lý {title}</h1>
       <div className='flex items-center gap-4'>
         {user && (
           <div className='flex items-center gap-2'>

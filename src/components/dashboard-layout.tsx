@@ -34,7 +34,7 @@ const DashboardLayout = () => {
       case '/':
         return 'Dashboard'
       case '/in-tables':
-        return 'In Tables'
+        return 'bàn ăn'
       case '/kitchens':
         return 'Kitchens'
       case '/orders':
@@ -70,7 +70,7 @@ const DashboardLayout = () => {
             <SidebarItem icon={<LayoutDashboard size={20} />} text='Dashboard' active={isActive('/')} />
           </Link>
           <Link to='/in-tables'>
-            <SidebarItem icon={<Table size={20} />} text='In Tables' active={isActive('/in-tables')} />
+            <SidebarItem icon={<Table size={20} />} text='Bàn ăn' active={isActive('/in-tables')} />
           </Link>
           <Link to='/kitchens'>
             <SidebarItem icon={<ChefHat size={20} />} text='Kitchens' active={isActive('/kitchens')} />

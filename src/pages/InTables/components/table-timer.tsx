@@ -51,7 +51,7 @@ export function TableTimer({ isRunning, onTimeUp }: TableTimerProps) {
   }
 
   return (
-    <Badge variant='outline' className={`font-mono ${getTimerColor()}`}>
+    <Badge variant='outline' className={`font-mono ${getTimerColor()} text-xs py-0 h-5 min-w-[2.5rem]`}>
       {formatTime(timeLeft)}
     </Badge>
   )
