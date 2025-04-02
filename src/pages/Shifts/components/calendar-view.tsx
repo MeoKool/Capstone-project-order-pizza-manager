@@ -1,87 +1,79 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import {
   format,
+  parseISO,
   startOfWeek,
   endOfWeek,
   eachDayOfInterval,
-  addDays,
   addWeeks,
   subWeeks,
+  isSameDay,
   startOfMonth,
   endOfMonth,
-  getDay
+  getDay,
+  addMonths,
+  subMonths,
+  addDays,
+  isToday,
+  isSameMonth
 } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { ChevronLeft, ChevronRight, Calendar, Users, MapPin, Phone, Clock, CalendarDays } from 'lucide-react'
+import StaffScheduleService from '@/services/staff-schedule-service'
+import type { StaffSchedule } from '@/types/staff-schedule'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+  DialogFooter
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ChevronRight, Calendar, Users } from 'lucide-react'
-import ShiftService from '@/services/shift-service'
-import type { WorkingSlot, Shift, Day } from '@/types/shift'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { toast } from 'sonner'
 
 export default function CalendarView() {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<'week' | 'month'>('week')
-  const [workingSlots, setWorkingSlots] = useState<WorkingSlot[]>([])
-  const [shifts, setShifts] = useState<Shift[]>([])
-  const [days, setDays] = useState<Day[]>([])
+  const [view, setView] = useState<'week' | 'month'>('month')
+  const [staffSchedules, setStaffSchedules] = useState<StaffSchedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedSlot, setSelectedSlot] = useState<WorkingSlot | null>(null)
-  console.log(selectedSlot)
+  const [, setSelectedDate] = useState<Date | null>(null)
+  const [, setSelectedDaySchedules] = useState<StaffSchedule[]>([])
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const shiftService = ShiftService.getInstance()
-        const [slotsResponse, shiftsResponse, daysResponse] = await Promise.all([
-          shiftService.getAllWorkingSlots(),
-          shiftService.getAllShifts(),
-          shiftService.getAllDays()
-        ])
-
-        if (slotsResponse.success && slotsResponse.result) {
-          setWorkingSlots(slotsResponse.result.items)
-        }
-
-        if (shiftsResponse.success && shiftsResponse.result) {
-          setShifts(shiftsResponse.result.items)
-        }
-
-        if (daysResponse.success && daysResponse.result) {
-          setDays(daysResponse.result.items)
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
+    fetchSchedules()
   }, [])
 
-  const getShiftName = (shiftId: string) => {
-    const shift = shifts.find((s) => s.id === shiftId)
-    return shift ? shift.name : 'Unknown Shift'
-  }
+  const fetchSchedules = async () => {
+    try {
+      setIsLoading(true)
+      const staffScheduleService = StaffScheduleService.getInstance()
+      const response = await staffScheduleService.getStaffSchedules()
 
-  const getDayName = (dayId: string) => {
-    const day = days.find((d) => d.id === dayId)
-    return day ? day.name : 'Unknown Day'
-  }
-
-  const getDaySlots = (dayId: string) => {
-    return workingSlots.filter((slot) => slot.dayId === dayId)
+      if (response.success && response.result) {
+        setStaffSchedules(response.result.items)
+      }
+    } catch (error) {
+      console.error('Error fetching staff schedules:', error)
+      toast.error('Không thể tải dữ liệu lịch làm việc')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handlePrevious = () => {
     if (view === 'week') {
       setCurrentDate(subWeeks(currentDate, 1))
     } else {
-      const prevMonth = new Date(currentDate)
-      prevMonth.setMonth(prevMonth.getMonth() - 1)
-      setCurrentDate(prevMonth)
+      setCurrentDate(subMonths(currentDate, 1))
     }
   }
 
@@ -89,14 +81,228 @@ export default function CalendarView() {
     if (view === 'week') {
       setCurrentDate(addWeeks(currentDate, 1))
     } else {
-      const nextMonth = new Date(currentDate)
-      nextMonth.setMonth(nextMonth.getMonth() + 1)
-      setCurrentDate(nextMonth)
+      setCurrentDate(addMonths(currentDate, 1))
     }
   }
 
   const handleToday = () => {
     setCurrentDate(new Date())
+  }
+
+  const getSchedulesForDate = (date: Date) => {
+    return staffSchedules.filter((schedule) => {
+      const scheduleDate = parseISO(schedule.workingDate)
+      return isSameDay(scheduleDate, date)
+    })
+  }
+
+  const handleDateClick = (date: Date, schedules: StaffSchedule[]) => {
+    setSelectedDate(date)
+    setSelectedDaySchedules(schedules)
+  }
+
+  const getStaffTypeLabel = (staffType: string) => {
+    switch (staffType) {
+      case 'Manager':
+        return 'Quản lý'
+      case 'Staff':
+        return 'Nhân viên'
+      default:
+        return staffType
+    }
+  }
+
+  const getStaffStatusLabel = (status: string) => {
+    switch (status) {
+      case 'FullTime':
+        return 'Toàn thời gian'
+      case 'PartTime':
+        return 'Bán thời gian'
+      default:
+        return status
+    }
+  }
+
+  const getStaffTypeColor = (staffType: string) => {
+    switch (staffType) {
+      case 'Manager':
+        return 'bg-green-100 text-green-800 border-green-300'
+      case 'Staff':
+        return 'bg-green-100 text-green-800 border-green-300'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300'
+    }
+  }
+
+  const getStaffStatusColor = (status: string) => {
+    switch (status) {
+      case 'FullTime':
+        return 'bg-purple-100 text-purple-800 border-purple-300'
+      case 'PartTime':
+        return 'bg-amber-100 text-amber-800 border-amber-300'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300'
+    }
+  }
+
+  // Get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((part) => part.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 2)
+  }
+
+  // Group schedules by working slot first, then by zone
+  const groupSchedulesBySlotThenZone = (schedules: StaffSchedule[]) => {
+    const groupedBySlot: Record<string, Record<string, StaffSchedule[]>> = {}
+
+    schedules.forEach((schedule) => {
+      const slotId = schedule.workingSlot?.id || 'unknown'
+      const zoneId = schedule.zone.id
+
+      if (!groupedBySlot[slotId]) {
+        groupedBySlot[slotId] = {}
+      }
+
+      if (!groupedBySlot[slotId][zoneId]) {
+        groupedBySlot[slotId][zoneId] = []
+      }
+
+      groupedBySlot[slotId][zoneId].push(schedule)
+    })
+
+    return groupedBySlot
+  }
+
+  const renderStaffDialog = (date: Date, schedules: StaffSchedule[]) => {
+    const formattedDate = format(date, 'EEEE, dd/MM/yyyy', { locale: vi })
+    const groupedSchedules = groupSchedulesBySlotThenZone(schedules)
+
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <div
+            className='h-full w-full flex flex-col items-center justify-center cursor-pointer hover:bg-green-50/50 transition-colors rounded-md p-2'
+            onClick={() => handleDateClick(date, schedules)}
+          >
+            <Badge className='bg-green-100 text-green-800 border border-green-300 hover:bg-green-200 flex items-center gap-1 px-3 py-1.5 rounded-full'>
+              <Users className='h-3.5 w-3.5' />
+              <span className='font-medium'>{schedules.length}</span>
+            </Badge>
+          </div>
+        </DialogTrigger>
+        <DialogContent className='max-w-4xl max-h-[80vh] flex flex-col'>
+          <DialogHeader>
+            <DialogTitle className='text-xl flex items-center gap-2 text-green-700'>
+              <CalendarDays className='h-5 w-5' />
+              Lịch làm việc - {formattedDate}
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className='flex-1 overflow-y-auto pr-4 max-h-[calc(80vh-120px)]'>
+            <div className='py-4 space-y-6'>
+              {Object.entries(groupedSchedules).map(([, zoneGroups], slotIndex) => {
+                // Get the working slot information from the first staff member of any zone
+                const firstStaffOfAnyZone = Object.values(zoneGroups)[0]?.[0]
+                const workingSlot = firstStaffOfAnyZone?.workingSlot
+
+                if (!workingSlot) return null
+
+                return (
+                  <div
+                    key={slotIndex}
+                    className='mb-6 last:mb-0 bg-white rounded-lg border border-amber-200 p-4 shadow-sm hover:shadow-md transition-shadow'
+                  >
+                    {/* Working Slot Information */}
+                    <div className='flex items-center gap-3 border-b border-amber-100 pb-3 mb-4'>
+                      <div className='h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center border border-amber-200'>
+                        <Clock className='h-5 w-5 text-amber-700' />
+                      </div>
+                      <div className='flex-1'>
+                        <div className='font-medium text-amber-900 text-lg'>{workingSlot.shiftName}</div>
+                        <div className='text-sm text-gray-600 flex items-center gap-1'>
+                          <Clock className='h-4 w-4 text-amber-600' />
+                          <span>
+                            {workingSlot.shiftStart.substring(0, 5)} - {workingSlot.shiftEnd.substring(0, 5)}
+                          </span>
+                        </div>
+                      </div>
+                      <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>
+                        {Object.values(zoneGroups).flat().length} nhân viên
+                      </Badge>
+                    </div>
+
+                    {/* Zones within this slot */}
+                    <div className='grid grid-cols-1 gap-4'>
+                      {Object.entries(zoneGroups).map(([, staffList], zoneIndex) => {
+                        const zone = staffList[0].zone
+
+                        return (
+                          <div key={zoneIndex} className='border border-green-200 rounded-lg p-3 bg-green-50/30'>
+                            {/* Zone Information */}
+                            <div className='flex items-center gap-2 border-b border-green-100 pb-2 mb-3'>
+                              <div className='h-8 w-8 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
+                                <MapPin className='h-4 w-4 text-green-700' />
+                              </div>
+                              <div className='font-medium text-green-900'>{zone.name}</div>
+                              <Badge className='ml-auto bg-green-100 text-green-800 border border-green-300'>
+                                {staffList.length} nhân viên
+                              </Badge>
+                            </div>
+
+                            {/* Staff in this zone */}
+                            <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                              {staffList.map((staff, staffIndex) => (
+                                <div
+                                  key={staffIndex}
+                                  className='flex items-start gap-3 p-2 rounded-md hover:bg-green-100/50 border border-green-100 bg-white'
+                                >
+                                  <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
+                                    <AvatarFallback>{getInitials(staff.staffName)}</AvatarFallback>
+                                  </Avatar>
+                                  <div className='flex-1'>
+                                    <h3 className='font-semibold text-green-900'>{staff.staffName}</h3>
+                                    <div className='flex flex-wrap gap-2 mt-1'>
+                                      <Badge
+                                        variant='outline'
+                                        className={`${getStaffTypeColor(staff.staff.staffType)} border text-xs`}
+                                      >
+                                        {getStaffTypeLabel(staff.staff.staffType)}
+                                      </Badge>
+                                      <Badge
+                                        variant='outline'
+                                        className={`${getStaffStatusColor(staff.staff.status)} border text-xs`}
+                                      >
+                                        {getStaffStatusLabel(staff.staff.status)}
+                                      </Badge>
+                                    </div>
+                                    <div className='mt-1 text-sm text-gray-700'>
+                                      <Phone className='h-3.5 w-3.5 inline mr-1 text-green-600' />
+                                      {staff.staff.phone}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </ScrollArea>
+          <DialogFooter className='mt-4 border-t pt-4'>
+            <DialogClose asChild>
+              <Button className='bg-green-600 hover:bg-green-700 text-white'>Đóng</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   const renderWeekView = () => {
@@ -105,81 +311,47 @@ export default function CalendarView() {
     const weekDays = eachDayOfInterval({ start, end })
 
     return (
-      <div className='grid grid-cols-7 gap-2'>
+      <div className='grid grid-cols-7 gap-3'>
         {weekDays.map((day, index) => {
-          const dayName = format(day, 'EEEE', { locale: vi })
-          const dayId = days.find((d) => d.name === dayName)?.id
-          const daySlots = dayId ? getDaySlots(dayId) : []
+          const daySchedules = getSchedulesForDate(day)
+          const hasSchedules = daySchedules.length > 0
+          const isCurrentDay = isToday(day)
+          const isWeekend = index >= 5 // Saturday and Sunday
 
           return (
-            <div key={index} className='border rounded-md p-2 min-h-[150px]'>
-              <div className='font-medium text-center pb-2 border-b'>
-                {format(day, 'EEEE', { locale: vi })}
-                <div className='text-sm text-muted-foreground'>{format(day, 'dd/MM')}</div>
+            <div
+              key={index}
+              className={`border rounded-lg overflow-hidden shadow-sm transition-all hover:shadow-md ${
+                isCurrentDay
+                  ? 'border-green-400 bg-green-50'
+                  : isWeekend
+                    ? 'border-amber-200 bg-amber-50/30'
+                    : 'border-gray-200'
+              }`}
+            >
+              <div
+                className={`font-medium text-center py-2 ${
+                  isCurrentDay
+                    ? 'bg-green-500 text-white'
+                    : isWeekend
+                      ? 'bg-amber-100 text-amber-900'
+                      : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                <div>{format(day, 'EEEE', { locale: vi })}</div>
+                <div className='text-sm'>{format(day, 'dd/MM')}</div>
               </div>
-              <div className='mt-2 space-y-1'>
-                {daySlots.map((slot, slotIndex) => (
-                  <Dialog key={slotIndex}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant='outline'
-                        className='w-full text-left justify-start text-xs p-2 h-auto'
-                        onClick={() => setSelectedSlot(slot)}
-                      >
-                        <div>
-                          <div className='font-medium'>{getShiftName(slot.shiftId)}</div>
-                          <div className='text-muted-foreground'>
-                            {slot.shiftStart.substring(0, 5)} - {slot.shiftEnd.substring(0, 5)}
-                          </div>
-                        </div>
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Chi tiết ca làm việc</DialogTitle>
-                      </DialogHeader>
-                      <div className='space-y-4 py-4'>
-                        <div className='grid grid-cols-2 gap-4'>
-                          <div>
-                            <div className='text-sm font-medium'>Ngày:</div>
-                            <div>{getDayName(slot.dayId)}</div>
-                          </div>
-                          <div>
-                            <div className='text-sm font-medium'>Ca làm:</div>
-                            <div>{getShiftName(slot.shiftId)}</div>
-                          </div>
-                        </div>
-                        <div className='grid grid-cols-2 gap-4'>
-                          <div>
-                            <div className='text-sm font-medium'>Thời gian:</div>
-                            <div>
-                              {slot.shiftStart.substring(0, 5)} - {slot.shiftEnd.substring(0, 5)}
-                            </div>
-                          </div>
-                          <div>
-                            <div className='text-sm font-medium'>Số lượng nhân viên:</div>
-                            <div className='flex items-center'>
-                              <Users className='h-4 w-4 mr-1' />
-                              <span>
-                                {slot.registeredCount || 0}/{slot.capacity}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <div className='text-sm font-medium'>Trạng thái:</div>
-                          <div
-                            className={`font-medium ${(slot.registeredCount || 0) >= slot.capacity ? 'text-red-500' : 'text-green-500'}`}
-                          >
-                            {(slot.registeredCount || 0) >= slot.capacity ? 'Đã đủ nhân viên' : 'Còn trống'}
-                          </div>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                ))}
-                {daySlots.length === 0 && (
-                  <div className='text-xs text-muted-foreground text-center py-2'>Không có ca làm</div>
+              <div className='p-3 min-h-[100px] flex items-center justify-center'>
+                {hasSchedules ? (
+                  renderStaffDialog(day, daySchedules)
+                ) : (
+                  <div
+                    className={`text-xs text-center h-full w-full flex items-center justify-center ${
+                      isWeekend ? 'text-amber-700' : 'text-gray-500'
+                    }`}
+                  >
+                    Không có ca làm
+                  </div>
                 )}
               </div>
             </div>
@@ -192,7 +364,6 @@ export default function CalendarView() {
   const renderMonthView = () => {
     const start = startOfMonth(currentDate)
     const end = endOfMonth(currentDate)
-    const monthDays = eachDayOfInterval({ start, end })
 
     // Create a 6x7 grid for the month view
     const firstDayOfMonth = getDay(start)
@@ -206,6 +377,7 @@ export default function CalendarView() {
     }
 
     // Add days of current month
+    const monthDays = eachDayOfInterval({ start, end })
     calendarDays.push(...monthDays)
 
     // Add days from next month to fill the grid
@@ -221,76 +393,61 @@ export default function CalendarView() {
     }
 
     return (
-      <div className='space-y-2'>
-        <div className='grid grid-cols-7 gap-2 text-center font-medium'>
-          <div>T2</div>
-          <div>T3</div>
-          <div>T4</div>
-          <div>T5</div>
-          <div>T6</div>
-          <div>T7</div>
-          <div>CN</div>
+      <div className='space-y-3'>
+        <div className='grid grid-cols-7 gap-3 text-center font-medium text-gray-700'>
+          <div className='py-1'>T2</div>
+          <div className='py-1'>T3</div>
+          <div className='py-1'>T4</div>
+          <div className='py-1'>T5</div>
+          <div className='py-1'>T6</div>
+          <div className='py-1 text-amber-700'>T7</div>
+          <div className='py-1 text-amber-700'>CN</div>
         </div>
         {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className='grid grid-cols-7 gap-2'>
+          <div key={weekIndex} className='grid grid-cols-7 gap-3'>
             {week.map((day, dayIndex) => {
-              const isCurrentMonth = day.getMonth() === currentDate.getMonth()
-              const dayName = format(day, 'EEEE', { locale: vi })
-              const dayId = days.find((d) => d.name === dayName)?.id
-              const daySlots = dayId ? getDaySlots(dayId) : []
+              const isCurrentMonth = isSameMonth(day, currentDate)
+              const daySchedules = getSchedulesForDate(day)
+              const hasSchedules = daySchedules.length > 0
+              const isCurrentDay = isToday(day)
+              const isWeekend = dayIndex >= 5 // Saturday and Sunday
 
               return (
                 <div
                   key={dayIndex}
-                  className={`border rounded-md p-1 min-h-[100px] ${isCurrentMonth ? '' : 'bg-muted/20 text-muted-foreground'}`}
+                  className={`border rounded-lg p-2 min-h-[110px] transition-all ${
+                    !isCurrentMonth
+                      ? 'bg-gray-50 text-gray-400 border-gray-100'
+                      : isCurrentDay
+                        ? 'border-green-400 bg-green-50 shadow-sm'
+                        : isWeekend
+                          ? 'border-amber-200 bg-amber-50/30'
+                          : 'border-gray-200 hover:border-green-300 hover:bg-green-50/30'
+                  }`}
                 >
-                  <div className='text-right text-xs'>{format(day, 'd')}</div>
-                  <div className='mt-1 space-y-1'>
-                    {daySlots.length > 0 ? (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant='outline' size='sm' className='w-full text-center text-xs p-1 h-auto'>
-                            {daySlots.length} ca làm
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Ca làm việc - {format(day, 'EEEE, dd/MM/yyyy', { locale: vi })}</DialogTitle>
-                          </DialogHeader>
-                          <div className='space-y-4 py-4'>
-                            {daySlots.map((slot, slotIndex) => (
-                              <Card key={slotIndex} className='p-2'>
-                                <div className='grid grid-cols-2 gap-2'>
-                                  <div>
-                                    <div className='text-sm font-medium'>{getShiftName(slot.shiftId)}</div>
-                                    <div className='text-xs text-muted-foreground'>
-                                      {slot.shiftStart.substring(0, 5)} - {slot.shiftEnd.substring(0, 5)}
-                                    </div>
-                                  </div>
-                                  <div className='text-right'>
-                                    <div className='flex items-center justify-end'>
-                                      <Users className='h-4 w-4 mr-1' />
-                                      <span className='text-sm'>
-                                        {slot.registeredCount || 0}/{slot.capacity}
-                                      </span>
-                                    </div>
-                                    <div
-                                      className={`text-xs font-medium ${(slot.registeredCount || 0) >= slot.capacity ? 'text-red-500' : 'text-green-500'}`}
-                                    >
-                                      {(slot.registeredCount || 0) >= slot.capacity ? 'Đã đủ' : 'Còn trống'}
-                                    </div>
-                                  </div>
-                                </div>
-                              </Card>
-                            ))}
+                  <div
+                    className={`text-right text-sm font-medium p-1 rounded-full w-7 h-7 flex items-center justify-center ml-auto ${
+                      isCurrentDay
+                        ? 'bg-green-500 text-white'
+                        : isWeekend && isCurrentMonth
+                          ? 'bg-amber-100 text-amber-900'
+                          : ''
+                    }`}
+                  >
+                    {format(day, 'd')}
+                  </div>
+                  <div className='mt-2 flex items-center justify-center h-[60px]'>
+                    {hasSchedules && isCurrentMonth
+                      ? renderStaffDialog(day, daySchedules)
+                      : isCurrentMonth && (
+                          <div
+                            className={`text-xs text-center h-full flex items-center justify-center ${
+                              isWeekend ? 'text-amber-700' : 'text-gray-500'
+                            }`}
+                          >
+                            Không có ca làm
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                    ) : (
-                      isCurrentMonth && (
-                        <div className='text-xs text-muted-foreground text-center py-1'>Không có ca</div>
-                      )
-                    )}
+                        )}
                   </div>
                 </div>
               )
@@ -302,40 +459,67 @@ export default function CalendarView() {
   }
 
   if (isLoading) {
-    return <div className='flex justify-center p-4'>Đang tải dữ liệu...</div>
+    return (
+      <div className='flex justify-center items-center p-8 h-[400px]'>
+        <div className='flex flex-col items-center gap-2'>
+          <div className='animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full'></div>
+          <div className='text-green-600 font-medium'>Đang tải dữ liệu...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <Card>
+    <Card className='border-none shadow-none'>
       <CardHeader className='pb-2'>
         <div className='flex items-center justify-between'>
-          <CardTitle>Lịch làm việc</CardTitle>
           <div className='flex items-center space-x-2'>
-            <Button variant='outline' size='sm' onClick={handlePrevious}>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handlePrevious}
+              className='border-green-200 text-green-700 hover:bg-green-50'
+            >
               <ChevronLeft className='h-4 w-4' />
             </Button>
-            <Button variant='outline' size='sm' onClick={handleToday}>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handleToday}
+              className='border-green-200 text-green-700 hover:bg-green-50'
+            >
               Hôm nay
             </Button>
-            <Button variant='outline' size='sm' onClick={handleNext}>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handleNext}
+              className='border-green-200 text-green-700 hover:bg-green-50'
+            >
               <ChevronRight className='h-4 w-4' />
             </Button>
           </div>
         </div>
         <div className='flex items-center justify-between mt-2'>
-          <div className='text-lg font-medium'>
+          <div className='text-lg font-medium text-green-700'>
             {view === 'week'
               ? `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'dd/MM')} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'dd/MM/yyyy')}`
               : format(currentDate, 'MMMM yyyy', { locale: vi })}
           </div>
           <Tabs value={view} onValueChange={(v) => setView(v as 'week' | 'month')}>
-            <TabsList>
-              <TabsTrigger value='week' className='flex items-center gap-1'>
+            <TabsList className='bg-green-100'>
+              <TabsTrigger
+                value='week'
+                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white'
+              >
                 <Calendar className='h-4 w-4' />
                 <span>Tuần</span>
               </TabsTrigger>
-              <TabsTrigger value='month' className='flex items-center gap-1'>
-                <Calendar className='h-4 w-4' />
+              <TabsTrigger
+                value='month'
+                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white'
+              >
+                <CalendarDays className='h-4 w-4' />
                 <span>Tháng</span>
               </TabsTrigger>
             </TabsList>

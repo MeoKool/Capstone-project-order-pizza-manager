@@ -7,6 +7,7 @@ import WorkshopForm from '@/pages/Workshops/components/WorkshopForm'
 import SettingsPage from '@/pages/Settings/Settings'
 import LoginPage from '@/pages/Login/Login'
 import StaffManagement from '@/pages/Shifts/staff-management'
+import SignalRListener from '@/components/signalr/SignalRListener'
 
 // Lazy load the components
 const DashboardLayout = lazy(() => import('@/components/dashboard-layout'))
@@ -33,6 +34,7 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <ProtectedRoute>
+        <SignalRListener />
         <DashboardLayout />
       </ProtectedRoute>
     ),

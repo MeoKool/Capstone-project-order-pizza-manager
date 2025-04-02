@@ -1,3 +1,7 @@
+'use client'
+
+import type React from 'react'
+
 import { useEffect, useState } from 'react'
 import { format, parseISO, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns'
 import { Button } from '@/components/ui/button'
@@ -7,13 +11,33 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, User, CalendarDays, MapPin, Users } from 'lucide-react'
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  User,
+  CalendarDays,
+  MapPin,
+  Users,
+  RefreshCw
+} from 'lucide-react'
 import StaffScheduleService from '@/services/staff-schedule-service'
 import type { WorkingSlotRegister, Zone, Config, StaffZoneScheduleRequest, StaffSchedule } from '@/types/staff-schedule'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination'
 
 export default function RegistrationApproval() {
   const [, setRegistrations] = useState<WorkingSlotRegister[]>([])
@@ -28,6 +52,10 @@ export default function RegistrationApproval() {
   const [otherRegistrations, setOtherRegistrations] = useState<WorkingSlotRegister[]>([])
   const [assignedStaff, setAssignedStaff] = useState<StaffSchedule[]>([])
   const [isLoadingAssignedStaff, setIsLoadingAssignedStaff] = useState(false)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [otherPage, setOtherPage] = useState(1)
+  const [itemsPerPage] = useState(5)
 
   useEffect(() => {
     fetchData()
@@ -85,14 +113,16 @@ export default function RegistrationApproval() {
     }
   }
 
-  const fetchAssignedStaff = async (workingDate: string) => {
+  const fetchAssignedStaff = async (workingDate: string, workingSlotId: string) => {
     try {
       setIsLoadingAssignedStaff(true)
       const staffScheduleService = StaffScheduleService.getInstance()
       const response = await staffScheduleService.getStaffSchedulesByDate(workingDate)
 
       if (response.success && response.result) {
-        setAssignedStaff(response.result.items)
+        // Filter staff by the selected working slot
+        const filteredStaff = response.result.items.filter((staff) => staff.workingSlotId === workingSlotId)
+        setAssignedStaff(filteredStaff)
       } else {
         setAssignedStaff([])
       }
@@ -107,7 +137,7 @@ export default function RegistrationApproval() {
   const handleOpenDetails = async (registration: WorkingSlotRegister) => {
     setSelectedRegistration(registration)
     setSelectedZone('')
-    await fetchAssignedStaff(registration.workingDate)
+    await fetchAssignedStaff(registration.workingDate, registration.workingSlotId)
   }
 
   const getStatusBadge = (status: string) => {
@@ -189,7 +219,7 @@ export default function RegistrationApproval() {
         // Cập nhật lại danh sách đăng ký
         await fetchData()
         // Cập nhật lại danh sách nhân viên đã phân công
-        await fetchAssignedStaff(selectedRegistration.workingDate)
+        await fetchAssignedStaff(selectedRegistration.workingDate, selectedRegistration.workingSlotId)
         setSelectedRegistration(null)
       } else {
         toast.error(scheduleResponse.message || 'Không thể phân công khu vực làm việc')
@@ -222,62 +252,157 @@ export default function RegistrationApproval() {
     return zone ? zone.name : 'Không xác định'
   }
 
-  const renderRegistrationList = (registrations: WorkingSlotRegister[]) => {
+  // Pagination logic for current week registrations
+  const indexOfLastCurrentItem = currentPage * itemsPerPage
+  const indexOfFirstCurrentItem = indexOfLastCurrentItem - itemsPerPage
+  const paginatedCurrentWeekRegistrations = currentWeekRegistrations.slice(
+    indexOfFirstCurrentItem,
+    indexOfLastCurrentItem
+  )
+  const totalCurrentPages = Math.ceil(currentWeekRegistrations.length / itemsPerPage)
+
+  // Pagination logic for other registrations
+  const indexOfLastOtherItem = otherPage * itemsPerPage
+  const indexOfFirstOtherItem = indexOfLastOtherItem - itemsPerPage
+  const paginatedOtherRegistrations = otherRegistrations.slice(indexOfFirstOtherItem, indexOfLastOtherItem)
+  const totalOtherPages = Math.ceil(otherRegistrations.length / itemsPerPage)
+
+  // Add this function after the other handler functions
+  const handleTabChange = (value: string) => {
+    // Reset pagination to page 1 when switching tabs
+    if (value === 'current-week') {
+      setCurrentPage(1)
+    } else if (value === 'other') {
+      setOtherPage(1)
+    }
+  }
+
+  const renderRegistrationList = (
+    registrations: WorkingSlotRegister[],
+    currentPageNum: number,
+    totalPages: number,
+    setPageFunction: React.Dispatch<React.SetStateAction<number>>
+  ) => {
     if (registrations.length === 0) {
       return <div className='text-center py-8 text-gray-500'>Không có yêu cầu đăng ký nào</div>
     }
 
     return (
       <div className='space-y-4'>
-        {registrations.map((registration) => (
-          <Card
-            key={registration.id}
-            className={`border hover:shadow-md transition-shadow cursor-pointer ${
-              registration.status === 'Onhold'
-                ? 'border-amber-300 bg-amber-50/30'
-                : registration.status === 'Approved'
-                  ? registration.zoneId
-                    ? 'border-green-300 bg-green-50/30'
-                    : 'border-blue-300 bg-blue-50/30'
-                  : 'border-red-300 bg-red-50/30'
-            }`}
-            onClick={() => handleOpenDetails(registration)}
-          >
-            <CardContent className='p-4'>
-              <div className='flex items-start gap-3'>
-                <Avatar className='h-10 w-10 bg-blue-100 text-blue-700 border border-blue-200'>
-                  <AvatarFallback>{getInitials(registration.staffName)}</AvatarFallback>
-                </Avatar>
+        <div className='space-y-4'>
+          {registrations.map((registration) => (
+            <Card
+              key={registration.id}
+              className={`border hover:shadow-md transition-shadow cursor-pointer ${
+                registration.status === 'Onhold'
+                  ? 'border-amber-300 bg-amber-50/30'
+                  : registration.status === 'Approved'
+                    ? registration.zoneId
+                      ? 'border-green-300 bg-green-50/30'
+                      : 'border-blue-300 bg-blue-50/30'
+                    : 'border-red-300 bg-red-50/30'
+              }`}
+              onClick={() => handleOpenDetails(registration)}
+            >
+              <CardContent className='p-4'>
+                <div className='flex items-start gap-3'>
+                  <Avatar className='h-10 w-10 bg-blue-100 text-blue-700 border border-blue-200'>
+                    <AvatarFallback>{getInitials(registration.staffName)}</AvatarFallback>
+                  </Avatar>
 
-                <div className='flex-1'>
-                  <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
-                    <h3 className='font-semibold text-blue-900'>{registration.staffName}</h3>
-                    <div className='flex flex-wrap gap-2'>
-                      {getStatusBadge(registration.status)}
-                      {registration.status === 'Approved' && registration.zoneId === null && (
-                        <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1'>
-                          <AlertCircle className='h-3.5 w-3.5' />
-                          <span>Chưa phân khu vực</span>
-                        </Badge>
-                      )}
+                  <div className='flex-1'>
+                    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
+                      <h3 className='font-semibold text-blue-900'>{registration.staffName}</h3>
+                      <div className='flex flex-wrap gap-2'>
+                        {getStatusBadge(registration.status)}
+                        {registration.status === 'Approved' && registration.zoneId === null && (
+                          <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1'>
+                            <AlertCircle className='h-3.5 w-3.5' />
+                            <span>Chưa phân khu vực</span>
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className='mt-2 space-y-1 text-sm'>
-                    <div className='flex items-center gap-2 text-gray-700'>
-                      <CalendarDays className='h-4 w-4 text-blue-600' />
-                      <span>Ngày làm: {format(parseISO(registration.workingDate), 'dd/MM/yyyy')}</span>
-                    </div>
-                    <div className='flex items-center gap-2 text-gray-700'>
-                      <Clock className='h-4 w-4 text-blue-600' />
-                      <span>Đăng ký: {format(parseISO(registration.registerDate), 'dd/MM/yyyy HH:mm')}</span>
+                    <div className='mt-2 space-y-1 text-sm'>
+                      <div className='flex items-center gap-2 text-gray-700'>
+                        <CalendarDays className='h-4 w-4 text-blue-600' />
+                        <span>
+                          Ngày làm: {format(parseISO(registration.workingDate), 'dd/MM/yyyy')}
+                          {registration.workingSlot?.dayName && (
+                            <span className='ml-1 text-blue-600'>({registration.workingSlot.dayName})</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className='flex items-center gap-2 text-gray-700'>
+                        <Clock className='h-4 w-4 text-blue-600' />
+                        <span>
+                          Giờ làm: {registration.workingSlot?.shiftStart} - {registration.workingSlot?.shiftEnd}
+                        </span>
+                      </div>
+                      <div className='flex items-center gap-2 text-gray-700'>
+                        <Clock className='h-4 w-4 text-blue-600' />
+                        <span>Đăng ký: {format(parseISO(registration.registerDate), 'dd/MM/yyyy HH:mm')}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <div className='flex justify-center mt-6'>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPageFunction((prev) => Math.max(prev - 1, 1))}
+                    className={currentPageNum === 1 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+
+                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                  const pageNumber = i + 1
+                  return (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        onClick={() => setPageFunction(pageNumber)}
+                        isActive={currentPageNum === pageNumber}
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                })}
+
+                {totalPages > 5 && (
+                  <>
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setPageFunction(totalPages)}
+                        isActive={currentPageNum === totalPages}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </>
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPageFunction((prev) => Math.min(prev + 1, totalPages))}
+                    className={currentPageNum === totalPages ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     )
   }
@@ -296,7 +421,7 @@ export default function RegistrationApproval() {
 
     if (assignedStaff.length === 0) {
       return (
-        <div className='text-center py-4 text-gray-500 text-sm'>Chưa có nhân viên nào được phân công vào ngày này</div>
+        <div className='text-center py-4 text-gray-500 text-sm'>Chưa có nhân viên nào được phân công vào ca này</div>
       )
     }
 
@@ -354,19 +479,7 @@ export default function RegistrationApproval() {
 
   return (
     <div className='space-y-6'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h2 className='text-xl font-semibold text-blue-800 flex items-center gap-2'>
-            <User className='h-5 w-5 text-blue-600' />
-            Duyệt yêu cầu đăng ký
-          </h2>
-        </div>
-        <Button onClick={fetchData} variant='outline' className='border-blue-200 text-blue-700 hover:bg-blue-50'>
-          Làm mới
-        </Button>
-      </div>
-
-      <Tabs defaultValue='current-week' className='w-full'>
+      <Tabs defaultValue='current-week' className='w-full' onValueChange={handleTabChange}>
         <TabsList className='bg-blue-100 mb-4'>
           <TabsTrigger
             value='current-week'
@@ -388,14 +501,22 @@ export default function RegistrationApproval() {
               <Badge className='ml-1 bg-blue-200 text-blue-800'>{otherRegistrations.length}</Badge>
             )}
           </TabsTrigger>
+          <Button
+            onClick={fetchData}
+            className='ml-2 bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1'
+            size='sm'
+          >
+            <RefreshCw className='h-4 w-4' />
+            Làm mới
+          </Button>
         </TabsList>
 
         <TabsContent value='current-week' className='mt-0'>
-          {renderRegistrationList(currentWeekRegistrations)}
+          {renderRegistrationList(paginatedCurrentWeekRegistrations, currentPage, totalCurrentPages, setCurrentPage)}
         </TabsContent>
 
         <TabsContent value='other' className='mt-0'>
-          {renderRegistrationList(otherRegistrations)}
+          {renderRegistrationList(paginatedOtherRegistrations, otherPage, totalOtherPages, setOtherPage)}
         </TabsContent>
       </Tabs>
 
@@ -406,6 +527,11 @@ export default function RegistrationApproval() {
               <DialogTitle className='text-xl flex items-center gap-2 text-blue-700'>
                 <User className='h-5 w-5' />
                 Chi tiết đăng ký
+                {selectedRegistration.workingSlot && (
+                  <span className='ml-2 text-sm font-normal text-blue-500'>
+                    ({selectedRegistration.workingSlot.shiftStart} - {selectedRegistration.workingSlot.shiftEnd})
+                  </span>
+                )}
               </DialogTitle>
             </DialogHeader>
 
@@ -434,7 +560,19 @@ export default function RegistrationApproval() {
                   <div className='space-y-3 bg-blue-50/50 p-3 rounded-md border border-blue-100'>
                     <div className='flex items-center gap-2 text-gray-700'>
                       <CalendarDays className='h-4 w-4 text-blue-600' />
-                      <span>Ngày làm: {format(parseISO(selectedRegistration.workingDate), 'dd/MM/yyyy')}</span>
+                      <span>
+                        Ngày làm: {format(parseISO(selectedRegistration.workingDate), 'dd/MM/yyyy')}
+                        {selectedRegistration.workingSlot?.dayName && (
+                          <span className='ml-1 text-blue-600'>({selectedRegistration.workingSlot.dayName})</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-2 text-gray-700'>
+                      <Clock className='h-4 w-4 text-blue-600' />
+                      <span>
+                        Giờ làm: {selectedRegistration.workingSlot?.shiftStart} -{' '}
+                        {selectedRegistration.workingSlot?.shiftEnd}
+                      </span>
                     </div>
                     <div className='flex items-center gap-2 text-gray-700'>
                       <Clock className='h-4 w-4 text-blue-600' />
