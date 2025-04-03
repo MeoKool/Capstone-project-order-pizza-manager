@@ -2,7 +2,7 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface CalendarHeaderProps {
@@ -99,20 +99,6 @@ export function CalendarHeader({
               </TooltipTrigger>
               <TooltipContent>
                 <p>Làm mới dữ liệu</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button className='bg-green-600 hover:bg-green-700 text-white'>
-                  <Plus className='h-4 w-4 mr-1' />
-                  Tạo lịch mới
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Tạo lịch làm việc mới</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

@@ -137,7 +137,7 @@ class StaffScheduleService {
 
   public async approveWorkingSlotRegister(registerId: string): Promise<ApiResponse<any>> {
     try {
-      return await post<any>(`https://vietsac.id.vn/api/working-slot-registers/approved/${registerId}`, {})
+      return await put<any>(`https://vietsac.id.vn/api/working-slot-registers/approved/${registerId}`, {})
     } catch (error) {
       console.error('Error approving working slot register:', error)
       throw error
