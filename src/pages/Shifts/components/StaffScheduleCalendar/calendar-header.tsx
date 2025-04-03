@@ -2,7 +2,8 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw, Plus } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface CalendarHeaderProps {
   currentDate: Date
@@ -24,44 +25,98 @@ export function CalendarHeader({
   onViewChange
 }: CalendarHeaderProps) {
   return (
-    <div className='space-y-2'>
+    <div className='space-y-4'>
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-2'>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={onPrevious}
-            className='border-green-200 text-green-700 hover:bg-green-50'
-          >
-            <ChevronLeft className='h-4 w-4' />
-          </Button>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={onToday}
-            className='border-green-200 text-green-700 hover:bg-green-50'
-          >
-            Hôm nay
-          </Button>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={onNext}
-            className='border-green-200 text-green-700 hover:bg-green-50'
-          >
-            <ChevronRight className='h-4 w-4' />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={onPrevious}
+                  className='border-green-200 text-green-700 hover:bg-green-50'
+                >
+                  <ChevronLeft className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Tuần trước</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={onToday}
+                  className='border-green-200 text-green-700 hover:bg-green-50'
+                >
+                  Hôm nay
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Về ngày hiện tại</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={onNext}
+                  className='border-green-200 text-green-700 hover:bg-green-50'
+                >
+                  <ChevronRight className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Tuần sau</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={onRefresh}
-          className='border-green-200 text-green-700 hover:bg-green-50'
-        >
-          <RefreshCw className='h-4 w-4 mr-1' />
-          Làm mới
-        </Button>
+        <div className='flex items-center gap-2'>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={onRefresh}
+                  className='border-green-200 text-green-700 hover:bg-green-50'
+                >
+                  <RefreshCw className='h-4 w-4 mr-1' />
+                  Làm mới
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Làm mới dữ liệu</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button className='bg-green-600 hover:bg-green-700 text-white'>
+                  <Plus className='h-4 w-4 mr-1' />
+                  Tạo lịch mới
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Tạo lịch làm việc mới</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
       <div className='flex items-center justify-between mt-2'>
         <div className='text-lg font-medium text-green-700'>

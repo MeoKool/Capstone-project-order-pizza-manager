@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { parseISO, addWeeks, subWeeks, isSameDay, addMonths, subMonths } from 'date-fns'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import StaffScheduleService from '@/services/staff-schedule-service'
 import type {
@@ -12,19 +11,18 @@ import type {
 } from '@/types/staff-schedule'
 
 import { toast } from 'sonner'
-import { LoadingSpinner } from './StaffScheduleCalendar/loading-spinner'
 import { CalendarHeader } from './StaffScheduleCalendar/calendar-header'
-import { CalendarLegend } from './StaffScheduleCalendar/calendar-legend'
+import LoadingSpinner from '@/components/LoadingSpinner'
+import { WeekView } from './StaffScheduleCalendar/week-view'
 import { MonthView } from './StaffScheduleCalendar/month-view'
 import { DayDetailsDialog } from './StaffScheduleCalendar/day-details-dialog'
 import { RegistrationDialog } from './StaffScheduleCalendar/registration-dialog'
 import { SwapRequestDialog } from './StaffScheduleCalendar/swap-request-dialog'
 import { SwapActionDialog } from './StaffScheduleCalendar/swap-action-dialog'
-import { WeekView } from './StaffScheduleCalendar/week-view'
 
 export default function StaffScheduleCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<'week' | 'month'>('month')
+  const [view, setView] = useState<'week' | 'month'>('week')
   const [staffSchedules, setStaffSchedules] = useState<StaffSchedule[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -284,8 +282,8 @@ export default function StaffScheduleCalendar() {
   }
 
   return (
-    <Card className='border-none shadow-none'>
-      <CardHeader className='pb-2'>
+    <div className='flex flex-col h-full'>
+      <div className='p-4 bg-white border-b'>
         <CalendarHeader
           currentDate={currentDate}
           view={view}
@@ -295,20 +293,22 @@ export default function StaffScheduleCalendar() {
           onRefresh={handleRefresh}
           onViewChange={setView}
         />
-        <CalendarLegend />
-      </CardHeader>
-      <CardContent>
-        <Tabs value={view} className='w-full'>
-          <TabsContent value='week' className='mt-0'>
-            <WeekView
-              currentDate={currentDate}
-              staffSchedules={staffSchedules}
-              registrations={registrations}
-              swapRequests={swapRequests}
-              onDateClick={handleDateClick}
-            />
+      </div>
+
+      <div className='flex-1 overflow-hidden'>
+        <Tabs value={view} className='h-full'>
+          <TabsContent value='week' className='h-full'>
+            <div className='h-full'>
+              <WeekView
+                currentDate={currentDate}
+                staffSchedules={staffSchedules}
+                registrations={registrations}
+                swapRequests={swapRequests}
+                onDateClick={handleDateClick}
+              />
+            </div>
           </TabsContent>
-          <TabsContent value='month' className='mt-0'>
+          <TabsContent value='month' className='h-full'>
             <MonthView
               currentDate={currentDate}
               staffSchedules={staffSchedules}
@@ -318,7 +318,7 @@ export default function StaffScheduleCalendar() {
             />
           </TabsContent>
         </Tabs>
-      </CardContent>
+      </div>
 
       {/* Day Dialog */}
       <DayDetailsDialog
@@ -359,6 +359,6 @@ export default function StaffScheduleCalendar() {
         isSubmitting={isSubmitting}
         onConfirm={confirmSwapAction}
       />
-    </Card>
+    </div>
   )
 }
