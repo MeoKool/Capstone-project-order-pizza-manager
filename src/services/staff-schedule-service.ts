@@ -107,7 +107,8 @@ class StaffScheduleService {
     try {
       const params = {
         SortBy: 'registerDate',
-        IncludeProperties: 'WorkingSlot'
+        IncludeProperties: 'WorkingSlot',
+        TakeCount: 1000
       }
 
       return await get<WorkingSlotRegistersResult>('https://vietsac.id.vn/api/working-slot-registers', params)
