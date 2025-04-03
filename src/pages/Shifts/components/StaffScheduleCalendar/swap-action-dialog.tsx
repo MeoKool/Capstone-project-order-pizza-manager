@@ -28,9 +28,14 @@ export function SwapActionDialog({ isOpen, onOpenChange, action, isSubmitting, o
             {action === 'approve' ? 'Duyệt yêu cầu đổi ca' : 'Từ chối yêu cầu đổi ca'}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {action === 'approve'
-              ? 'Bạn có chắc chắn muốn duyệt yêu cầu đổi ca này? Hành động này sẽ cập nhật lịch làm việc của cả hai nhân viên.'
-              : 'Bạn có chắc chắn muốn từ chối yêu cầu đổi ca này?'}
+            {action === 'approve' ? (
+              <div>
+                <h1>Bạn có chắc chắn muốn duyệt yêu cầu đổi ca này?</h1>
+                <h1>Hành động này sẽ cập nhật lịch làm việc của cả hai nhân viên.</h1>
+              </div>
+            ) : (
+              'Bạn có chắc chắn muốn từ chối yêu cầu đổi ca này?'
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

@@ -137,7 +137,7 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center h-[800px]'>
+      <div className='flex items-center justify-center h-full'>
         <div className='flex flex-col items-center gap-2'>
           <div className='animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full'></div>
           <div className='text-green-600 font-medium'>Đang tải dữ liệu...</div>
@@ -159,12 +159,12 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
           <Card
             key={index}
             className={`flex flex-col h-full overflow-hidden ${
-              isCurrentDay ? 'border-green-400 shadow-sm' : isWeekend ? 'border-amber-200' : 'border-gray-200'
+              isCurrentDay ? 'border-green-500 shadow-sm' : isWeekend ? 'border-amber-200' : 'border-gray-200'
             }`}
           >
             <CardHeader
               className={`p-2 flex flex-row items-center justify-between ${
-                isCurrentDay ? 'bg-green-50' : isWeekend ? 'bg-amber-50/20' : 'bg-gray-50/50'
+                isCurrentDay ? 'bg-green-200' : isWeekend ? 'bg-amber-100' : 'bg-gray-100'
               }`}
               onClick={() => onDateClick(day)}
             >
@@ -174,8 +174,8 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                     isCurrentDay
                       ? 'bg-green-500 text-white'
                       : isWeekend
-                        ? 'bg-amber-100 text-amber-900'
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-amber-400 text-white'
+                        : 'bg-gray-400 text-white'
                   }`}
                 >
                   {dayNumber}
@@ -190,15 +190,15 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant='ghost'
+                      variant='outline'
                       size='icon'
-                      className='h-7 w-7 rounded-full hover:bg-green-100'
+                      className='h-7 w-7 rounded-full hover:bg-blue-100'
                       onClick={(e) => {
                         e.stopPropagation()
                         onDateClick(day)
                       }}
                     >
-                      <Calendar className='h-4 w-4 text-green-700' />
+                      <Calendar className='h-4 w-4 text-blue-500' />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
