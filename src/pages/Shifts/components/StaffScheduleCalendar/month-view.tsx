@@ -191,7 +191,6 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
                                   <Users className='h-3 w-3' />
                                   <span>{daySchedules.length}</span>
                                 </Badge>
-                                <span className='text-xs text-gray-600'>{slots} ca làm việc</span>
                               </div>
                             )}
 

@@ -1,5 +1,3 @@
-'use client'
-
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -33,11 +31,16 @@ export function CalendarHeader({
     try {
       setIsAutoAssigning(true)
 
-      // Get Monday of the current week
-      const mondayDate = startOfWeek(currentDate, { weekStartsOn: 1 })
+      // Lấy ngày hiện tại (hôm nay)
+      const today = new Date()
 
-      // Format the date as YYYY-MM-DD
+      // Lấy ngày thứ Hai của tuần chứa ngày hiện tại
+      const mondayDate = startOfWeek(today, { weekStartsOn: 1 })
+
+      // Định dạng ngày thành YYYY-MM-DD
       const formattedDate = format(mondayDate, 'yyyy-MM-dd')
+
+      console.log('Sending date:', formattedDate) // Log để kiểm tra ngày
 
       const response = await fetch('https://vietsac.id.vn/api/staff-zone-schedules/auto-assign', {
         method: 'POST',
@@ -53,7 +56,7 @@ export function CalendarHeader({
         throw new Error('Failed to auto assign')
       }
 
-      // If successful, refresh the data
+      // Nếu thành công, làm mới dữ liệu
       onRefresh()
     } catch (error) {
       console.error('Error auto assigning:', error)
@@ -132,11 +135,11 @@ export function CalendarHeader({
                   disabled={isAutoAssigning}
                 >
                   <CheckCircle className='h-4 w-4 mr-1' />
-                  {isAutoAssigning ? 'Đang xử lý...' : 'Tự động duyệt đăng ký'}
+                  {isAutoAssigning ? 'Đang xử lý...' : 'Tự động duyệt'}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Tự động duyệt đăng ký cho ngày hiện tại</p>
+                <p>Tự động duyệt đăng ký cho tuần hiện tại</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

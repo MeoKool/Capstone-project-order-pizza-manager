@@ -75,10 +75,7 @@ class StaffScheduleService {
   }): Promise<ApiResponse<StaffSchedulesResult>> {
     try {
       const defaultParams = {
-        year: 0,
-        month: 0,
-        day: 0,
-        dayOfWeek: 0,
+        TakeCount: 1000,
         IncludeProperties: 'Zone,Staff,WorkingSlot'
       }
 
@@ -95,7 +92,8 @@ class StaffScheduleService {
     try {
       return await get<StaffSchedulesResult>('https://vietsac.id.vn/api/staff-zone-schedules', {
         WorkingDate: workingDate,
-        IncludeProperties: 'Zone,Staff,WorkingSlot'
+        IncludeProperties: 'Zone,Staff,WorkingSlot',
+        TakeCount: 1000
       })
     } catch (error) {
       console.error('Error fetching staff schedules by date:', error)
