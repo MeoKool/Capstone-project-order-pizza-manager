@@ -1,15 +1,16 @@
 'use client'
 
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, isToday } from 'date-fns'
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Users, Clock, Calendar, AlertCircle, ChevronDown, ChevronUp, Info } from 'lucide-react'
+import { Users, Clock, Calendar, AlertCircle, ChevronDown, ChevronUp, Info, Loader2 } from 'lucide-react'
 import type { StaffSchedule, WorkingSlotRegister, SwapWorkingSlotRequest, Zone } from '@/types/staff-schedule'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import StaffScheduleService from '@/services/staff-schedule-service'
 
 interface WorkingSlot {
   id: string
@@ -24,19 +25,20 @@ interface WorkingSlot {
 
 interface WeekViewProps {
   currentDate: Date
-  staffSchedules: StaffSchedule[]
   registrations: WorkingSlotRegister[]
   swapRequests: SwapWorkingSlotRequest[]
   onDateClick: (date: Date) => void
 }
 
-export function WeekView({ currentDate, staffSchedules, registrations, swapRequests, onDateClick }: WeekViewProps) {
-  console.log(registrations, swapRequests)
-
+export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
   const [zones, setZones] = useState<Zone[]>([])
   const [workingSlots, setWorkingSlots] = useState<WorkingSlot[]>([])
   const [expandedSlots, setExpandedSlots] = useState<Record<string, boolean>>({})
   const [isLoading, setIsLoading] = useState(true)
+  const [dailySchedules, setDailySchedules] = useState<Record<string, StaffSchedule[]>>({})
+  const [loadingDays, setLoadingDays] = useState<Record<string, boolean>>({})
+
+  const staffScheduleService = StaffScheduleService.getInstance()
 
   useEffect(() => {
     // Fetch zones data
@@ -73,6 +75,49 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
     Promise.all([fetchZones(), fetchWorkingSlots()])
   }, [])
 
+  useEffect(() => {
+    // Reset daily schedules when current date changes
+    setDailySchedules({})
+
+    // Fetch schedules for each day of the week
+    const fetchDailySchedules = async () => {
+      const start = startOfWeek(currentDate, { weekStartsOn: 1 })
+      const end = endOfWeek(currentDate, { weekStartsOn: 1 })
+      const days = eachDayOfInterval({ start, end })
+
+      // Initialize loading state for each day
+      const initialLoadingState: Record<string, boolean> = {}
+      days.forEach((day) => {
+        const dateKey = format(day, 'yyyy-MM-dd')
+        initialLoadingState[dateKey] = true
+      })
+      setLoadingDays(initialLoadingState)
+
+      // Fetch data for each day
+      for (const day of days) {
+        const dateKey = format(day, 'yyyy-MM-dd')
+        try {
+          const response = await staffScheduleService.getStaffSchedulesByDate(dateKey)
+          if (response.success) {
+            setDailySchedules((prev) => ({
+              ...prev,
+              [dateKey]: response.result.items
+            }))
+          }
+        } catch (error) {
+          console.error(`Error fetching schedules for ${dateKey}:`, error)
+        } finally {
+          setLoadingDays((prev) => ({
+            ...prev,
+            [dateKey]: false
+          }))
+        }
+      }
+    }
+
+    fetchDailySchedules()
+  }, [currentDate])
+
   const start = startOfWeek(currentDate, { weekStartsOn: 1 }) // Start from Monday
   const end = endOfWeek(currentDate, { weekStartsOn: 1 })
   const days = eachDayOfInterval({ start, end })
@@ -104,12 +149,11 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
     return workingSlots.filter((slot) => slot.dayName === dayName)
   }
 
-  // Get schedules for a specific slot
+  // Get schedules for a specific slot and date
   const getSchedulesForSlot = (slotId: string, date: Date) => {
-    return staffSchedules.filter((schedule) => {
-      const scheduleDate = parseISO(schedule.workingDate)
-      return isSameDay(scheduleDate, date) && schedule.workingSlotId === slotId
-    })
+    const dateKey = format(date, 'yyyy-MM-dd')
+    const daySchedules = dailySchedules[dateKey] || []
+    return daySchedules.filter((schedule) => schedule.workingSlotId === slotId)
   }
 
   // Group schedules by zone for a specific slot and date
@@ -137,34 +181,36 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
 
   if (isLoading) {
     return (
-      <div className='flex items-center justify-center h-full'>
+      <div className='flex items-center justify-center h-full bg-gradient-to-b from-white to-orange-50'>
         <div className='flex flex-col items-center gap-2'>
-          <div className='animate-spin h-8 w-8 border-4 border-green-500 border-t-transparent rounded-full'></div>
-          <div className='text-green-600 font-medium'>Đang tải dữ liệu...</div>
+          <div className='animate-spin h-8 w-8 border-4 border-red-500 border-t-transparent rounded-full'></div>
+          <div className='text-red-600 font-medium'>Đang tải dữ liệu...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className='grid grid-cols-7 gap-1 h-full'>
+    <div className='grid grid-cols-7 gap-2 h-full p-2 bg-gradient-to-b from-white to-orange-50'>
       {days.map((day, index) => {
         const isCurrentDay = isToday(day)
         const isWeekend = index >= 5
         const daySlots = getSlotsForDayIndex(index)
         const dayNumber = format(day, 'd')
         const hasSlots = daySlots.length > 0
+        const dateKey = format(day, 'yyyy-MM-dd')
+        const isDayLoading = loadingDays[dateKey]
 
         return (
           <Card
             key={index}
-            className={`flex flex-col h-full overflow-hidden ${
-              isCurrentDay ? 'border-green-500 shadow-sm' : isWeekend ? 'border-amber-200' : 'border-gray-200'
+            className={`flex flex-col h-full overflow-hidden border shadow-sm ${
+              isCurrentDay ? 'border-red-400' : isWeekend ? 'border-orange-300' : 'border-orange-200'
             }`}
           >
             <CardHeader
               className={`p-2 flex flex-row items-center justify-between ${
-                isCurrentDay ? 'bg-green-200' : isWeekend ? 'bg-amber-100' : 'bg-gray-100'
+                isCurrentDay ? 'bg-red-200' : isWeekend ? 'bg-orange-200' : 'bg-orange-50'
               }`}
               onClick={() => onDateClick(day)}
             >
@@ -172,10 +218,10 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                 <div
                   className={`text-base font-medium rounded-full w-8 h-8 flex items-center justify-center ${
                     isCurrentDay
-                      ? 'bg-green-500 text-white'
+                      ? 'bg-red-500 text-white'
                       : isWeekend
-                        ? 'bg-amber-400 text-white'
-                        : 'bg-gray-400 text-white'
+                        ? 'bg-orange-400 text-white'
+                        : 'bg-orange-300 text-white'
                   }`}
                 >
                   {dayNumber}
@@ -192,13 +238,13 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                     <Button
                       variant='outline'
                       size='icon'
-                      className='h-7 w-7 rounded-full hover:bg-blue-100'
+                      className='h-7 w-7 rounded-full hover:bg-red-100 border-orange-200 text-red-500'
                       onClick={(e) => {
                         e.stopPropagation()
                         onDateClick(day)
                       }}
                     >
-                      <Calendar className='h-4 w-4 text-blue-500' />
+                      <Calendar className='h-4 w-4' />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -208,9 +254,16 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
               </TooltipProvider>
             </CardHeader>
 
-            <CardContent className='p-0 flex-1 overflow-hidden'>
+            <CardContent className='p-0 flex-1 overflow-hidden bg-orange-100'>
               <ScrollArea className='h-full'>
-                {hasSlots ? (
+                {isDayLoading ? (
+                  <div className='flex items-center justify-center h-full p-4'>
+                    <div className='text-gray-500 flex flex-col items-center gap-1'>
+                      <Loader2 className='h-5 w-5 text-red-500 animate-spin' />
+                      <span className='text-sm'>Đang tải...</span>
+                    </div>
+                  </div>
+                ) : hasSlots ? (
                   <div className='p-2 space-y-2'>
                     {daySlots.map((slot) => {
                       const schedulesByZone = getSchedulesByZoneForSlot(slot.id, day)
@@ -221,23 +274,23 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                       const isSlotExpanded = expandedSlots[slot.id]
                       const staffPercentage = slot.capacity > 0 ? (totalStaffCount / slot.capacity) * 100 : 0
                       const staffStatusColor =
-                        staffPercentage >= 100 ? 'bg-green-500' : staffPercentage >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                        staffPercentage >= 100 ? 'bg-red-500' : staffPercentage >= 70 ? 'bg-orange-500' : 'bg-gray-400'
 
                       return (
                         <div
                           key={slot.id}
-                          className='rounded-md overflow-hidden border border-gray-200 hover:border-green-300 transition-colors bg-white'
+                          className='rounded-md overflow-hidden border border-orange-100 hover:border-red-300 transition-colors bg-white shadow-sm'
                         >
                           <div className='p-2'>
                             <div className='flex items-center justify-between'>
-                              <div className='font-medium text-green-800'>{slot.shiftName}</div>
+                              <div className='font-medium text-red-700'>{slot.shiftName}</div>
                               <Badge
                                 className={`${
                                   totalStaffCount >= slot.capacity
-                                    ? 'bg-green-100 text-green-800 border-green-300'
+                                    ? 'bg-red-100 text-red-800 border-red-300'
                                     : totalStaffCount > 0
-                                      ? 'bg-amber-100 text-amber-800 border-amber-300'
-                                      : 'bg-red-100 text-red-800 border-red-300'
+                                      ? 'bg-orange-100 text-orange-800 border-orange-300'
+                                      : 'bg-gray-100 text-gray-800 border-gray-300'
                                 } flex items-center gap-1`}
                               >
                                 <Users className='h-3 w-3' />
@@ -248,7 +301,7 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                             </div>
 
                             <div className='text-sm text-gray-600 mt-1 flex items-center gap-1'>
-                              <Clock className='h-3.5 w-3.5 text-gray-500' />
+                              <Clock className='h-3.5 w-3.5 text-orange-500' />
                               {formatTime(slot.shiftStart)} - {formatTime(slot.shiftEnd)}
                             </div>
 
@@ -262,7 +315,7 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                             <Button
                               variant='ghost'
                               size='sm'
-                              className='w-full mt-1 h-6 text-xs flex items-center justify-center gap-1 text-gray-600 hover:text-green-700 hover:bg-green-50'
+                              className='w-full mt-1 h-6 text-xs flex items-center justify-center gap-1 text-gray-600 hover:text-red-700 hover:bg-red-50'
                               onClick={() => toggleSlotExpanded(slot.id)}
                             >
                               {isSlotExpanded ? (
@@ -280,7 +333,7 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                           </div>
 
                           {isSlotExpanded && (
-                            <div className='bg-gray-50 p-2 border-t border-gray-200'>
+                            <div className='bg-orange-50 p-2 border-t border-orange-100'>
                               <div className='grid grid-cols-1 gap-1.5'>
                                 {zones.map((zone) => {
                                   const zoneSchedules = schedulesByZone[zone.id] || []
@@ -290,13 +343,13 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                                     <div
                                       key={zone.id}
                                       className={`p-2 rounded border ${
-                                        hasStaff ? 'bg-white border-green-200' : 'bg-gray-50 border-gray-200'
+                                        hasStaff ? 'bg-white border-red-200' : 'bg-gray-50 border-gray-200'
                                       }`}
                                     >
                                       <div className='flex items-center justify-between'>
                                         <div className='font-medium text-sm'>{zone.name}</div>
                                         {hasStaff ? (
-                                          <Badge className='bg-green-100 text-green-800 border-green-300'>
+                                          <Badge className='bg-red-100 text-red-800 border-red-300'>
                                             {zoneSchedules.length}
                                           </Badge>
                                         ) : (
@@ -308,7 +361,7 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                                       </div>
 
                                       {hasStaff && zoneSchedules.length > 0 && (
-                                        <div className='mt-1.5 pl-2 border-l-2 border-green-200'>
+                                        <div className='mt-1.5 pl-2 border-l-2 border-red-200'>
                                           {zoneSchedules.map((schedule, idx) => (
                                             <div key={idx} className='text-xs text-gray-700 py-0.5'>
                                               {schedule.staffName || 'Nhân viên'}
@@ -329,7 +382,7 @@ export function WeekView({ currentDate, staffSchedules, registrations, swapReque
                 ) : (
                   <div className='flex items-center justify-center h-full p-4'>
                     <div className='text-gray-500 flex flex-col items-center gap-1'>
-                      <Info className='h-5 w-5 text-gray-400' />
+                      <Info className='h-5 w-5 text-orange-400' />
                       <span>Không có ca làm việc</span>
                     </div>
                   </div>

@@ -95,21 +95,21 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
 
   return (
     <div className='space-y-1'>
-      <div className='grid grid-cols-7 text-center font-medium text-gray-700 bg-green-50 rounded-t-lg border border-green-100'>
+      <div className='grid grid-cols-7 text-center font-medium text-gray-700 bg-orange-50 rounded-t-lg border border-orange-100'>
         <div className='py-2'>T2</div>
         <div className='py-2'>T3</div>
         <div className='py-2'>T4</div>
         <div className='py-2'>T5</div>
         <div className='py-2'>T6</div>
-        <div className='py-2 text-amber-700'>T7</div>
-        <div className='py-2 text-amber-700'>CN</div>
+        <div className='py-2 text-orange-700'>T7</div>
+        <div className='py-2 text-orange-700'>CN</div>
       </div>
 
-      <div className='border border-green-100 rounded-b-lg overflow-hidden'>
+      <div className='border border-orange-100 rounded-b-lg overflow-hidden'>
         {weeks.map((week, weekIndex) => (
           <div
             key={weekIndex}
-            className='grid grid-cols-7 divide-x divide-green-100 border-t border-green-100 first:border-t-0'
+            className='grid grid-cols-7 divide-x divide-orange-100 border-t border-orange-100 first:border-t-0'
           >
             {week.map((day, dayIndex) => {
               const isCurrentMonth = isSameMonth(day, currentDate)
@@ -134,10 +134,10 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
                     !isCurrentMonth
                       ? 'bg-gray-50/50 text-gray-400'
                       : isCurrentDay
-                        ? 'bg-green-50/70'
+                        ? 'bg-red-50/70'
                         : isWeekend
-                          ? 'bg-amber-50/20'
-                          : 'hover:bg-green-50/30'
+                          ? 'bg-orange-50/20'
+                          : 'hover:bg-orange-50/30'
                   } ${isCurrentMonth ? 'cursor-pointer' : ''}`}
                   onClick={() => isCurrentMonth && onDateClick(day)}
                 >
@@ -146,9 +146,9 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
                       <div
                         className={`text-sm font-medium rounded-full w-7 h-7 flex items-center justify-center ${
                           isCurrentDay
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-red-500 text-white'
                             : isWeekend && isCurrentMonth
-                              ? 'bg-amber-100 text-amber-900'
+                              ? 'bg-orange-100 text-orange-900'
                               : isCurrentMonth
                                 ? 'bg-gray-100 text-gray-700'
                                 : 'bg-gray-50 text-gray-400'
@@ -164,13 +164,13 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
                               <Button
                                 variant='ghost'
                                 size='icon'
-                                className='h-6 w-6 rounded-full hover:bg-green-100'
+                                className='h-6 w-6 rounded-full hover:bg-red-100'
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   onDateClick(day)
                                 }}
                               >
-                                <Calendar className='h-3.5 w-3.5 text-green-700' />
+                                <Calendar className='h-3.5 w-3.5 text-red-700' />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -187,7 +187,7 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
                           <div className='space-y-1.5'>
                             {slots > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-green-100 text-green-800 border-green-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
+                                <Badge className='bg-red-100 text-red-800 border-red-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
                                   <Users className='h-3 w-3' />
                                   <span>{daySchedules.length}</span>
                                 </Badge>
@@ -197,7 +197,7 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
 
                             {pendingRegistrations.length > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-amber-100 text-amber-800 border-amber-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
+                                <Badge className='bg-orange-100 text-orange-800 border-orange-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
                                   <Clock className='h-3 w-3' />
                                   <span>{pendingRegistrations.length}</span>
                                 </Badge>

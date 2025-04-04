@@ -1,3 +1,5 @@
+'use client'
+
 import { format, parseISO } from 'date-fns'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -36,7 +38,7 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
     switch (status) {
       case 'Approved':
         return (
-          <Badge className='bg-green-100 text-green-800 border border-green-300 flex items-center gap-1'>
+          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
             <CheckCircle className='h-3.5 w-3.5' />
             <span>Đã duyệt</span>
           </Badge>
@@ -50,7 +52,7 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
         )
       case 'PendingManagerApprove':
         return (
-          <Badge className='bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1'>
+          <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1'>
             <AlertCircle className='h-3.5 w-3.5' />
             <span>Chờ duyệt</span>
           </Badge>
@@ -64,7 +66,7 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
     <Dialog open={!!swapRequest} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className='max-w-2xl max-h-[90vh] overflow-hidden flex flex-col'>
         <DialogHeader className='shrink-0'>
-          <DialogTitle className='text-xl flex items-center gap-2 text-green-700'>
+          <DialogTitle className='text-xl flex items-center gap-2 text-red-700'>
             <ArrowRightLeft className='h-5 w-5' />
             Chi tiết yêu cầu đổi ca
           </DialogTitle>
@@ -72,35 +74,35 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
 
         <div className='py-4 space-y-6 overflow-auto flex-1' style={{ minHeight: '200px' }}>
           <div className='flex items-center justify-between'>
-            <h3 className='font-semibold text-green-900'>Thông tin yêu cầu</h3>
+            <h3 className='font-semibold text-red-900'>Thông tin yêu cầu</h3>
             {getStatusBadge(swapRequest.status)}
           </div>
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-            <div className='space-y-4 p-4 bg-green-50/50 rounded-lg border border-green-100'>
-              <h4 className='font-medium text-green-800 flex items-center gap-2'>
-                <User className='h-4 w-4 text-green-600' />
+            <div className='space-y-4 p-4 bg-red-50/50 rounded-lg border border-red-100'>
+              <h4 className='font-medium text-red-800 flex items-center gap-2'>
+                <User className='h-4 w-4 text-red-600' />
                 Nhân viên yêu cầu
               </h4>
               <div className='flex items-center gap-3'>
-                <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
+                <Avatar className='h-10 w-10 bg-red-100 text-red-700 border border-red-200'>
                   <AvatarFallback>{getInitials(swapRequest.employeeFromName)}</AvatarFallback>
                 </Avatar>
                 <div className='font-medium'>{swapRequest.employeeFromName}</div>
               </div>
               <div className='space-y-2 mt-2'>
                 <div className='flex items-center gap-2 text-gray-700'>
-                  <CalendarDays className='h-4 w-4 text-green-600' />
+                  <CalendarDays className='h-4 w-4 text-red-600' />
                   <span>Ngày làm: {format(parseISO(swapRequest.workingDateFrom), 'dd/MM/yyyy')}</span>
                 </div>
                 {swapRequest.workingSlotFrom && (
                   <div className='space-y-2'>
                     <div className='flex items-center gap-2 text-gray-700'>
-                      <Clock className='h-4 w-4 text-green-600' />
+                      <Clock className='h-4 w-4 text-red-600' />
                       <span>Ca làm: {swapRequest.workingSlotFrom.shiftName}</span>
                     </div>
                     <div className='flex items-center gap-2 text-gray-700 ml-6'>
-                      <Badge variant='outline' className='bg-green-50 border-green-200'>
+                      <Badge variant='outline' className='bg-red-50 border-red-200'>
                         {formatTime(swapRequest.workingSlotFrom.shiftStart)} -{' '}
                         {formatTime(swapRequest.workingSlotFrom.shiftEnd)}
                       </Badge>
@@ -110,30 +112,30 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
               </div>
             </div>
 
-            <div className='space-y-4 p-4 bg-green-50/50 rounded-lg border border-green-100'>
-              <h4 className='font-medium text-green-800 flex items-center gap-2'>
-                <User className='h-4 w-4 text-green-600' />
+            <div className='space-y-4 p-4 bg-red-50/50 rounded-lg border border-red-100'>
+              <h4 className='font-medium text-red-800 flex items-center gap-2'>
+                <User className='h-4 w-4 text-red-600' />
                 Nhân viên đổi ca
               </h4>
               <div className='flex items-center gap-3'>
-                <Avatar className='h-10 w-10 bg-green-100 text-green-700 border border-green-200'>
+                <Avatar className='h-10 w-10 bg-red-100 text-red-700 border border-red-200'>
                   <AvatarFallback>{getInitials(swapRequest.employeeToName)}</AvatarFallback>
                 </Avatar>
                 <div className='font-medium'>{swapRequest.employeeToName}</div>
               </div>
               <div className='space-y-2 mt-2'>
                 <div className='flex items-center gap-2 text-gray-700'>
-                  <CalendarDays className='h-4 w-4 text-green-600' />
+                  <CalendarDays className='h-4 w-4 text-red-600' />
                   <span>Ngày làm: {format(parseISO(swapRequest.workingDateTo), 'dd/MM/yyyy')}</span>
                 </div>
                 {swapRequest.workingSlotTo && (
                   <div className='space-y-2'>
                     <div className='flex items-center gap-2 text-gray-700'>
-                      <Clock className='h-4 w-4 text-green-600' />
+                      <Clock className='h-4 w-4 text-red-600' />
                       <span>Ca làm: {swapRequest.workingSlotTo.shiftName}</span>
                     </div>
                     <div className='flex items-center gap-2 text-gray-700 ml-6'>
-                      <Badge variant='outline' className='bg-green-50 border-green-200'>
+                      <Badge variant='outline' className='bg-red-50 border-red-200'>
                         {formatTime(swapRequest.workingSlotTo.shiftStart)} -{' '}
                         {formatTime(swapRequest.workingSlotTo.shiftEnd)}
                       </Badge>
@@ -144,8 +146,8 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
             </div>
           </div>
 
-          <div className='text-sm text-gray-700 flex items-center gap-2 p-3 bg-amber-50 rounded-md border border-amber-100'>
-            <Clock className='h-4 w-4 text-amber-600' />
+          <div className='text-sm text-gray-700 flex items-center gap-2 p-3 bg-orange-50 rounded-md border border-orange-100'>
+            <Clock className='h-4 w-4 text-orange-600' />
             <span>Yêu cầu lúc: {format(parseISO(swapRequest.requestDate), 'dd/MM/yyyy HH:mm')}</span>
           </div>
         </div>
@@ -168,7 +170,7 @@ export function SwapRequestDialog({ swapRequest, onClose, onAction }: SwapReques
                   <XCircle className='h-4 w-4 mr-1' />
                   Từ chối
                 </Button>
-                <Button onClick={() => onAction('approve')} className='bg-green-600 hover:bg-green-700 text-white'>
+                <Button onClick={() => onAction('approve')} className='bg-red-500 hover:bg-red-600 text-white'>
                   <CheckCircle className='h-4 w-4 mr-1' />
                   Duyệt
                 </Button>

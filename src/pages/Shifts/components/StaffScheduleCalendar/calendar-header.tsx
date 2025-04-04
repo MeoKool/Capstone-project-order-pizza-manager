@@ -73,7 +73,7 @@ export function CalendarHeader({
                   variant='outline'
                   size='icon'
                   onClick={onPrevious}
-                  className='border-green-200 text-green-700 hover:bg-green-50'
+                  className='border-orange-200 text-red-600 hover:bg-orange-50'
                 >
                   <ChevronLeft className='h-4 w-4' />
                 </Button>
@@ -91,7 +91,7 @@ export function CalendarHeader({
                   variant='outline'
                   size='sm'
                   onClick={onToday}
-                  className='border-green-200 text-green-700 hover:bg-green-50'
+                  className='border-orange-200 text-red-600 hover:bg-orange-50'
                 >
                   Hôm nay
                 </Button>
@@ -109,7 +109,7 @@ export function CalendarHeader({
                   variant='outline'
                   size='icon'
                   onClick={onNext}
-                  className='border-green-200 text-green-700 hover:bg-green-50'
+                  className='border-orange-200 text-red-600 hover:bg-orange-50'
                 >
                   <ChevronRight className='h-4 w-4' />
                 </Button>
@@ -125,7 +125,12 @@ export function CalendarHeader({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant='green' size='sm' onClick={handleAutoAssign} disabled={isAutoAssigning}>
+                <Button
+                  className='bg-red-500 hover:bg-red-600 text-white'
+                  size='sm'
+                  onClick={handleAutoAssign}
+                  disabled={isAutoAssigning}
+                >
                   <CheckCircle className='h-4 w-4 mr-1' />
                   {isAutoAssigning ? 'Đang xử lý...' : 'Tự động duyệt đăng ký'}
                 </Button>
@@ -143,7 +148,7 @@ export function CalendarHeader({
                   variant='outline'
                   size='sm'
                   onClick={onRefresh}
-                  className='border-green-200 text-green-700 hover:bg-green-50'
+                  className='border-orange-200 text-red-600 hover:bg-orange-50'
                 >
                   <RefreshCw className='h-4 w-4 mr-1' />
                   Làm mới
@@ -157,7 +162,7 @@ export function CalendarHeader({
         </div>
       </div>
       <div className='flex items-center justify-between mt-2'>
-        <div className='text-lg font-medium text-green-700'>
+        <div className='text-lg font-medium text-red-700'>
           {view === 'week'
             ? `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'dd/MM')} - ${format(
                 endOfWeek(currentDate, { weekStartsOn: 1 }),
@@ -166,17 +171,17 @@ export function CalendarHeader({
             : format(currentDate, 'MMMM yyyy', { locale: vi })}
         </div>
         <Tabs value={view} onValueChange={(v) => onViewChange(v as 'week' | 'month')}>
-          <TabsList className='bg-green-100'>
+          <TabsList className='bg-orange-100'>
             <TabsTrigger
               value='week'
-              className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white'
+              className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
             >
               <Calendar className='h-4 w-4' />
               <span>Tuần</span>
             </TabsTrigger>
             <TabsTrigger
               value='month'
-              className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white'
+              className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
             >
               <CalendarDays className='h-4 w-4' />
               <span>Tháng</span>

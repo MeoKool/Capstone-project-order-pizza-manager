@@ -24,14 +24,14 @@ export function DayContent({ date, schedules, registrations, swapRequests }: Day
   return (
     <div className='space-y-2'>
       {hasSchedules && (
-        <Badge className='bg-green-100 text-green-800 border border-green-300 flex items-center gap-1'>
+        <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
           <Users className='h-3.5 w-3.5' />
           <span>{schedules.length}</span>
         </Badge>
       )}
 
       {pendingRegistrations.length > 0 && (
-        <Badge className='bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1'>
+        <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1'>
           <AlertCircle className='h-3.5 w-3.5' />
           <span>{pendingRegistrations.length}</span>
         </Badge>

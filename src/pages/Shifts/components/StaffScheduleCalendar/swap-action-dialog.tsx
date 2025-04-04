@@ -42,7 +42,7 @@ export function SwapActionDialog({ isOpen, onOpenChange, action, isSubmitting, o
           <AlertDialogCancel>Hủy</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className={action === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
+            className={action === 'approve' ? 'bg-red-500 hover:bg-red-600' : 'bg-red-600 hover:bg-red-700'}
           >
             {isSubmitting ? 'Đang xử lý...' : action === 'approve' ? 'Duyệt' : 'Từ chối'}
           </AlertDialogAction>

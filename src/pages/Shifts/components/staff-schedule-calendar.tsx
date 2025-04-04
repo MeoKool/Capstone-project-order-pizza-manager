@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { parseISO, addWeeks, subWeeks, isSameDay, addMonths, subMonths } from 'date-fns'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
@@ -283,7 +285,7 @@ export default function StaffScheduleCalendar() {
 
   return (
     <div className='flex flex-col h-full'>
-      <div className='p-4 bg-white '>
+      <div className='p-4 bg-orange-50 '>
         <CalendarHeader
           currentDate={currentDate}
           view={view}
@@ -295,13 +297,12 @@ export default function StaffScheduleCalendar() {
         />
       </div>
 
-      <div className='flex-1 overflow-hidden'>
+      <div className='flex-1 overflow-hidden bg-white'>
         <Tabs value={view} className='h-full'>
-          <TabsContent value='week' className='h-full'>
-            <div className='h-full'>
+          <TabsContent value='week' className='h-full '>
+            <div className='h-full '>
               <WeekView
                 currentDate={currentDate}
-                staffSchedules={staffSchedules}
                 registrations={registrations}
                 swapRequests={swapRequests}
                 onDateClick={handleDateClick}

@@ -1,3 +1,5 @@
+'use client'
+
 import { format, parseISO } from 'date-fns'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -43,7 +45,7 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
     switch (status) {
       case 'Approved':
         return (
-          <Badge className='bg-green-100 text-green-800 border border-green-300 flex items-center gap-1'>
+          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
             <CheckCircle className='h-3.5 w-3.5' />
             <span>Đã duyệt</span>
           </Badge>
@@ -58,7 +60,7 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
       case 'Onhold':
       case 'PendingManagerApprove':
         return (
-          <Badge className='bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1'>
+          <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1'>
             <AlertCircle className='h-3.5 w-3.5' />
             <span>Chờ duyệt</span>
           </Badge>
@@ -72,19 +74,19 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
     <Dialog open={!!registration} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className='max-w-2xl max-h-[90vh] overflow-hidden flex flex-col'>
         <DialogHeader className='shrink-0'>
-          <DialogTitle className='text-xl flex items-center gap-2 text-green-700'>
+          <DialogTitle className='text-xl flex items-center gap-2 text-red-700'>
             <User className='h-5 w-5' />
             Chi tiết yêu cầu đăng ký
           </DialogTitle>
         </DialogHeader>
 
         <div className='py-4 space-y-6 overflow-auto flex-1' style={{ minHeight: '200px' }}>
-          <div className='flex items-center gap-3 bg-green-50 p-3 rounded-lg border border-green-100'>
-            <Avatar className='h-12 w-12 bg-green-100 text-green-700 border border-green-200'>
+          <div className='flex items-center gap-3 bg-red-50 p-3 rounded-lg border border-red-100'>
+            <Avatar className='h-12 w-12 bg-red-100 text-red-700 border border-red-200'>
               <AvatarFallback>{getInitials(registration.staffName)}</AvatarFallback>
             </Avatar>
             <div>
-              <h3 className='font-semibold text-lg text-green-900'>{registration.staffName}</h3>
+              <h3 className='font-semibold text-lg text-red-900'>{registration.staffName}</h3>
               <div className='flex flex-wrap gap-2 mt-1'>
                 {getStatusBadge(registration.status)}
                 {registration.status === 'Approved' && registration.zoneId === null && (
@@ -99,36 +101,36 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
 
           <div className='space-y-3'>
             <div className='flex items-center gap-2 text-gray-700'>
-              <Clock className='h-4 w-4 text-green-600' />
+              <Clock className='h-4 w-4 text-red-600' />
               <span>Ngày làm: {format(parseISO(registration.workingDate), 'dd/MM/yyyy')}</span>
             </div>
             {registration.workingSlot && (
               <div className='space-y-2'>
                 <div className='flex items-center gap-2 text-gray-700'>
-                  <Clock className='h-4 w-4 text-green-600' />
+                  <Clock className='h-4 w-4 text-red-600' />
                   <span>Ca làm: {registration.workingSlot.shiftName}</span>
                 </div>
                 <div className='flex items-center gap-2 text-gray-700 ml-6'>
-                  <Badge variant='outline' className='bg-green-50 border-green-200'>
+                  <Badge variant='outline' className='bg-red-50 border-red-200'>
                     {formatTime(registration.workingSlot.shiftStart)} - {formatTime(registration.workingSlot.shiftEnd)}
                   </Badge>
                 </div>
               </div>
             )}
             <div className='flex items-center gap-2 text-gray-700'>
-              <Clock className='h-4 w-4 text-green-600' />
+              <Clock className='h-4 w-4 text-red-600' />
               <span>Đăng ký: {format(parseISO(registration.registerDate), 'dd/MM/yyyy HH:mm')}</span>
             </div>
           </div>
 
           {(registration.status === 'Onhold' ||
             (registration.status === 'Approved' && registration.zoneId === null)) && (
-            <div className='space-y-3 bg-green-50/50 p-4 rounded-lg border border-green-100'>
-              <Label htmlFor='zone' className='text-green-700 font-medium'>
+            <div className='space-y-3 bg-red-50/50 p-4 rounded-lg border border-red-100'>
+              <Label htmlFor='zone' className='text-red-700 font-medium'>
                 Chọn khu vực làm việc
               </Label>
               <Select value={selectedZone} onValueChange={setSelectedZone}>
-                <SelectTrigger id='zone' className='border-green-200 focus:ring-green-500'>
+                <SelectTrigger id='zone' className='border-red-200 focus:ring-red-500'>
                   <SelectValue placeholder='Chọn khu vực' />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,7 +158,7 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
               <Button
                 onClick={() => onApprove(registration, selectedZone)}
                 disabled={isSubmitting || !selectedZone}
-                className='bg-green-600 hover:bg-green-700 text-white'
+                className='bg-red-500 hover:bg-red-600 text-white'
               >
                 {isSubmitting
                   ? 'Đang xử lý...'

@@ -48,7 +48,7 @@ export function DayDetailsDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className='max-w-4xl max-h-[90vh] overflow-hidden flex flex-col'>
         <DialogHeader className='shrink-0'>
-          <DialogTitle className='text-xl flex items-center gap-2 text-green-700'>
+          <DialogTitle className='text-xl flex items-center gap-2 text-red-700'>
             <CalendarDays className='h-5 w-5' />
             {format(selectedDate, 'EEEE, dd/MM/yyyy', { locale: vi })}
           </DialogTitle>
@@ -60,29 +60,29 @@ export function DayDetailsDialog({
             onValueChange={(v) => onTabChange(v as 'schedules' | 'registrations' | 'swaps')}
             className='w-full h-full flex flex-col'
           >
-            <TabsList className='bg-green-100 mb-4 w-full sticky top-0 z-10'>
+            <TabsList className='bg-orange-100 mb-4 w-full sticky top-0 z-10'>
               <TabsTrigger
                 value='schedules'
-                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white flex-1'
+                className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white flex-1'
               >
                 <Users className='h-4 w-4' />
                 <span>Lịch làm việc</span>
               </TabsTrigger>
               <TabsTrigger
                 value='registrations'
-                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white flex-1'
+                className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white flex-1'
               >
                 <AlertCircle className='h-4 w-4' />
                 <span>Yêu cầu đăng ký</span>
-                <Badge className='ml-1 bg-green-200 text-green-800'>{pendingRegistrationsCount}</Badge>
+                <Badge className='ml-1 bg-orange-200 text-red-800'>{pendingRegistrationsCount}</Badge>
               </TabsTrigger>
               <TabsTrigger
                 value='swaps'
-                className='flex items-center gap-1 data-[state=active]:bg-green-600 data-[state=active]:text-white flex-1'
+                className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white flex-1'
               >
                 <ArrowRightLeft className='h-4 w-4' />
                 <span>Yêu cầu đổi ca</span>
-                <Badge className='ml-1 bg-green-200 text-green-800'>{swapRequests.length}</Badge>
+                <Badge className='ml-1 bg-orange-200 text-red-800'>{swapRequests.length}</Badge>
               </TabsTrigger>
             </TabsList>
 
@@ -104,7 +104,7 @@ export function DayDetailsDialog({
 
         <DialogFooter className='mt-4 border-t pt-4 shrink-0'>
           <DialogClose asChild>
-            <Button className='bg-green-600 hover:bg-green-700 text-white'>Đóng</Button>
+            <Button className='bg-red-500 hover:bg-red-600 text-white'>Đóng</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

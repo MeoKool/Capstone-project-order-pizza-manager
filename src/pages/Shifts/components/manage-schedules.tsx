@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -64,8 +66,8 @@ export default function ManageSchedules() {
     return (
       <div className='flex justify-center items-center p-8 h-[400px]'>
         <div className='flex flex-col items-center gap-2'>
-          <div className='animate-spin h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full'></div>
-          <div className='text-amber-600 font-medium'>Đang tải dữ liệu...</div>
+          <div className='animate-spin h-8 w-8 border-4 border-red-500 border-t-transparent rounded-full'></div>
+          <div className='text-red-600 font-medium'>Đang tải dữ liệu...</div>
         </div>
       </div>
     )
@@ -74,24 +76,24 @@ export default function ManageSchedules() {
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
-        <h2 className='text-xl font-semibold text-amber-800 flex items-center gap-2'>
-          <TableIcon className='h-5 w-5 text-amber-600' />
+        <h2 className='text-xl font-semibold text-red-800 flex items-center gap-2'>
+          <TableIcon className='h-5 w-5 text-red-600' />
           Quản lý ca làm và lịch làm việc
         </h2>
       </div>
 
       <Tabs defaultValue='shifts' className='w-full'>
-        <TabsList className='bg-amber-100 mb-4'>
+        <TabsList className='bg-orange-100 mb-4'>
           <TabsTrigger
             value='shifts'
-            className='flex items-center gap-1 data-[state=active]:bg-amber-600 data-[state=active]:text-white'
+            className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
           >
             <Clock className='h-4 w-4' />
             <span>Ca làm</span>
           </TabsTrigger>
           <TabsTrigger
             value='workingSlots'
-            className='flex items-center gap-1 data-[state=active]:bg-amber-600 data-[state=active]:text-white'
+            className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
           >
             <CalendarDays className='h-4 w-4' />
             <span>Lịch làm việc</span>
@@ -124,11 +126,7 @@ export default function ManageSchedules() {
                         <TableCell>{shift.name}</TableCell>
                         <TableCell>{shift.description}</TableCell>
                         <TableCell className='text-right'>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='border-amber-200 text-amber-700 hover:bg-amber-50'
-                          >
+                          <Button variant='outline' size='sm' className='border-red-200 text-red-700 hover:bg-red-50'>
                             Sửa
                           </Button>
                         </TableCell>

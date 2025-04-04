@@ -87,9 +87,9 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
   const getStaffTypeColor = (staffType: string) => {
     switch (staffType) {
       case 'Manager':
-        return 'bg-green-100 text-green-800 border-green-300'
+        return 'bg-red-100 text-red-800 border-red-300'
       case 'Staff':
-        return 'bg-green-100 text-green-800 border-green-300'
+        return 'bg-red-100 text-red-800 border-red-300'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-300'
     }
@@ -101,7 +101,7 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
       case 'FullTime':
         return 'bg-blue-100 text-blue-800 border-blue-300'
       case 'PartTime':
-        return 'bg-amber-100 text-amber-800 border-amber-300'
+        return 'bg-orange-100 text-orange-800 border-orange-300'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-300'
     }
@@ -122,17 +122,25 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
         const groupedByZone = groupSchedulesByZone(slotSchedules)
 
         return (
-          <div key={slotId} className='mb-6 last:mb-0 bg-white rounded-lg border border-green-200 p-4 shadow-sm'>
+          <div key={slotId} className='mb-6 last:mb-0 bg-white rounded-lg border border-red-200 p-4 shadow-sm'>
             <div className='flex flex-col gap-4'>
               {/* Thông tin ca làm */}
-              <div className='flex items-center justify-between border-b border-green-100 pb-3'>
+              <div className='flex items-center justify-between border-b border-orange-100 pb-3'>
                 <div className='flex items-center gap-2'>
-                  <Badge className='bg-amber-100 text-amber-800 border border-amber-300'>{slot.shiftName}</Badge>
+                  {slot && slot.shiftName ? (
+                    <Badge className='bg-orange-100 text-orange-800 border border-orange-300'>{slot.shiftName}</Badge>
+                  ) : (
+                    <Badge className='bg-orange-100 text-orange-800 border border-orange-300'>
+                      Nhân viên chính thức
+                    </Badge>
+                  )}
                 </div>
                 <div className='flex items-center gap-2 text-gray-700'>
-                  <Clock className='h-4 w-4 text-amber-600' />
+                  <Clock className='h-4 w-4 text-orange-600' />
                   <span>
-                    {formatTime(slot.shiftStart)} - {formatTime(slot.shiftEnd)}
+                    {slot && slot.shiftStart && slot.shiftEnd
+                      ? `${formatTime(slot.shiftStart)} - ${formatTime(slot.shiftEnd)}`
+                      : 'Cả ngày'}
                   </span>
                 </div>
               </div>
@@ -142,19 +150,19 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
                 {Object.entries(groupedByZone).map(([zoneId, zoneStaffList]) => (
                   <div key={zoneId} className='py-3 first:pt-0 last:pb-0'>
                     <div className='flex items-center gap-2 mb-3'>
-                      <div className='h-8 w-8 rounded-full bg-green-100 flex items-center justify-center border border-green-200'>
-                        <MapPin className='h-4 w-4 text-green-700' />
+                      <div className='h-8 w-8 rounded-full bg-red-100 flex items-center justify-center border border-red-200'>
+                        <MapPin className='h-4 w-4 text-red-700' />
                       </div>
                       <div>
-                        <div className='font-medium text-green-900'>{zoneStaffList[0].zone.name}</div>
+                        <div className='font-medium text-red-900'>{zoneStaffList[0].zone.name}</div>
                         <div className='text-xs text-gray-600'>{getZoneDescription(zoneId)}</div>
                       </div>
                     </div>
 
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pl-10'>
                       {zoneStaffList.map((staff) => (
-                        <div key={staff.id} className='flex items-start gap-3 p-2 rounded-md hover:bg-green-50/50'>
-                          <Avatar className='h-8 w-8 bg-green-100 text-green-700 border border-green-200'>
+                        <div key={staff.id} className='flex items-start gap-3 p-2 rounded-md hover:bg-red-50/50'>
+                          <Avatar className='h-8 w-8 bg-red-100 text-red-700 border border-red-200'>
                             <AvatarFallback>{getInitials(staff.staffName)}</AvatarFallback>
                           </Avatar>
                           <div className='flex-1'>
@@ -177,7 +185,7 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
                             )}
                             {staff.staff && (
                               <div className='mt-1 text-sm text-gray-700'>
-                                <Phone className='h-3.5 w-3.5 inline mr-1 text-green-600' />
+                                <Phone className='h-3.5 w-3.5 inline mr-1 text-red-600' />
                                 {staff.staff.phone}
                               </div>
                             )}
