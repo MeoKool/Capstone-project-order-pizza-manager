@@ -1,4 +1,6 @@
-import { MoreVertical, ChevronLeft, Menu } from 'lucide-react'
+'use client'
+
+import { ChevronLeft, Menu, Pizza } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useSidebar } from './context/SidebarContext'
 import '@/css/custom-scrollbar.css'
@@ -11,40 +13,32 @@ export default function Sidebar({ children }: SidebarProps) {
 
   return (
     <aside className='h-screen flex flex-col'>
-      <nav className=' flex flex-col bg-white border-r shadow-sm h-full'>
+      <nav className='flex flex-col bg-gradient-to-b from-white to-orange-50 border-r shadow-sm h-full transition-all duration-300'>
         <div
-          className={`h-16  flex items-center justify-center border-b-[0.5px] border-solid border-gray-100  ${expanded ? `justify-between p-4` : `justify-center`}`}
+          className={`h-16 flex items-center border-b border-orange-100 ${expanded ? `justify-between p-4` : `justify-center p-4`}`}
         >
-          <div className={`overflow-hidden transition-all ${expanded ? 'w-44' : 'w-0'}`}>
-            <h1 className='text-lg font-semibold'>Pizza Management</h1>
+          <div className={`overflow-hidden transition-all duration-300 ${expanded ? 'w-44' : 'w-0'}`}>
+            {expanded && (
+              <div className='flex items-center gap-2'>
+                <Pizza className='text-red-500' size={25} />
+                <h1 className='text-base font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent'>
+                  Quản lý nhà hàng
+                </h1>
+              </div>
+            )}
           </div>
           <button
             onClick={toggleSidebar}
-            className={`p-2 rounded-lg bg-gray-100 hover:bg-gray-200  ? ${expanded ? `ml-3 hover:bg-gray-200` : `bg-gray-300 p-3`} `}
+            className={`rounded-full transition-all duration-100 ${
+              expanded ? `hover:bg-orange-100 p-2 text-red-500` : `bg-red-500 hover:bg-red-600 text-white p-2`
+            }`}
           >
             {expanded ? <ChevronLeft /> : <Menu />}
           </button>
         </div>
 
         <div className='flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar mt-4'>
-          <ul>{children}</ul>
-        </div>
-
-        <div className='border-t flex p-3'>
-          <img
-            src='https://ui-avatars.com/api/?background=c7d2fe&color=3730a3&bold=true'
-            alt=''
-            className='w-10 h-10 rounded-md'
-          />
-          <div
-            className={`flex justify-between items-center overflow-hidden transition-all ${expanded ? 'w-48 ml-3' : 'w-0'}`}
-          >
-            <div className='leading-4'>
-              <h4 className='font-semibold'>John Doe</h4>
-              <span className='text-xs text-gray-600'>johndoe@gmail.com</span>
-            </div>
-            <MoreVertical size={20} />
-          </div>
+          <ul className='space-y-2'>{children}</ul>
         </div>
       </nav>
     </aside>

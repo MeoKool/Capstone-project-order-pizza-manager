@@ -9,10 +9,9 @@ export default function StaffManagementContainer() {
   const [activeTab, setActiveTab] = useState('calendar')
 
   return (
-    <div className='space-y-6 p-6 bg-gray-50 rounded-lg'>
-      <div className='flex items-center justify-between'>
-        <h1 className='text-2xl font-bold text-gray-800'>Quản lý lịch làm việc</h1>
-        <div className='bg-white rounded-lg shadow-sm'>
+    <div className='space-y-6 p-6 bg-orange-50 rounded-lg'>
+      <div className='flex items-center justify-end'>
+        <div className='bg-orange-50  rounded-lg shadow-sm'>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className='bg-white border p-1 rounded-lg'>
               <TabsTrigger
@@ -42,7 +41,7 @@ export default function StaffManagementContainer() {
         </div>
       </div>
 
-      <div className='bg-white p-6 rounded-lg shadow-sm'>
+      <div className='bg-white rounded-lg '>
         {activeTab === 'calendar' && <StaffScheduleCalendar />}
         {activeTab === 'create' && <CreateScheduleForm />}
         {activeTab === 'manage' && <ManageSchedules />}

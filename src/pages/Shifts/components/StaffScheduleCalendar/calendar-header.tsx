@@ -1,3 +1,5 @@
+'use client'
+
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -30,8 +32,12 @@ export function CalendarHeader({
   const handleAutoAssign = async () => {
     try {
       setIsAutoAssigning(true)
-      // Format the date as DD-MM-YYYY
-      const formattedDate = format(currentDate, 'dd-MM-yyyy')
+
+      // Get Monday of the current week
+      const mondayDate = startOfWeek(currentDate, { weekStartsOn: 1 })
+
+      // Format the date as YYYY-MM-DD
+      const formattedDate = format(mondayDate, 'yyyy-MM-dd')
 
       const response = await fetch('https://vietsac.id.vn/api/staff-zone-schedules/auto-assign', {
         method: 'POST',

@@ -108,9 +108,10 @@ const DashboardLayout = () => {
             <SidebarItem icon={<MoreHorizontal size={20} />} text='More' active={isActive('/more')} />
           </Link>
         </Sidebar>
-        <div className='flex flex-col flex-1 relative overflow-hidden'>
+        <div className='flex flex-col flex-1 relative overflow-hidden  '>
           <Header title={getHeaderTitle()} />
-          <main className='flex-1 overflow-y-auto max-h-screen '>
+          <main className='flex-1 overflow-y-auto max-h-screen bg-gradient-to-b from-white to-orange-50'>
+            {' '}
             <Outlet />
           </main>
         </div>

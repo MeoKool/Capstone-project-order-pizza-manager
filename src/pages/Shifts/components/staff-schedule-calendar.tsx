@@ -283,7 +283,7 @@ export default function StaffScheduleCalendar() {
 
   return (
     <div className='flex flex-col h-full'>
-      <div className='p-4 bg-white border-b'>
+      <div className='p-4 bg-white '>
         <CalendarHeader
           currentDate={currentDate}
           view={view}
