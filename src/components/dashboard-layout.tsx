@@ -32,29 +32,30 @@ const DashboardLayout = () => {
   const getHeaderTitle = () => {
     switch (location.pathname) {
       case '/':
-        return 'Dashboard'
+        return 'tổng quan'
       case '/in-tables':
         return 'bàn ăn'
       case '/kitchens':
-        return 'Kitchens'
+        return 'khu bếp'
       case '/orders':
-        return 'Orders'
+        return 'đơn hàng'
       case '/menuFood':
-        return 'Menu Food'
+        return 'thực đơn'
       case '/customers':
-        return 'Customers'
+        return 'khách hàng'
+
       case '/workshops':
-        return 'Workshops'
+        return 'workshop'
       case '/staffs':
-        return 'Staffs'
+        return 'nhân viên'
       case '/settings':
-        return 'Settings'
+        return 'cài đặt'
       case '/schedule':
-        return 'Schedule'
+        return 'lịch làm việc'
       case '/promotion':
-        return 'Promotion'
+        return 'khuyến mãi'
       case '/reports':
-        return 'Reports'
+        return 'báo cáo'
       case '/more':
         return 'More'
       default:
@@ -67,41 +68,41 @@ const DashboardLayout = () => {
       <div className='flex h-screen '>
         <Sidebar>
           <Link to='/'>
-            <SidebarItem icon={<LayoutDashboard size={20} />} text='Dashboard' active={isActive('/')} />
+            <SidebarItem icon={<LayoutDashboard size={20} />} text='Tổng quan' active={isActive('/')} />
           </Link>
           <Link to='/in-tables'>
             <SidebarItem icon={<Table size={20} />} text='Bàn ăn' active={isActive('/in-tables')} />
           </Link>
           <Link to='/kitchens'>
-            <SidebarItem icon={<ChefHat size={20} />} text='Kitchens' active={isActive('/kitchens')} />
+            <SidebarItem icon={<ChefHat size={20} />} text='Khu bếp' active={isActive('/kitchens')} />
           </Link>
           <Link to='/orders'>
-            <SidebarItem icon={<ClipboardList size={20} />} text='Orders' active={isActive('/orders')} />
+            <SidebarItem icon={<ClipboardList size={20} />} text='Đơn hàng' active={isActive('/orders')} />
           </Link>
           <Link to='/menuFood'>
-            <SidebarItem icon={<Utensils size={20} />} text='Menu Food' active={isActive('/menuFood')} />
+            <SidebarItem icon={<Utensils size={20} />} text='Thực đơn' active={isActive('/menuFood')} />
           </Link>
           <Link to='/customers'>
-            <SidebarItem icon={<Users size={20} />} text='Customers' active={isActive('/customers')} />
+            <SidebarItem icon={<Users size={20} />} text='Khách hàng' active={isActive('/customers')} />
           </Link>
           <Link to='/schedule'>
-            <SidebarItem icon={<CalendarCheck size={20} />} text='Schedule' active={isActive('/schedule')} />
+            <SidebarItem icon={<CalendarCheck size={20} />} text='Lịch làm việc' active={isActive('/schedule')} />
           </Link>
           <Link to='/workshops'>
-            <SidebarItem icon={<Store size={20} />} text='Workshops' active={isActive('/workshops')} />
+            <SidebarItem icon={<Store size={20} />} text='Workshop' active={isActive('/workshops')} />
           </Link>
           <Link to='/staffs'>
-            <SidebarItem icon={<UserCircle size={20} />} text='Staffs' active={isActive('/staffs')} />
+            <SidebarItem icon={<UserCircle size={20} />} text='Nhân viên' active={isActive('/staffs')} />
           </Link>
           <Link to='/promotion'>
-            <SidebarItem icon={<Tag size={20} />} text='Promotion' active={isActive('/promotion')} />
+            <SidebarItem icon={<Tag size={20} />} text='Khuyến mãi' active={isActive('/promotion')} />
           </Link>
           <Link to='/settings'>
-            <SidebarItem icon={<Settings size={20} />} text='Settings' active={isActive('/settings')} />
+            <SidebarItem icon={<Settings size={20} />} text='Cài đặt' active={isActive('/settings')} />
           </Link>
           <hr />
           <Link to='/reports'>
-            <SidebarItem icon={<BarChart size={20} />} text='Reports' active={isActive('/reports')} />
+            <SidebarItem icon={<BarChart size={20} />} text='Báo cáo' active={isActive('/reports')} />
           </Link>
           <Link to='/more'>
             <SidebarItem icon={<MoreHorizontal size={20} />} text='More' active={isActive('/more')} />

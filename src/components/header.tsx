@@ -59,7 +59,7 @@ const Header = ({ title }: HeaderProps) => {
   }
 
   return (
-    <header className='bg-white border-b p-4 flex justify-between items-center'>
+    <header className='bg-white  p-4 flex justify-between items-center h-16 border-b-[0.5px] border-solid border-gray-100 '>
       <h1 className='text-xl font-semibold'>Quản lý {title}</h1>
       <div className='flex items-center gap-4'>
         {user && (

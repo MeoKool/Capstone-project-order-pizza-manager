@@ -4,6 +4,7 @@ import { useState } from 'react'
 import TableManagement from './table-management'
 import ZoneManagement from './zone-management'
 import { LayoutGrid, ListFilter } from 'lucide-react'
+import BookingManagement from './booking-management'
 
 const InTables: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tables')
@@ -12,7 +13,7 @@ const InTables: React.FC = () => {
     <div className='mx-auto p-4 max-w-full bg-[#f8f9fa]'>
       <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
         <div className='flex items-center justify-between'>
-          <TabsList className='grid w-full max-w-md grid-cols-2 p-1 bg-amber-50 border border-amber-100'>
+          <TabsList className='grid w-full max-w-md grid-cols-3 p-1 bg-amber-50 border border-amber-100'>
             <TabsTrigger
               value='tables'
               className='flex items-center gap-2 data-[state=active]:bg-amber-600 data-[state=active]:text-white'
@@ -27,6 +28,13 @@ const InTables: React.FC = () => {
               <ListFilter className='h-4 w-4' />
               <span>Quản lý khu vực</span>
             </TabsTrigger>
+            <TabsTrigger
+              value='booking'
+              className='flex items-center gap-2 data-[state=active]:bg-amber-600 data-[state=active]:text-white'
+            >
+              <ListFilter className='h-4 w-4' />
+              <span>Quản lý đặt bàn</span>
+            </TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value='tables' className='w-full'>
@@ -34,6 +42,9 @@ const InTables: React.FC = () => {
         </TabsContent>
         <TabsContent value='zones' className='w-full'>
           <ZoneManagement />
+        </TabsContent>
+        <TabsContent value='booking' className='w-full'>
+          <BookingManagement />
         </TabsContent>
       </Tabs>
     </div>

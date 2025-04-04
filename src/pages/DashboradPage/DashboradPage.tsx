@@ -1,6 +1,6 @@
-import React from 'react'
 
-const DashboradPage: React.FC = () => {
+
+const DashboradPage = () => {
     return (
         <div>DashboradPage</div>
     )
