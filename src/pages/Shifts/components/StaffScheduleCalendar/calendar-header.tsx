@@ -2,8 +2,9 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw, CheckCircle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useState } from 'react'
 
 interface CalendarHeaderProps {
   currentDate: Date
@@ -24,6 +25,37 @@ export function CalendarHeader({
   onRefresh,
   onViewChange
 }: CalendarHeaderProps) {
+  const [isAutoAssigning, setIsAutoAssigning] = useState(false)
+
+  const handleAutoAssign = async () => {
+    try {
+      setIsAutoAssigning(true)
+      // Format the date as DD-MM-YYYY
+      const formattedDate = format(currentDate, 'dd-MM-yyyy')
+
+      const response = await fetch('https://vietsac.id.vn/api/staff-zone-schedules/auto-assign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          workingDate: formattedDate
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to auto assign')
+      }
+
+      // If successful, refresh the data
+      onRefresh()
+    } catch (error) {
+      console.error('Error auto assigning:', error)
+    } finally {
+      setIsAutoAssigning(false)
+    }
+  }
+
   return (
     <div className='space-y-4'>
       <div className='flex items-center justify-between'>
@@ -84,6 +116,20 @@ export function CalendarHeader({
         </div>
 
         <div className='flex items-center gap-2'>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant='green' size='sm' onClick={handleAutoAssign} disabled={isAutoAssigning}>
+                  <CheckCircle className='h-4 w-4 mr-1' />
+                  {isAutoAssigning ? 'Đang xử lý...' : 'Tự động duyệt đăng ký'}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Tự động duyệt đăng ký cho ngày hiện tại</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
