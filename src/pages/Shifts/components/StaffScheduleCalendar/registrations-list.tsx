@@ -1,5 +1,3 @@
-'use client'
-
 import { format, parseISO } from 'date-fns'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'

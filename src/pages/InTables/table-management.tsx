@@ -1,5 +1,3 @@
-'use client'
-
 import useTable from '@/hooks/useTable'
 import type { TableStatus } from '@/types/tables'
 import { Button } from '@/components/ui/button'

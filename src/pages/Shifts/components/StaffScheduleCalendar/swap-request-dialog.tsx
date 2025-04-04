@@ -1,5 +1,3 @@
-'use client'
-
 import { format, parseISO } from 'date-fns'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'

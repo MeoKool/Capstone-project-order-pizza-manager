@@ -1,5 +1,3 @@
-'use client'
-
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import type { Staff } from '@/types/staff'
 import StaffService, { type CreateStaffDto, type UpdateStaffDto } from '@/services/staff-service'

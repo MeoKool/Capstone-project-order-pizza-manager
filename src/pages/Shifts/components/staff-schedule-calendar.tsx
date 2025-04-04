@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import { parseISO, addWeeks, subWeeks, isSameDay, addMonths, subMonths } from 'date-fns'
 import { Tabs, TabsContent } from '@/components/ui/tabs'

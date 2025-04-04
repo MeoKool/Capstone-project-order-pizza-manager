@@ -1,5 +1,3 @@
-'use client'
-
 import { Users, MoreVertical, QrCode, Edit, History, Eye, Clock, Lock, Coffee, Utensils, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'

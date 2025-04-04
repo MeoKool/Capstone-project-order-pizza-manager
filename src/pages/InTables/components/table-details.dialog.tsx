@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Users, MapPin, Clock, Printer, Download, Utensils } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'

@@ -1,5 +1,3 @@
-'use client'
-
 import { ChevronLeft, Menu, Pizza } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useSidebar } from './context/SidebarContext'

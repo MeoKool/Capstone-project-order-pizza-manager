@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Calendar, Plus, Settings } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
