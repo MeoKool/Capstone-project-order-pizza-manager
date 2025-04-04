@@ -11,7 +11,7 @@ import SignalRListener from '@/components/signalr/SignalRListener'
 
 // Lazy load the components
 const DashboardLayout = lazy(() => import('@/components/dashboard-layout'))
-const Dashboard = lazy(() => import('@/pages/DashboradPage/DashboradPage'))
+const Dashboard = lazy(() => import('@/pages/DashboradPage/index'))
 const InTables = lazy(() => import('@/pages/InTables/InTables'))
 const Kitchens = lazy(() => import('@/pages/Kitchens/Kitchens'))
 const Orders = lazy(() => import('@/pages/Orders/Orders'))
@@ -23,8 +23,7 @@ const Reports = lazy(() => import('@/pages/Reports/Reports'))
 const More = lazy(() => import('@/pages/More/More'))
 
 // Loading component
-const Loading = () => <div>Loading...</div>
-
+import Loading from '@/routers/Loading'
 export const router = createBrowserRouter([
   {
     path: '/login',
