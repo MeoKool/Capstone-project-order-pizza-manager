@@ -135,7 +135,7 @@ export function CalendarHeader({
                   disabled={isAutoAssigning}
                 >
                   <CheckCircle className='h-4 w-4 mr-1' />
-                  {isAutoAssigning ? 'Đang xử lý...' : 'Tự động duyệt'}
+                  {isAutoAssigning ? 'Đang xử lý...' : 'Tự động phân khu vực'}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
