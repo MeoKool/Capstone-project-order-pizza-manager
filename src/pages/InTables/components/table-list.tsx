@@ -1,4 +1,4 @@
-import { Users, MoreVertical, QrCode, Edit, History, Eye, Clock, Lock, Coffee, Utensils, MapPin } from 'lucide-react'
+import { Users, MoreVertical, QrCode, Edit, History, Eye, Clock, Lock, Coffee, Utensils, MapPin, CircleX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -90,7 +90,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
       case 'Reserved':
         return <Clock className='h-4 w-4 sm:h-5 sm:w-5 text-blue-500' />
       case 'Closing':
-        return <Eye className='h-4 w-4 sm:h-5 sm:w-5 text-red-500' />
+        return <CircleX className='h-4 w-4 sm:h-5 sm:w-5 text-red-500' />
       case 'Locked':
         return <Lock className='h-4 w-4 sm:h-5 sm:w-5 text-amber-500' />
       default:
@@ -226,17 +226,16 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                 {zoneTables.map((table) => (
                   <Card
                     key={table.id}
-                    className={`overflow-hidden hover:shadow-md transition-all border-l-4 ${
-                      table.status === 'Opening'
-                        ? 'border-l-emerald-500'
-                        : table.status === 'Reserved'
-                          ? 'border-l-blue-500'
-                          : table.status === 'Closing'
-                            ? 'border-l-red-500'
-                            : table.status === 'Locked'
-                              ? 'border-l-amber-500'
-                              : 'border-l-gray-300'
-                    } hover:scale-[1.02] transition-transform duration-200`}
+                    className={`overflow-hidden hover:shadow-md transition-all border-l-4 truncate ${table.status === 'Opening'
+                      ? 'border-l-emerald-500'
+                      : table.status === 'Reserved'
+                        ? 'border-l-blue-500'
+                        : table.status === 'Closing'
+                          ? 'border-l-red-500'
+                          : table.status === 'Locked'
+                            ? 'border-l-amber-500'
+                            : 'border-l-gray-300'
+                      } hover:scale-[1.02] transition-transform duration-200`}
                   >
                     <CardHeader
                       className={`flex flex-row items-center justify-between p-2 sm:p-4 ${getStatusColor(table.status)} border-b`}
@@ -249,7 +248,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                           <h3 className='font-semibold text-lg sm:text-2xl'>{table.code}</h3>
                         </div>
                       </div>
-                      <div className='flex items-center space-x-1 sm:space-x-2'>
+                      <div className='flex items-center gap-1'>
                         <div className='hidden sm:block'>{getStatusBadge(table.status)}</div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -325,7 +324,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
 
                         {table.status === 'Closing' && (
                           <div className='flex items-center text-xs sm:text-sm bg-red-50 p-1.5 sm:p-2.5 rounded-md'>
-                            <Eye className='mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-500' />
+                            <CircleX className='mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-500' />
                             <span className='text-red-700 font-medium'>Bàn đang đóng</span>
                           </div>
                         )}

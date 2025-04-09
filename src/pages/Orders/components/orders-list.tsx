@@ -231,7 +231,7 @@ export function OrdersList() {
                 <TableCell>{formatDate(order.startTime)}</TableCell>
                 <TableCell>{formatDate(order.endTime)}</TableCell>
                 <TableCell className='font-medium'>
-                  {order.totalPrice ? order.totalPrice.toLocaleString('vi-VN') : 'N/A'} ₫
+                  {order.totalPrice ? order.totalPrice.toLocaleString('vi-VN') : 'Chưa thanh toán'} ₫
                 </TableCell>
                 <TableCell>{getStatusBadge(order.status)}</TableCell>
                 <TableCell className='text-right'>
