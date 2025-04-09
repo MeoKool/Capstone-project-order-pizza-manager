@@ -142,7 +142,7 @@ export function AddZoneDialog({ open, onOpenChange, onZoneAdded }: AddZoneDialog
                     {/* Update the SelectItems to match the Vietnamese labels shown in the dropdown */}
                     <SelectContent>
                       <SelectItem value='DininingArea'>Khu vực ăn uống</SelectItem>
-                      <SelectItem value='WorkshopArea'>Khu vực làm việc</SelectItem>
+                      <SelectItem value='WorkshopArea'>Khu vực workshop</SelectItem>
                       <SelectItem value='KitchenArea'>Khu vực bếp</SelectItem>
                     </SelectContent>
                   </Select>
