@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import {
     ChevronLeft,
@@ -32,6 +30,7 @@ import BookingService from "@/services/booking-service"
 import TableService from "@/services/table-service"
 import { useEffect } from "react"
 import { AssignTableDialog } from "./AssignTableDialog"
+import { GetReservationPriority, } from "./reservationPriorityStatus"
 
 // Cập nhật interface để thêm onAssignTable và sửa lỗi
 interface BookingTableProps {
@@ -276,6 +275,7 @@ export function BookingTable({
                         <TableRow>
                             <TableHead className="w-[200px]">Khách hàng</TableHead>
                             <TableHead className="w-[200px] text-center">Số điện thoại</TableHead>
+                            <TableHead className="text-center">Cấp bậc</TableHead>
                             <TableHead className="w-[120px] text-center">Số người</TableHead>
                             <TableHead className="w-[120px] text-center">Ngày</TableHead>
                             <TableHead className="w-[100px] text-center">Giờ</TableHead>
@@ -339,20 +339,21 @@ export function BookingTable({
                                     <TableRow key={reservation.id}>
                                         <TableCell>{reservation.customerName}</TableCell>
                                         <TableCell className="w-[150px] text-center">{reservation.phoneNumber}</TableCell>
+                                        <TableCell className="w-[150px] text-center"><GetReservationPriority reservationPriorityStatus={reservation.reservationPriorityStatus} /></TableCell>
                                         <TableCell className="text-center">{reservation.numberOfPeople}</TableCell>
                                         <TableCell className="text-center">{date}</TableCell>
                                         <TableCell className="text-center">{time}</TableCell>
                                         <TableCell className="text-center">
-                                            <Badge
+                                            <Badge variant="outline"
                                                 className={
-                                                    customGetStatusColor
-                                                        ? customGetStatusColor(reservation.status)
-                                                        : getStatusColor(reservation.status)
-                                                }
+                                                    `w-24 ${customGetStatusColor ? customGetStatusColor(reservation.status) : getStatusColor(reservation.status)
+                                                    }`}
                                             >
-                                                {customGetStatusLabel
-                                                    ? customGetStatusLabel(reservation.status)
-                                                    : getStatusLabel(reservation.status)}
+                                                <div className="text-center w-24">
+                                                    {customGetStatusLabel
+                                                        ? customGetStatusLabel(reservation.status)
+                                                        : getStatusLabel(reservation.status)}
+                                                </div>
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-center">
@@ -360,10 +361,12 @@ export function BookingTable({
                                                 loadingTables[reservation.tableId] ? (
                                                     <Skeleton className="h-5 w-16" />
                                                 ) : (
-                                                    <Badge variant="outline">
-                                                        {tableCodes[reservation.tableId]
-                                                            ? tableCodes[reservation.tableId]
-                                                            : `Bàn ${reservation.tableId.substring(0, 4)}`}
+                                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200  p-1">
+                                                        <div className="w-14">
+                                                            {tableCodes[reservation.tableId]
+                                                                ? tableCodes[reservation.tableId]
+                                                                : `Bàn ${reservation.tableId.substring(0, 4)}`}
+                                                        </div>
                                                     </Badge>
                                                 )
                                             ) : (

@@ -5,7 +5,6 @@ import Sidebar from './sidebar'
 import {
   LayoutDashboard,
   Table,
-  ChefHat,
   ClipboardList,
   Utensils,
   Users,
@@ -73,9 +72,7 @@ const DashboardLayout = () => {
           <Link to='/in-tables'>
             <SidebarItem icon={<Table size={20} />} text='Bàn ăn' active={isActive('/in-tables')} />
           </Link>
-          <Link to='/kitchens'>
-            <SidebarItem icon={<ChefHat size={20} />} text='Khu bếp' active={isActive('/kitchens')} />
-          </Link>
+
           <Link to='/orders'>
             <SidebarItem icon={<ClipboardList size={20} />} text='Đơn hàng' active={isActive('/orders')} />
           </Link>
