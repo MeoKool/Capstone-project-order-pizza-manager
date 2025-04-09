@@ -4,7 +4,7 @@ import { useState } from 'react'
 import TableManagement from './table-management'
 import ZoneManagement from './zone-management'
 import { LayoutGrid, ListFilter } from 'lucide-react'
-import BookingManagement from './booking-management'
+import BookingPage from './booking-management'
 
 const InTables: React.FC = () => {
   const [activeTab, setActiveTab] = useState('tables')
@@ -44,7 +44,7 @@ const InTables: React.FC = () => {
           <ZoneManagement />
         </TabsContent>
         <TabsContent value='booking' className='w-full'>
-          <BookingManagement />
+          <BookingPage />
         </TabsContent>
       </Tabs>
     </div>
