@@ -15,7 +15,7 @@ const MenuFood: React.FC = () => {
     <div className='mx-auto p-4 max-w-full'>
       <h1 className='text-2xl font-bold mb-6'>Quản lý thực đơn</h1>
       <Tabs defaultValue="product" className="space-y-6" onValueChange={setActiveTab}>
-        <TabsList className="grid w-full max-w-4xl grid-cols-3">
+        <TabsList className="grid w-full max-w-4xl grid-cols-5">
           <TabsTrigger value="product" className="flex items-center gap-2">
             <Pizza className="h-4 w-4" />
             <span className="hidden sm:inline">Thực đơn</span>
