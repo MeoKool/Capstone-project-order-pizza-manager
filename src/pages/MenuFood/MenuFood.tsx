@@ -2,10 +2,10 @@ import React, { useState } from 'react'
 import { Wheat, SquareMenu, Pizza } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import IngredientsPage from './components/Ingredients'
-// import ProductSizePage from './components/ProductSize/Product-Size'
 import FoodList from './components/FoodList'
 import CategoryPage from './components/Category'
-// import RecipesPage from './components/Recipe'
+import ProductSizePage from './components/ProductSize/Product-Size'
+import RecipesPage from './components/Recipe'
 
 const MenuFood: React.FC = () => {
   const [, setActiveTab] = useState("product")
@@ -36,14 +36,14 @@ const MenuFood: React.FC = () => {
         <TabsContent value="product">
           <FoodList />
         </TabsContent>
-        {/* <TabsContent value="recipe">
+        <TabsContent value="recipe">
           <RecipesPage />
         </TabsContent>
 
         <TabsContent value="productSize">
           <ProductSizePage />
         </TabsContent>
-         */}
+
         <TabsContent value="ingredient">
           <IngredientsPage />
         </TabsContent>
