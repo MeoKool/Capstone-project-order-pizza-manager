@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -27,11 +29,16 @@ interface AddZoneDialogProps {
 
 const apiUrl = import.meta.env.VITE_API_URL
 
+// Update the zone types to match what's shown in the table
+// Change from "DiningArea" to "DininingArea" to match the existing data
+const zoneTypes = ['DininingArea', 'WorkshopArea', 'KitchenArea'] as const
+
 const formSchema = z.object({
   name: z.string().min(1, 'Tên khu vực không được để trống'),
-  capacity: z.number().min(0, 'Số lượng bàn không được âm'),
   description: z.string().optional(),
-  status: z.number().int().min(0).max(2)
+  type: z.enum(zoneTypes, {
+    errorMap: () => ({ message: 'Vui lòng chọn loại khu vực' })
+  })
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -39,13 +46,13 @@ type FormValues = z.infer<typeof formSchema>
 export function AddZoneDialog({ open, onOpenChange, onZoneAdded }: AddZoneDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Update the default value to match the new type
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      capacity: 0,
       description: '',
-      status: 0
+      type: 'DininingArea'
     }
   })
 
@@ -108,26 +115,6 @@ export function AddZoneDialog({ open, onOpenChange, onZoneAdded }: AddZoneDialog
 
             <FormField
               control={form.control}
-              name='capacity'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Số lượng bàn</FormLabel>
-                  <FormControl>
-                    <Input
-                      type='number'
-                      min='0'
-                      {...field}
-                      onChange={(e) => field.onChange(Number.parseInt(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormDescription>Số lượng bàn tối đa có thể đặt trong khu vực này</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name='description'
               render={({ field }) => (
                 <FormItem>
@@ -142,23 +129,21 @@ export function AddZoneDialog({ open, onOpenChange, onZoneAdded }: AddZoneDialog
 
             <FormField
               control={form.control}
-              name='status'
+              name='type'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Trạng thái</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number.parseInt(value))}
-                    defaultValue={field.value.toString()}
-                  >
+                  <FormLabel>Loại khu vực</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder='Chọn trạng thái' />
+                        <SelectValue placeholder='Chọn loại khu vực' />
                       </SelectTrigger>
                     </FormControl>
+                    {/* Update the SelectItems to match the Vietnamese labels shown in the dropdown */}
                     <SelectContent>
-                      <SelectItem value='0'>Hoạt động</SelectItem>
-                      <SelectItem value='1'>Tạm ngưng</SelectItem>
-                      <SelectItem value='2'>Bảo trì</SelectItem>
+                      <SelectItem value='DininingArea'>Khu vực ăn uống</SelectItem>
+                      <SelectItem value='WorkshopArea'>Khu vực làm việc</SelectItem>
+                      <SelectItem value='KitchenArea'>Khu vực bếp</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
