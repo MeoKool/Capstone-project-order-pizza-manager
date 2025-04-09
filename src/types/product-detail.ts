@@ -36,6 +36,7 @@ export interface ProductDetailOptionItem {
 export interface ProductDetailOption {
     id: string
     name: string
+    SelectMany: boolean
     description: string
     optionItems: ProductDetailOptionItem[]
 }

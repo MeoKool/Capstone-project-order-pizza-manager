@@ -3,6 +3,7 @@ export interface Option {
     id: string;
     name: string;
     description: string;
+    SelectMany: boolean
     optionItems: OptionItem[];
 }
 
