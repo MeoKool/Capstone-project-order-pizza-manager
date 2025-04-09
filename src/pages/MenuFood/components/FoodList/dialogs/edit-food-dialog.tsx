@@ -16,7 +16,7 @@ import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Loader2, Plus, Trash2, PlusCircle, X } from "lucide-react"
+import { Loader2, Plus, Trash2, PlusCircle, X, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -25,6 +25,8 @@ import FileUpload from "@/components/uploadImage"
 import { toast } from "sonner"
 import type { ProductModel } from "@/types/product"
 import ProductService from "@/services/product-service"
+import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
 
 interface EditFoodDialogProps {
   food: ProductModel
@@ -45,6 +47,7 @@ const formSchema = z.object({
       z.object({
         name: z.string().min(1, "Tên nhóm tùy chọn không được để trống"),
         description: z.string().optional(),
+        SelectMany: z.boolean().default(false), // Add the SelectMany field
         productOptionItemModels: z
           .array(
             z.object({
@@ -158,13 +161,14 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
   const { foodCategory } = useCategories()
   const productService = ProductService.getInstance()
 
-  // Transform options to productOptionModels format
+  // Update the transformOptionsToProductOptionModels function to include SelectMany
   const transformOptionsToProductOptionModels = () => {
     if (!food.options || food.options.length === 0) return []
 
     return food.options.map((option) => ({
       name: option.option.name,
       description: option.option.description || "",
+      SelectMany: option.option.SelectMany || false, // Include SelectMany with default false
       productOptionItemModels: option.option.optionItems.map((item) => ({
         name: item.name,
         additionalPrice: item.additionalPrice,
@@ -197,7 +201,6 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
         productOptionModels: transformOptionsToProductOptionModels(),
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [food, form])
 
   // Update the useFieldArray to use the new structure for option groups
@@ -210,11 +213,12 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
     name: "productOptionModels",
   })
 
-  // Update the addNewOption function to add a new option group
+  // Update the addNewOption function to include SelectMany field
   const addNewOption = () => {
     appendOption({
       name: "",
       description: "",
+      SelectMany: false, // Default value for SelectMany
       productOptionItemModels: [{ name: "", additionalPrice: 0 }],
     })
   }
@@ -388,6 +392,18 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
             <div className="space-y-2">
               <FormLabel>Hình ảnh sản phẩm</FormLabel>
               <div className="flex items-center gap-4">
+                {food.imageUrl && (
+                  <div className="w-20 h-20 border rounded overflow-hidden flex-shrink-0">
+                    <img
+                      src={food.imageUrl || "/placeholder.svg"}
+                      alt={food.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=80&width=80"
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="flex-1">
                   <FileUpload
                     onFileChange={(file) => setSelectedFile(file)}
@@ -477,9 +493,20 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
                       <CardHeader className="p-4 ">
                         <div className="flex items-center justify-between">
                           <AccordionTrigger className="hover:no-underline py-0">
-                            <CardTitle className="text-base">
-                              {form.watch(`productOptionModels.${optionIndex}.name`) || `Tùy chọn ${optionIndex + 1}`}
-                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-base">
+                                {form.watch(`productOptionModels.${optionIndex}.name`) || `Tùy chọn ${optionIndex + 1}`}
+                              </CardTitle>
+                              {form.watch(`productOptionModels.${optionIndex}.SelectMany`) && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs bg-green-50 text-green-700 border-green-200"
+                                >
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Chọn nhiều
+                                </Badge>
+                              )}
+                            </div>
                           </AccordionTrigger>
                           <Button
                             type="button"
@@ -525,6 +552,25 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
                               />
                             </div>
 
+                            {/* Improved SelectMany UI */}
+                            <FormField
+                              control={form.control}
+                              name={`productOptionModels.${optionIndex}.SelectMany`}
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel className="text-base">Cho phép chọn nhiều</FormLabel>
+                                    <div className="text-sm text-muted-foreground">
+                                      Khi bật, khách hàng có thể chọn nhiều tùy chọn cùng lúc trong nhóm này
+                                    </div>
+                                  </div>
+                                  <FormControl>
+                                    <Switch checked={field.value} onCheckedChange={field.onChange} aria-readonly />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+
                             {/* Use the separate component for option items */}
                             <OptionItemFields control={form.control} nestIndex={optionIndex} register={form.register} />
                           </div>
@@ -557,4 +603,3 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
     </Dialog>
   )
 }
-

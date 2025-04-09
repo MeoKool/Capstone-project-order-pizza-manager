@@ -16,13 +16,15 @@ import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Loader2, Plus, Trash2, PlusCircle, X } from "lucide-react"
+import { Loader2, Plus, Trash2, PlusCircle, X, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle } from "lucide-react"
 import FileUpload from "@/components/uploadImage"
 import { toast } from "sonner"
+import { Switch } from "@/components/ui/switch"
+import { Badge } from "@/components/ui/badge"
 
 interface AddFoodDialogProps {
   open: boolean
@@ -41,6 +43,7 @@ const formSchema = z.object({
       z.object({
         name: z.string().min(1, "Tên nhóm tùy chọn không được để trống"),
         description: z.string().optional(),
+        SelectMany: z.boolean().default(false), // Add the SelectMany field
         productOptionItemModels: z
           .array(
             z.object({
@@ -54,12 +57,10 @@ const formSchema = z.object({
     .optional(),
 })
 
-
 // Separate component for option items to avoid hook rules violations
 function OptionItemFields({
   control,
   nestIndex,
-
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   control: any
@@ -183,6 +184,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     appendOption({
       name: "",
       description: "",
+      SelectMany: false, // Default value for SelectMany
       productOptionItemModels: [{ name: "", additionalPrice: 0 }],
     })
   }
@@ -206,12 +208,11 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     setSuccess(false)
 
     try {
-
       // Convert productOptionModels to JSON string
       const productOptionModelsJson = JSON.stringify(
         data.productOptionModels && data.productOptionModels.length > 0 ? data.productOptionModels : null,
       )
-      console.log(productOptionModelsJson);
+      console.log(productOptionModelsJson)
 
       // Create FormData object
       const formData = new FormData()
@@ -370,7 +371,6 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                 onFileChange={(file) => setSelectedFile(file)}
                 value={selectedFile ? URL.createObjectURL(selectedFile) : undefined}
               />
-
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -453,10 +453,20 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                       <CardHeader className="p-4 ">
                         <div className="flex items-center justify-between">
                           <AccordionTrigger className="hover:no-underline py-0">
-                            <CardTitle className="text-base">
-                              {form.watch(`productOptionModels.${optionIndex}.name`) ||
-                                `Tùy chọn ${optionIndex + 1}`}
-                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                              <CardTitle className="text-base">
+                                {form.watch(`productOptionModels.${optionIndex}.name`) || `Tùy chọn ${optionIndex + 1}`}
+                              </CardTitle>
+                              {form.watch(`productOptionModels.${optionIndex}.SelectMany`) && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-xs bg-green-50 text-green-700 border-green-200"
+                                >
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Chọn nhiều
+                                </Badge>
+                              )}
+                            </div>
                           </AccordionTrigger>
                           <Button
                             type="button"
@@ -502,6 +512,25 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
                               />
                             </div>
 
+                            {/* Improved SelectMany UI */}
+                            <FormField
+                              control={form.control}
+                              name={`productOptionModels.${optionIndex}.SelectMany`}
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel className="text-base">Cho phép chọn nhiều</FormLabel>
+                                    <div className="text-sm text-muted-foreground">
+                                      Khi bật, khách hàng có thể chọn nhiều tùy chọn cùng lúc trong nhóm này
+                                    </div>
+                                  </div>
+                                  <FormControl>
+                                    <Switch checked={field.value} onCheckedChange={field.onChange} aria-readonly />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+
                             {/* Use the separate component for option items */}
                             <OptionItemFields control={form.control} nestIndex={optionIndex} register={form.register} />
                           </div>
@@ -534,4 +563,3 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     </Dialog>
   )
 }
-
