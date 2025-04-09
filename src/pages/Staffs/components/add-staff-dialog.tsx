@@ -120,7 +120,7 @@ export function AddStaffDialog({ open, onOpenChange }: AddStaffDialogProps) {
                           type={showPassword ? 'text' : 'password'}
                           placeholder='Nhập mật khẩu'
                           {...field}
-                          value={field.value || 'Dev123@123a'}
+                          value={field.value}
                           className='pr-10 border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
                         />
                         <Button
