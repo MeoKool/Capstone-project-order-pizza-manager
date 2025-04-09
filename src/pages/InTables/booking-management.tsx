@@ -27,6 +27,7 @@ type SortOption =
     | "people-desc"
     | "status-asc"
     | "status-desc"
+    | 'priorityStatus'
 // Cập nhật type StatusFilter để chỉ bao gồm 4 trạng thái
 type StatusFilter = "all" | "Created" | "Confirmed" | "Checkedin" | "Cancelled"
 
@@ -88,7 +89,17 @@ function BookingPage() {
                 return 99 // Các trạng thái không xác định sẽ được xếp cuối
         }
     }
+    const PriorityStatus = (status: string): number => {
+        switch (status) {
+            case "Priority":
+                return 1
+            case "NonPriority":
+                return 2
 
+            default:
+                return 99 // Các trạng thái không xác định sẽ được xếp cuối
+        }
+    }
     // Cập nhật phần useEffect để sử dụng hàm getStatusSortValue
     useEffect(() => {
         let result = [...reservations]
@@ -146,6 +157,9 @@ function BookingPage() {
             case "status-desc":
                 result.sort((a, b) => getStatusSortValue(b.status) - getStatusSortValue(a.status))
                 break
+            case "priorityStatus":
+                result.sort((a, b) => PriorityStatus(a.reservationPriorityStatus) - PriorityStatus(b.reservationPriorityStatus))
+                break
         }
 
         setFilteredReservations(result)
@@ -153,6 +167,7 @@ function BookingPage() {
 
     useEffect(() => {
         fetchReservations()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // Cập nhật hàm getSortLabel để thêm nhãn cho các tùy chọn sắp xếp theo trạng thái
@@ -162,6 +177,8 @@ function BookingPage() {
                 return "Mới nhất"
             case "oldest":
                 return "Cũ nhất"
+            case "priorityStatus":
+                return "Độ ưu tiên"
             case "name-asc":
                 return "Tên: A-Z"
             case "name-desc":
@@ -197,15 +214,15 @@ function BookingPage() {
     const getStatusColor = (status: string): string => {
         switch (status) {
             case "Created":
-                return "bg-gray-100 text-gray-800"
+                return "bg-gray-50 text-gray-700 border-gray-200 p-1 "
             case "Confirmed":
-                return "bg-blue-100 text-blue-800"
+                return "bg-blue-50 text-blue-700  border-blue-200 p-1"
             case "Checkedin":
-                return "bg-green-100 text-green-800"
+                return "bg-green-50 text-green-700 border-green-200 p-1"
             case "Cancelled":
-                return "bg-red-100 text-red-800"
+                return "bg-red-50 text-red-700 border-red-200 p-1"
             default:
-                return "bg-gray-100 text-gray-800"
+                return "bg-gray-50 text-gray-700 border-gray-200 p-1"
         }
     }
 
@@ -322,6 +339,7 @@ function BookingPage() {
                             <SelectContent>
                                 <SelectItem value="newest">Mới nhất</SelectItem>
                                 <SelectItem value="oldest">Cũ nhất</SelectItem>
+                                <SelectItem value="priorityStatus">Độ ưu tiên</SelectItem>
                                 <SelectItem value="name-asc">Tên: A-Z</SelectItem>
                                 <SelectItem value="name-desc">Tên: Z-A</SelectItem>
                                 <SelectItem value="people-asc">Số người: Tăng dần</SelectItem>

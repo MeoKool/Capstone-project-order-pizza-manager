@@ -189,9 +189,7 @@ export function OrdersList() {
           <TableHeader>
             <TableRow className='bg-muted/50'>
               <TableHead className='w-[60px] text-center'>STT</TableHead>
-              <TableHead className='w-[120px]'>
-                <div className='flex items-center gap-2 '>Mã đơn</div>
-              </TableHead>
+
               <TableHead>
                 <div className='flex items-center gap-2 cursor-pointer' onClick={() => handleSort('tableCode')}>
                   Bàn
@@ -229,7 +227,6 @@ export function OrdersList() {
             {paginatedOrders.map((order, index) => (
               <TableRow key={order.id} className='hover:bg-muted/50'>
                 <TableCell className='text-center font-medium'>{(currentPage - 1) * pageSize + index + 1}</TableCell>
-                <TableCell className='font-medium'>{order.orderCode}</TableCell>
                 <TableCell>{order.tableCode}</TableCell>
                 <TableCell>{formatDate(order.startTime)}</TableCell>
                 <TableCell>{formatDate(order.endTime)}</TableCell>
