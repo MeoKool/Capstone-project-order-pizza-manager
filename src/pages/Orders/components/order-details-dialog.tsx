@@ -28,9 +28,23 @@ export function OrderDetailsDialog({ orderItems, open, onOpenChange }: OrderDeta
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Serving':
+      case 'Done':
         return (
           <Badge variant='outline' className='bg-green-50 text-green-600 border-green-200 flex items-center gap-1'>
+            <CheckCircle2 className='h-3 w-3' />
+            Đã hoàn thành
+          </Badge>
+        )
+      case 'Cooking':
+        return (
+          <Badge variant='outline' className='bg-orange-50 text-orange-600 border-orange-200 flex items-center gap-1'>
+            <Clock className='h-3 w-3' />
+            Đang chế biến
+          </Badge>
+        )
+      case 'Serving':
+        return (
+          <Badge variant='outline' className='bg-blue-50 text-blue-600 border-blue-200 flex items-center gap-1'>
             <CheckCircle2 className='h-3 w-3' />
             Đang phục vụ
           </Badge>
@@ -78,7 +92,7 @@ export function OrderDetailsDialog({ orderItems, open, onOpenChange }: OrderDeta
               <Receipt className='h-4 w-4 text-muted-foreground' />
               <div>
                 <p className='text-sm font-medium'>Mã đơn</p>
-                <p className='text-sm text-muted-foreground'>{orderItems[0]?.orderId.slice(0, 8)}</p>
+                <p className='text-sm text-muted-foreground'>{orderItems[0]?.orderId}</p>
               </div>
             </div>
             <div className='flex items-center gap-2'>
@@ -142,10 +156,9 @@ export function OrderDetailsDialog({ orderItems, open, onOpenChange }: OrderDeta
         </div>
 
         <DialogFooter className='mt-2'>
-          <Button variant='outline' onClick={() => onOpenChange(false)}>
+          <Button variant='destructive' onClick={() => onOpenChange(false)}>
             Đóng
           </Button>
-          <Button>Thanh toán</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
