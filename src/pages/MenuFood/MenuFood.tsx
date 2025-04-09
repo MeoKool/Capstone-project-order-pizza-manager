@@ -20,7 +20,14 @@ const MenuFood: React.FC = () => {
             <Pizza className="h-4 w-4" />
             <span className="hidden sm:inline">Thực đơn</span>
           </TabsTrigger>
+          <TabsTrigger value="recipe" className="flex items-center gap-2">
 
+            <span className="hidden sm:inline">Công thức</span>
+          </TabsTrigger>
+          <TabsTrigger value="productSize" className="flex items-center gap-2">
+
+            <span className="hidden sm:inline">Kích cỡcỡ</span>
+          </TabsTrigger>
 
           <TabsTrigger value="ingredient" className="flex items-center gap-2">
             <Wheat className="h-4 w-4" />
