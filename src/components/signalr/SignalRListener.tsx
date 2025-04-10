@@ -51,8 +51,36 @@ export default function SignalRListener() {
       })
     })
 
+    connection.on('AssignTableForReservation', (data: Notification) => {
+      console.log('Received AssignTableForReservation notification:', data)
+
+      Swal.fire({
+        title: data.title,
+        text: data.message,
+        width: '32em', // Increased width
+        confirmButtonText: 'Đóng',
+        customClass: {
+          title: 'text-xl font-bold',
+          popup: `
+            animate__animated
+            animate__fadeInUp
+            animate__faster
+          `,
+          htmlContainer: 'text-base'
+        },
+        hideClass: {
+          popup: `
+            animate__animated
+            animate__fadeOutDown
+            animate__faster
+          `
+        }
+      })
+    })
+
     return () => {
       connection.off('ReceiveNotification')
+      connection.off('AssignTableForReservation')
     }
   }, [])
 
