@@ -1,3 +1,4 @@
+import { ApiErrorResponse } from '@/services/booking-service'
 import api from './axiosConfig'
 import type { AxiosResponse, AxiosError } from 'axios'
 
@@ -28,12 +29,12 @@ export const post = async <T>(url: string, data: object): Promise<ApiResponse<T>
     const response: AxiosResponse<ApiResponse<T>> = await api.post(url, data)
     return response.data
   } catch (error) {
-    const axiosError = error as AxiosError
+    const axiosError = error as ApiErrorResponse
     return {
       success: false,
       result: {} as T,
-      message: axiosError.message || 'An unknown error occurred',
-      statusCode: axiosError.response?.status || 500
+      message: axiosError.error.message || 'An unknown error occurred',
+      statusCode: axiosError.error.statusCode || 500
     }
   }
 }

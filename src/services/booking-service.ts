@@ -1,6 +1,19 @@
 import ApiResponse, { get, post, put } from "@/apis/apiUtils"
 import { Reservation, ReservationsResult } from "@/types/reservation"
 
+export type ApiErrorResponse = {
+    error: {
+        code: number
+        message: string
+        statusCode: number
+        timestamp: string
+        title: string
+    }
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type assignTableResult = any
+
+
 
 export default class BookingService {
     private static instance: BookingService
@@ -88,14 +101,11 @@ export default class BookingService {
  */
     public async assignTableToReservation(reservationId: string, tableId: string): Promise<ApiResponse<void>> {
         try {
-            console.log(`Assigning table ${tableId} to reservation ${reservationId}`)
             const data = {
                 reservationId,
                 tableId,
             }
-            const response = await post<void>(`/reservations/assign-table-reservation`, data)
-            console.log("Assign table to reservation response:", response)
-            return response
+            return await post<void>(`/reservations/assign-table-reservation`, data)
         } catch (error) {
             console.error(`Error assigning table ${tableId} to reservation ${reservationId}:`, error)
             throw error

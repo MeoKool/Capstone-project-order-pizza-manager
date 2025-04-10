@@ -88,8 +88,10 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
         } catch (error) {
             console.error("Error assigning table:", error)
             toast.error("Có lỗi xảy ra khi xếp bàn")
+            onClose()
         } finally {
             setIsSubmitting(false)
+
         }
     }
 

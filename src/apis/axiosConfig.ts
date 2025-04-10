@@ -35,6 +35,11 @@ api.interceptors.response.use(
       console.error('Response error:', error.response.data)
       console.error('Status:', error.response.status)
       console.error('Headers:', error.response.headers)
+
+
+      //
+      return Promise.reject(error.response.data)
+
     } else if (error.request) {
       // The request was made but no response was received
       console.error('Request error:', error.request)
