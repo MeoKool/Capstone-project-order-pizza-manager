@@ -121,7 +121,7 @@ export default function WorkshopsPage() {
         // Fetch workshops again to refresh the list
         fetchWorkshops()
       } else {
-        toast.error('Hủy workshop không thành công!')
+        toast.error(response.message)
         console.error('Failed to cancel workshop:', response.message)
       }
     } catch (error) {
