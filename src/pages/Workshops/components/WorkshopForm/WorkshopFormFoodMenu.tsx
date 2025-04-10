@@ -1,5 +1,3 @@
-'use client'
-
 import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
