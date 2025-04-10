@@ -44,12 +44,12 @@ export const put = async <T>(url: string, data?: object): Promise<ApiResponse<T>
     const response: AxiosResponse<ApiResponse<T>> = await api.put(url, data)
     return response.data
   } catch (error) {
-    const axiosError = error as AxiosError
+    const axiosError = error as ApiErrorResponse
     return {
       success: false,
       result: {} as T,
-      message: axiosError.message,
-      statusCode: axiosError.response?.status || 500
+      message: axiosError.error.message,
+      statusCode: axiosError.error?.code || 500
     }
   }
 }

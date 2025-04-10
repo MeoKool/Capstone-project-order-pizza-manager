@@ -5,7 +5,7 @@ import { Workshop, WorkshopCreate, WorkshopResult } from '@/types/workshop'
 export default class WorkshopService {
   private static instance: WorkshopService
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): WorkshopService {
     if (!WorkshopService.instance) {
@@ -40,17 +40,17 @@ export default class WorkshopService {
       throw error
     }
   }
-  public cancelWorkshop(workshopId: string): Promise<ApiResponse<any>> {
+  public cancelWorkshop(workshopId: string): Promise<ApiResponse<void>> {
     try {
-      return put<any>(`/workshops/cancel-workshop`, { workshopId })
+      return put<void>(`/workshops/cancel-workshop`, { workshopId })
     } catch (error) {
       console.error('Error cancelling workshop:', error)
       throw error
     }
   }
-  public updateWorkshop(workshopId: string): Promise<ApiResponse<any>> {
+  public updateWorkshop(workshopId: string): Promise<ApiResponse<void>> {
     try {
-      return put<any>(`/workshops/cancel-workshop`, { workshopId })
+      return put<void>(`/workshops/cancel-workshop`, { workshopId })
     } catch (error) {
       console.error('Error cancelling workshop:', error)
       throw error
