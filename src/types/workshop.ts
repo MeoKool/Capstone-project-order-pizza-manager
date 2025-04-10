@@ -50,8 +50,9 @@ export interface WorkshopCreate {
 
 export enum WorkshopStatus {
   Scheduled = 'Scheduled',
-  Opening = 'Opening',
+  OpeningToRegister = 'OpeningToRegister',
+  CloseRegister = 'CloseRegister',
   Closed = 'Closed',
-  Approved = 'Approved',
+  Opening = 'Opening',
   Cancelled = 'Cancelled'
 }

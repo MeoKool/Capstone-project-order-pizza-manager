@@ -1,36 +1,121 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 import WorkshopService from '@/services/workshop-service'
-import { useParams } from 'react-router-dom'
-import { Workshop } from '@/types/workshop'
+import { useNavigate, useParams } from 'react-router-dom'
+import { WorkshopStatus, type Workshop } from '@/types/workshop'
 import DateTimeDisplay from '@/components/DateTimeDisplay'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+import { ArrowLeft, Edit, X } from 'lucide-react'
 
 export default function WorkshopDetail() {
   const { id } = useParams<{ id: string }>()
   const [workshop, setWorkshop] = useState<Workshop | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const navigate = useNavigate()
+  const workshopService = WorkshopService.getInstance()
 
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return
-      const response = await WorkshopService.getInstance().getWorkshopById(id)
-      if (response.success) {
-        setWorkshop(response.result)
+      setLoading(true)
+      try {
+        const response = await workshopService.getWorkshopById(id)
+        if (response.success) {
+          setWorkshop(response.result)
+        }
+      } catch (error) {
+        console.error('Error fetching workshop:', error)
+      } finally {
+        setLoading(false)
       }
     }
     fetchData()
   }, [id])
 
+  const handleCancelWorkshop = async () => {
+    if (!id) return
+
+    try {
+      const response = await workshopService.cancelWorkshop(id)
+      if (response.success) {
+        // Update the workshop status in the local state
+        setWorkshop((prev) => (prev ? { ...prev, workshopStatus: WorkshopStatus.Cancelled } : null))
+        setShowCancelDialog(false)
+      } else {
+        console.error('Failed to cancel workshop:', response.message)
+      }
+    } catch (error) {
+      console.error('Error cancelling workshop:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className='container mx-auto py-6 flex justify-center items-center h-64'>
+        <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary'></div>
+      </div>
+    )
+  }
+
   if (!workshop) {
-    return <div className='p-4'>Đang tải dữ liệu workshop...</div>
+    return <div className='p-4'>Không tìm thấy dữ liệu workshop</div>
   }
 
   return (
     <div className='container mx-auto py-6'>
-      <Card className='shadow-sm'>
-        <CardHeader>
-          <CardTitle className='text-2xl'>{workshop.name}</CardTitle>
+      <div className='mb-6'>
+        <Button variant='ghost' onClick={() => navigate('/workshops')} className='gap-2'>
+          <ArrowLeft className='h-4 w-4' /> Quay lại danh sách
+        </Button>
+      </div>
+
+      <Card className='shadow-md border border-gray-200 rounded-xl'>
+        <CardHeader className='pb-4 border-b flex flex-row items-center justify-between'>
+          <div>
+            <CardTitle className='text-2xl'>{workshop.name}</CardTitle>
+            <div className='mt-2'>
+              {workshop.workshopStatus === 'Cancelled' ? (
+                <span className='bg-red-500 text-white px-3 py-1 rounded-full text-sm'>Đã hủy</span>
+              ) : workshop.workshopStatus === 'Opening' ? (
+                <span className='bg-green-500 text-white px-3 py-1 rounded-full text-sm'>Đang mở</span>
+              ) : (
+                <span className='bg-blue-500 text-white px-3 py-1 rounded-full text-sm'>{workshop.workshopStatus}</span>
+              )}
+            </div>
+          </div>
+
+          <div className='flex gap-2'>
+            {workshop.workshopStatus !== 'Cancelled' && (
+              <Button
+                variant='outline'
+                className='text-amber-600 border-amber-600 hover:bg-amber-50'
+                onClick={() => setShowCancelDialog(true)}
+              >
+                <X className='mr-2 h-4 w-4' />
+                Hủy workshop
+              </Button>
+            )}
+            <Button variant='outline' onClick={() => navigate(`/workshops/edit/${workshop.id}`)}>
+              <Edit className='mr-2 h-4 w-4' />
+              Chỉnh sửa
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
+
+        <CardContent className='py-6'>
           <div className='grid grid-cols-2 gap-4 text-sm text-muted-foreground'>
             <div>
               <p className='font-semibold text-foreground'>Thời gian diễn ra:</p>
@@ -71,6 +156,24 @@ export default function WorkshopDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Cancel Workshop Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận hủy workshop</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn hủy workshop này không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Không, giữ lại</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelWorkshop} className='bg-amber-600 hover:bg-amber-700'>
+              Có, hủy workshop
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
