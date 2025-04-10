@@ -1,43 +1,102 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Form } from '@/components/ui/form'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { ArrowLeft, ArrowRight, Check, Save, ListIcon } from 'lucide-react'
+import { toast } from 'sonner'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 
 import WorkshopService from '@/services/workshop-service'
 import CategoryService from '@/services/category-service'
 import ProductService from '@/services/product-service'
 import ZoneService from '@/services/zone-service'
 
-import { setHours, setMinutes, getHours, getMinutes } from 'date-fns'
+import { setHours, setMinutes, getHours, getMinutes, isAfter, isBefore } from 'date-fns'
 import WorkshopFormBasicInfo from './WorkshopForm/WorkshopFormBasicInfo'
 import WorkshopFormTimeInfo from './WorkshopForm/WorkshopFormTimeInfo'
 import WorkshopFormRegisterInfo from './WorkshopForm/WorkshopFormRegisterInfo'
 import WorkshopFormFoodMenu from './WorkshopForm/WorkshopFormFoodMenu'
 
-import { ZoneResponse } from '@/types/zone'
-import { CategoryModel } from '@/types/category'
-import { ProductModel } from '@/types/product'
-import { WorkshopCreate } from '@/types/workshop'
+import type { ZoneResponse } from '@/types/zone'
+import type { ProductModel } from '@/types/product'
+import type { WorkshopCreate } from '@/types/workshop'
 
+// Cập nhật schema để chấp nhận undefined cho các trường số
 const formSchema = z.object({
-  name: z.string().min(1),
-  header: z.string().min(1),
-  description: z.string().min(1),
-  location: z.string().min(1),
-  organizer: z.string().min(1),
-  hotLineContact: z.string().min(1),
-  workshopDate: z.string().min(1),
-  startRegisterDate: z.string().min(1),
-  endRegisterDate: z.string().min(1),
-  totalFee: z.number().min(0),
-  maxPizzaPerRegister: z.number().min(0),
-  maxParticipantPerRegister: z.number().min(0),
-  zoneId: z.string().min(1),
-  productIds: z.array(z.string().uuid())
+  name: z.string().min(1, {
+    message: 'Tên workshop không được để trống.'
+  }),
+  header: z.string().min(1, {
+    message: 'Tiêu đề không được để trống.'
+  }),
+  description: z.string().min(1, {
+    message: 'Mô tả không được để trống.'
+  }),
+  location: z.string().min(1, {
+    message: 'Địa điểm không được để trống.'
+  }),
+  organizer: z.string().min(1, {
+    message: 'Người tổ chức không được để trống.'
+  }),
+  hotLineContact: z.string().min(1, {
+    message: 'Số hotline không được để trống.'
+  }),
+  workshopDate: z.string().min(1, {
+    message: 'Thời gian diễn ra không được để trống.'
+  }),
+  startRegisterDate: z.string().min(1, {
+    message: 'Thời gian bắt đầu đăng ký không được để trống.'
+  }),
+  endRegisterDate: z.string().min(1, {
+    message: 'Thời gian kết thúc đăng ký không được để trống.'
+  }),
+  totalFee: z
+    .number()
+    .nonnegative({
+      message: 'Phí tham gia không được âm.'
+    })
+    .optional()
+    .default(0),
+  maxRegister: z
+    .number()
+    .nonnegative({
+      message: 'Số lượng đăng ký tối đa không được âm.'
+    })
+    .optional()
+    .default(0),
+  maxPizzaPerRegister: z
+    .number()
+    .nonnegative({
+      message: 'Số pizza tối đa/đăng ký không được âm.'
+    })
+    .optional()
+    .default(0),
+  maxParticipantPerRegister: z
+    .number()
+    .nonnegative({
+      message: 'Số người tối đa/đăng ký không được âm.'
+    })
+    .optional()
+    .default(0),
+  productIds: z.array(z.string()).min(1, {
+    message: 'Vui lòng chọn ít nhất 1 món ăn.'
+  }),
+  zoneId: z.string().min(1, {
+    message: 'Vui lòng chọn khu vực.'
+  })
 })
 
 type WorkshopFormProps = {
@@ -48,11 +107,19 @@ type WorkshopFormProps = {
 export default function WorkshopForm({ initialData, isEditing = false }: WorkshopFormProps) {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-
+  const prevButtonRef = useRef<HTMLButtonElement>(null)
   const [zones, setZones] = useState<ZoneResponse[]>([])
-  const [categories, setCategories] = useState<CategoryModel[]>([])
   const [products, setProducts] = useState<ProductModel[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [showExitDialog, setShowExitDialog] = useState(false)
+
+  // Step management
+  const [currentStep, setCurrentStep] = useState(0)
+  const steps = [
+    { id: 'basic', title: 'Thông tin cơ bản' },
+    { id: 'time', title: 'Thời gian' },
+    { id: 'register', title: 'Thông tin đăng ký' },
+    { id: 'food', title: 'Thực đơn' }
+  ]
 
   const [loading, setLoading] = useState(false)
   const [fetchingData, setFetchingData] = useState(isEditing && !initialData)
@@ -84,28 +151,25 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       startRegisterDate: '',
       endRegisterDate: '',
       totalFee: 0,
+      maxRegister: 0,
       maxPizzaPerRegister: 0,
       maxParticipantPerRegister: 0,
-      zoneId: '',
-      productIds: []
-    }
+      productIds: [],
+      zoneId: ''
+    },
+    mode: 'onChange'
   })
 
   const productIds = form.watch('productIds')
+  const formIsDirty = form.formState.isDirty
 
   useEffect(() => {
     fetchZones()
-    fetchCategories()
+    fetchPizzaProducts()
     if (isEditing && id && !initialData) {
       fetchWorkshop(id)
     }
   }, [id, isEditing, initialData])
-
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchProductsByCategory(selectedCategory)
-    }
-  }, [selectedCategory])
 
   useEffect(() => {
     if (workshopDate) {
@@ -133,19 +197,36 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
     if (response.success) setZones(response.result.items)
   }
 
-  const fetchCategories = async () => {
-    const response = await CategoryService.getInstance().getAllCategories()
-    if (response.success) {
-      const items = response.result.items
-      setCategories(items)
-      if (items.length > 0) setSelectedCategory(items[0].id)
+  // Thay đổi: Hàm mới để lấy sản phẩm Pizza
+  const fetchPizzaProducts = async () => {
+    try {
+      // Đầu tiên lấy danh sách categories để tìm category "Pizza"
+      const categoriesResponse = await CategoryService.getInstance().getAllCategories()
+      if (categoriesResponse.success) {
+        const pizzaCategory = categoriesResponse.result.items.find(
+          (category) => category.name.toLowerCase() === 'pizza'
+        )
+
+        if (pizzaCategory) {
+          // Nếu tìm thấy category Pizza, lấy các sản phẩm trong category đó
+          const productsResponse = await ProductService.getInstance().getProductsByCategory(pizzaCategory.id)
+          if (productsResponse.success) {
+            setProducts(productsResponse.result.items)
+          }
+        } else {
+          // Nếu không tìm thấy category Pizza, hiển thị thông báo
+          console.warn('Không tìm thấy danh mục Pizza')
+          toast.warning('Không tìm thấy danh mục Pizza')
+          setProducts([])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching pizza products:', error)
+      toast.error('Có lỗi khi tải danh sách sản phẩm')
     }
   }
 
-  const fetchProductsByCategory = async (categoryId: string) => {
-    const response = await ProductService.getInstance().getProductsByCategory(categoryId)
-    if (response.success) setProducts(response.result.items)
-  }
+  // Thay thế hàm fetchWorkshop bằng:
 
   const fetchWorkshop = async (workshopId: string) => {
     try {
@@ -153,10 +234,14 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       const res = await WorkshopService.getInstance().getWorkshopById(workshopId)
       if (res.success) {
         const w = res.result
+        // Đảm bảo productIds là một mảng
+        const productIds = w.workshopFoodDetails?.map((p) => p.productId) || []
+
         form.reset({
           ...w,
-          productIds: w.workshopFoodDetails?.map((p) => p.productId) || []
+          productIds: productIds
         })
+
         const wd = new Date(w.workshopDate)
         const sr = new Date(w.startRegisterDate)
         const er = new Date(w.endRegisterDate)
@@ -177,6 +262,9 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           minute: String(getMinutes(er)).padStart(2, '0')
         })
       }
+    } catch (error) {
+      console.error('Error fetching workshop:', error)
+      toast.error('Có lỗi khi tải dữ liệu workshop')
     } finally {
       setFetchingData(false)
     }
@@ -194,29 +282,154 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
 
   const isProductSelected = (productId: string) => productIds.includes(productId)
 
+  // Cập nhật phần onSubmit để đảm bảo các giá trị số không bị undefined
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true)
 
       const payload = {
         ...values,
+        totalFee: values.totalFee ?? 0,
+        maxRegister: values.maxRegister ?? 0,
+        maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
+        maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
         workshopDate: new Date(values.workshopDate).toISOString(),
         startRegisterDate: new Date(values.startRegisterDate).toISOString(),
         endRegisterDate: new Date(values.endRegisterDate).toISOString(),
-        zone: null,
         zoneName: zones.find((z) => z.id === values.zoneId)?.name || ''
       }
 
       const res =
         isEditing && id
-          ? await WorkshopService.getInstance().createWorkshop(payload) //update workshop
+          ? await WorkshopService.getInstance().updateWorkshop(id)
           : await WorkshopService.getInstance().createWorkshop(payload)
 
-      if (res.success) navigate('/workshops')
+      if (res.success) {
+        toast.success(isEditing ? 'Cập nhật thành công' : 'Tạo mới thành công')
+        navigate('/workshops')
+      } else {
+        toast.error(res.message || 'Vui lòng thử lại sau')
+      }
     } catch (err) {
       console.error(err)
+      toast.error('Có lỗi xảy ra. Vui lòng thử lại sau')
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Kiểm tra xem các trường trong bước hiện tại đã hợp lệ chưa
+  const validateCurrentStep = async () => {
+    let fieldsToValidate: string[] = []
+    let isValid = true
+
+    // Xác định các trường cần kiểm tra dựa trên bước hiện tại
+    switch (currentStep) {
+      case 0: // Thông tin cơ bản
+        fieldsToValidate = ['name', 'header', 'description', 'location', 'organizer', 'hotLineContact', 'zoneId']
+        break
+      case 1: // Thời gian
+        fieldsToValidate = ['workshopDate', 'startRegisterDate', 'endRegisterDate']
+
+        // Kiểm tra thêm lỗi thời gian
+        if (!workshopDate || !startRegisterDate || !endRegisterDate) {
+          isValid = false
+          toast.error('Vui lòng chọn đầy đủ các mốc thời gian')
+        }
+
+        // Kiểm tra thời gian kết thúc đăng ký có lớn hơn thời gian diễn ra không
+        if (workshopDate && endRegisterDate) {
+          const workshopDateTime = new Date(workshopDate)
+          workshopDateTime.setHours(Number.parseInt(workshopTime.hour), Number.parseInt(workshopTime.minute))
+
+          const endRegDateTime = new Date(endRegisterDate)
+          endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
+
+          if (isAfter(endRegDateTime, workshopDateTime)) {
+            isValid = false
+            toast.error('Thời gian kết thúc đăng ký không được lớn hơn thời gian diễn ra')
+          }
+        }
+
+        // Kiểm tra thời gian bắt đầu đăng ký có lớn hơn thời gian diễn ra không
+        if (workshopDate && startRegisterDate) {
+          const workshopDateTime = new Date(workshopDate)
+          workshopDateTime.setHours(Number.parseInt(workshopTime.hour), Number.parseInt(workshopTime.minute))
+
+          const startRegDateTime = new Date(startRegisterDate)
+          startRegDateTime.setHours(Number.parseInt(startRegisterTime.hour), Number.parseInt(startRegisterTime.minute))
+
+          if (isAfter(startRegDateTime, workshopDateTime)) {
+            isValid = false
+            toast.error('Thời gian bắt đầu đăng ký không được lớn hơn thời gian diễn ra')
+          }
+        }
+
+        // Kiểm tra thời gian kết thúc đăng ký có nhỏ hơn thời gian bắt đầu đăng ký không
+        if (startRegisterDate && endRegisterDate) {
+          const startRegDateTime = new Date(startRegisterDate)
+          startRegDateTime.setHours(Number.parseInt(startRegisterTime.hour), Number.parseInt(startRegisterTime.minute))
+
+          const endRegDateTime = new Date(endRegisterDate)
+          endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
+
+          if (isBefore(endRegDateTime, startRegDateTime)) {
+            isValid = false
+            toast.error('Thời gian kết thúc đăng ký phải sau thời gian bắt đầu đăng ký')
+          }
+        }
+
+        break
+      case 2: // Thông tin đăng ký
+        fieldsToValidate = ['totalFee', 'maxRegister', 'maxPizzaPerRegister', 'maxParticipantPerRegister']
+        break
+      case 3: // Thực đơn
+        // Bắt buộc phải chọn ít nhất 1 món ăn
+        fieldsToValidate = ['productIds']
+        break
+    }
+
+    // Kiểm tra tính hợp lệ của các trường
+    const formValid = await form.trigger(fieldsToValidate as any)
+
+    // Kết hợp kết quả kiểm tra form và kiểm tra thời gian
+    if (!formValid || !isValid) {
+      // Hiển thị thông báo lỗi nếu có trường không hợp lệ
+      if (currentStep === 3 && !formValid) {
+        toast.error('Vui lòng chọn ít nhất 1 món ăn')
+      } else if (!formValid) {
+        toast.error('Vui lòng điền đầy đủ thông tin trước khi tiếp tục')
+      }
+      return false
+    }
+
+    return true
+  }
+
+  const nextStep = async (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent any default form submission
+    e.stopPropagation() // Stop event bubbling
+
+    // Kiểm tra tính hợp lệ của bước hiện tại trước khi chuyển sang bước tiếp theo
+    const isValid = await validateCurrentStep()
+
+    if (isValid && currentStep < steps.length - 1) {
+      // Chỉ cập nhật state, không gọi API
+      setCurrentStep((prev) => prev + 1)
+    }
+  }
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleBackToList = () => {
+    if (formIsDirty) {
+      setShowExitDialog(true)
+    } else {
+      navigate('/workshops')
     }
   }
 
@@ -230,73 +443,148 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
 
   return (
     <div className='container mx-auto py-6'>
-      <p className='text-muted-foreground mb-6'>Điền thông tin chi tiết để {isEditing ? 'cập nhật' : 'tạo'} workshop</p>
+      <div className='flex items-center justify-between mb-6'>
+        <p className='text-muted-foreground'>Điền thông tin chi tiết để {isEditing ? 'cập nhật' : 'tạo'} workshop</p>
+        <Button variant='outline' onClick={handleBackToList} className='flex items-center gap-2'>
+          <ListIcon className='h-4 w-4' />
+          Quay lại danh sách
+        </Button>
+      </div>
+
+      {/* Step Progress Bar */}
+      <div className='mb-8'>
+        <div className='flex items-center justify-between'>
+          {steps.map((step, index) => (
+            <div key={step.id} className='flex flex-col items-center'>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
+                  ${
+                    currentStep >= index ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-500'
+                  }`}
+              >
+                {currentStep > index ? <Check className='h-5 w-5' /> : <span>{index + 1}</span>}
+              </div>
+              <span className={`mt-2 text-sm ${currentStep >= index ? 'text-green-500 font-medium' : 'text-gray-500'}`}>
+                {step.title}
+              </span>
+              {index < steps.length - 1 && (
+                <div className={`h-1 w-24 mt-4 ${currentStep > index ? 'bg-green-500' : 'bg-gray-300'}`} />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <FormProvider {...form}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
-            <Tabs defaultValue='basic' className='w-full'>
-              <TabsList className='grid grid-cols-2 h-12 rounded-xl p-1 bg-muted shadow-sm'>
-                <TabsTrigger value='basic'>Thông tin cơ bản</TabsTrigger>
-                <TabsTrigger value='food'>Thực đơn</TabsTrigger>
-              </TabsList>
+            <Card className='shadow-md border border-gray-200 rounded-xl'>
+              <CardHeader className='border-b bg-gray-50'>
+                <CardTitle>{steps[currentStep].title}</CardTitle>
+              </CardHeader>
+              <CardContent className='pt-6'>
+                {currentStep === 0 && <WorkshopFormBasicInfo zones={zones} />}
 
-              <TabsContent value='basic' className='space-y-6'>
-                <WorkshopFormBasicInfo zones={zones} />
-                <WorkshopFormTimeInfo
-                  workshopDate={workshopDate}
-                  setWorkshopDate={setWorkshopDate}
-                  workshopTime={workshopTime}
-                  setWorkshopTime={setWorkshopTime}
-                  startRegisterDate={startRegisterDate}
-                  setStartRegisterDate={setStartRegisterDate}
-                  startRegisterTime={startRegisterTime}
-                  setStartRegisterTime={setStartRegisterTime}
-                  endRegisterDate={endRegisterDate}
-                  setEndRegisterDate={setEndRegisterDate}
-                  endRegisterTime={endRegisterTime}
-                  setEndRegisterTime={setEndRegisterTime}
-                />
-                <WorkshopFormRegisterInfo />
-              </TabsContent>
-
-              <TabsContent value='food' className='space-y-6'>
-                <WorkshopFormFoodMenu
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={setSelectedCategory}
-                  products={products}
-                  handleProductSelect={handleProductSelect}
-                  isProductSelected={isProductSelected}
-                />
-              </TabsContent>
-            </Tabs>
-
-            <div className='flex justify-end gap-4 mt-8'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => navigate('/workshops')}
-                className='min-w-[120px] h-11'
-              >
-                Hủy
-              </Button>
-              <Button type='submit' disabled={loading} className='min-w-[120px] h-11'>
-                {loading ? (
-                  <>
-                    <div className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent'></div>
-                    Đang xử lý
-                  </>
-                ) : isEditing ? (
-                  'Cập nhật'
-                ) : (
-                  'Tạo mới'
+                {currentStep === 1 && (
+                  <WorkshopFormTimeInfo
+                    workshopDate={workshopDate}
+                    setWorkshopDate={setWorkshopDate}
+                    workshopTime={workshopTime}
+                    setWorkshopTime={setWorkshopTime}
+                    startRegisterDate={startRegisterDate}
+                    setStartRegisterDate={setStartRegisterDate}
+                    startRegisterTime={startRegisterTime}
+                    setStartRegisterTime={setStartRegisterTime}
+                    endRegisterDate={endRegisterDate}
+                    setEndRegisterDate={setEndRegisterDate}
+                    endRegisterTime={endRegisterTime}
+                    setEndRegisterTime={setEndRegisterTime}
+                  />
                 )}
-              </Button>
-            </div>
+
+                {currentStep === 2 && <WorkshopFormRegisterInfo />}
+
+                {currentStep === 3 && (
+                  <WorkshopFormFoodMenu
+                    products={products}
+                    handleProductSelect={handleProductSelect}
+                    isProductSelected={isProductSelected}
+                  />
+                )}
+              </CardContent>
+              <CardFooter className='flex justify-between border-t p-4'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={currentStep === 0 ? () => navigate('/workshops') : prevStep}
+                  className='min-w-[120px] h-11'
+                >
+                  {currentStep === 0 ? (
+                    'Hủy'
+                  ) : (
+                    <>
+                      <ArrowLeft className='mr-2 h-4 w-4' />
+                      Quay lại
+                    </>
+                  )}
+                </Button>
+
+                <div className='flex gap-2'>
+                  {currentStep < steps.length - 1 ? (
+                    <Button type='button' onClick={nextStep} className='min-w-[120px] h-11' ref={prevButtonRef}>
+                      Tiếp theo
+                      <ArrowRight className='ml-2 h-4 w-4' />
+                    </Button>
+                  ) : (
+                    <Button
+                      type='submit'
+                      disabled={loading}
+                      className='min-w-[120px] h-11'
+                      onClick={async (e) => {
+                        // Kiểm tra bước cuối cùng trước khi submit
+                        const isValid = await validateCurrentStep()
+                        if (!isValid) {
+                          e.preventDefault()
+                        }
+                      }}
+                    >
+                      {loading ? (
+                        <>
+                          <div className='mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent'></div>
+                          Đang xử lý
+                        </>
+                      ) : (
+                        <>
+                          <Save className='mr-2 h-4 w-4' />
+                          {isEditing ? 'Cập nhật' : 'Tạo mới'}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              </CardFooter>
+            </Card>
           </form>
         </Form>
       </FormProvider>
+
+      {/* Dialog xác nhận khi rời khỏi form có thay đổi chưa lưu */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận rời khỏi trang</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có thay đổi chưa được lưu. Bạn có chắc chắn muốn rời khỏi trang này không?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Tiếp tục chỉnh sửa</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate('/workshops')} className='bg-red-500 hover:bg-red-600'>
+              Rời khỏi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,25 +1,45 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye, CalendarIcon } from 'lucide-react'
+import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye, CalendarIcon, X } from 'lucide-react'
 import WorkshopService from '../../services/workshop-service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import type { Workshop } from '@/types/workshop'
+import { WorkshopStatus, type Workshop } from '@/types/workshop'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/utils/utils'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+import { toast } from 'sonner'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [date, setDate] = useState<Date | undefined>(undefined)
+  const [cancelWorkshopId, setCancelWorkshopId] = useState<string | null>(null)
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
 
@@ -85,6 +105,32 @@ export default function WorkshopsPage() {
     }
   }
 
+  const handleCancelWorkshop = async () => {
+    if (!cancelWorkshopId) return
+
+    try {
+      const response = await workshopService.cancelWorkshop(cancelWorkshopId)
+      if (response.success) {
+        // Update the workshop status in the local state
+        setWorkshops(
+          workshops.map((workshop) =>
+            workshop.id === cancelWorkshopId ? { ...workshop, workshopStatus: WorkshopStatus.Cancelled } : workshop
+          )
+        )
+        toast.success('Workshop đã được hủy thành công!')
+        // Fetch workshops again to refresh the list
+        fetchWorkshops()
+      } else {
+        toast.error('Hủy workshop không thành công!')
+        console.error('Failed to cancel workshop:', response.message)
+      }
+    } catch (error) {
+      console.error('Error cancelling workshop:', error)
+    } finally {
+      setCancelWorkshopId(null)
+    }
+  }
+
   // Filter workshops by search term and selected date
   const filteredWorkshops = workshops.filter((workshop) => {
     const matchesSearch =
@@ -126,7 +172,7 @@ export default function WorkshopsPage() {
         </Button>
       </div>
 
-      <Card>
+      <Card className='shadow-md border border-gray-200 rounded-xl'>
         <CardHeader className='pb-2'>
           <div className='flex items-center justify-between mt-2'>
             <div className='flex items-center space-x-4'>
@@ -175,14 +221,14 @@ export default function WorkshopsPage() {
           ) : (
             <div className='rounded-md border'>
               <Table>
-                <TableHeader>
+                <TableHeader className='bg-gray-50'>
                   <TableRow>
-                    <TableHead>Tên workshop</TableHead>
-                    <TableHead>Thời gian diễn ra</TableHead>
-                    <TableHead>Thời gian đăng ký</TableHead>
-                    <TableHead>Khu vực</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead className='text-right'>Thao tác</TableHead>
+                    <TableHead className='font-semibold'>Tên workshop</TableHead>
+                    <TableHead className='font-semibold'>Thời gian diễn ra</TableHead>
+                    <TableHead className='font-semibold'>Thời gian đăng ký</TableHead>
+                    <TableHead className='font-semibold'>Khu vực</TableHead>
+                    <TableHead className='font-semibold'>Trạng thái</TableHead>
+                    <TableHead className='text-right font-semibold'>Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -219,6 +265,15 @@ export default function WorkshopsPage() {
                                 <Edit className='mr-2 h-4 w-4' />
                                 Chỉnh sửa
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => setCancelWorkshopId(workshop.id)}
+                                className='text-red-600'
+                                disabled={workshop.workshopStatus === 'Cancelled'}
+                              >
+                                <X className='mr-2 h-4 w-4' />
+                                Hủy workshop
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleDelete(workshop.id)} className='text-red-600'>
                                 <Trash2 className='mr-2 h-4 w-4' />
                                 Xóa
@@ -235,6 +290,24 @@ export default function WorkshopsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Cancel Workshop Dialog */}
+      <AlertDialog open={!!cancelWorkshopId} onOpenChange={(open) => !open && setCancelWorkshopId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận hủy workshop</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn hủy workshop này không? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Không, giữ lại</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelWorkshop} className='bg-red-600 hover:bg-red-700'>
+              Có, hủy workshop
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
