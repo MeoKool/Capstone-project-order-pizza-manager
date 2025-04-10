@@ -35,7 +35,7 @@ class StaffService {
    */
   public async getAllStaff(): Promise<ApiResponse<StaffResult>> {
     try {
-      return await get<StaffResult>('/staffs')
+      return await get<StaffResult>('/staffs?TakeCount=1000')
     } catch (error) {
       console.error('Error fetching all staff:', error)
       throw error
