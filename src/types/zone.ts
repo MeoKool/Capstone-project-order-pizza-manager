@@ -1,20 +1,14 @@
 export default interface ZoneRequest {
-    name: string
-    capacity: number,
-    description: string
-    status: ZoneStatus
+  name: string
+  capacity: number
+  description: string
+  type: 'DininingArea' | 'WorkshopArea' | 'KitchenArea'
 }
 export interface ZoneResponse extends ZoneRequest {
-    id: string
-}
-
-
-export enum ZoneStatus {
-    Available = 0,
-    Unavailable = 1
+  id: string
 }
 
 export interface ZoneResult {
-    items: ZoneResponse[]
-    totalCount: number
+  items: ZoneResponse[]
+  totalCount: number
 }

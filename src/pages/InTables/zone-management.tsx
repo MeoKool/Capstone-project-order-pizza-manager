@@ -22,9 +22,22 @@ import { AddZoneDialog } from './components/add-zone-dialog'
 import { toast } from 'sonner'
 import type { ZoneResponse } from '@/types/zone'
 import axios from 'axios' // Ensure Axios is imported
-import { getStatusZone } from '@/utils/table-utils'
 
 const apiUrl = import.meta.env.VITE_API_URL
+
+// Function to convert zone type to user-friendly display name
+const getZoneTypeDisplayName = (type: string): string => {
+  switch (type) {
+    case 'DininingArea':
+      return 'Khu vực ăn uống'
+    case 'KitchenArea':
+      return 'Khu vực bếp'
+    case 'WorkshopArea':
+      return 'Khu vực workshop'
+    default:
+      return type
+  }
+}
 
 const ZoneManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -151,8 +164,7 @@ const ZoneManagement: React.FC = () => {
               <TableRow>
                 <TableHead className='w-[30%] text-amber-800'>Tên khu vực</TableHead>
                 <TableHead className='w-[30%] text-amber-800'>Mô tả</TableHead>
-                <TableHead className='text-right w-[15%] text-amber-800'>Số lượng bàn</TableHead>
-                <TableHead className='w-[15%] text-amber-800'>Trạng thái</TableHead>
+                <TableHead className='w-[15%] text-amber-800'>Loại khu vực</TableHead>
                 <TableHead className='w-[10%]'></TableHead>
               </TableRow>
             </TableHeader>
@@ -180,12 +192,8 @@ const ZoneManagement: React.FC = () => {
                   <TableRow key={zone.id} className='hover:bg-amber-50'>
                     <TableCell className='font-medium text-amber-900'>{zone.name}</TableCell>
                     <TableCell className='text-gray-600'>{zone.description}</TableCell>
-                    <TableCell className='text-right'>
-                      <Badge variant='outline' className='bg-amber-50 border-amber-200 text-amber-700'>
-                        {zone.capacity}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{getStatusZone(zone.status)}</TableCell>
+                    {/* Display user-friendly zone type name instead of raw value */}
+                    <TableCell>{getZoneTypeDisplayName(zone.type)}</TableCell>
 
                     <TableCell>
                       <DropdownMenu>
