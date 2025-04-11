@@ -5,7 +5,7 @@ import { Workshop, WorkshopCreate, WorkshopResult } from '@/types/workshop'
 export default class WorkshopService {
   private static instance: WorkshopService
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): WorkshopService {
     if (!WorkshopService.instance) {
@@ -16,7 +16,7 @@ export default class WorkshopService {
 
   public getAllWorkshops(): Promise<ApiResponse<WorkshopResult>> {
     try {
-      return get<WorkshopResult>(`/workshops`)
+      return get<WorkshopResult>(`/workshops?TakeCount=1000&IncludeProperties=WorkshopFoodDetails`)
     } catch (error) {
       console.error('Error fetching all workshops:', error)
       throw error
