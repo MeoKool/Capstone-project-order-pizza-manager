@@ -167,7 +167,12 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
               </div>
               <div className="flex justify-between items-center gap-2">
                 <span className="text-xs sm:text-sm text-muted-foreground">Thời gian còn lại:</span>
-                <TableTimer isRunning={isTimerRunning} onTimeUp={handleTimeUp} />
+                <TableTimer
+                  tableId={table.id}
+                  status={table.status}
+                  isRunning={isTimerRunning}
+                  onTimeUp={handleTimeUp}
+                />
               </div>
             </div>
           ),
