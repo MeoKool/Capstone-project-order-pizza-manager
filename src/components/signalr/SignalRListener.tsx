@@ -12,7 +12,12 @@ type Notification = {
   payload: string
   createdAt: string
 }
-
+type ReservationCreatedNotification = {
+  numberOfPeople: number
+  customerName: string
+  phoneNumber: string
+  id: string
+}
 export default function SignalRListener() {
   useEffect(() => {
     if (!isConnected && connection.state === 'Disconnected') {
@@ -51,13 +56,20 @@ export default function SignalRListener() {
       })
     })
 
-    connection.on('AssignTableForReservation', (data: Notification) => {
-      console.log('Received AssignTableForReservation notification:', data)
+    connection.on('ReservationCreated', (data: ReservationCreatedNotification) => {
+      console.log('Received ReservationCreated notification:', data)
 
       Swal.fire({
-        title: data.title,
-        text: data.message,
-        width: '32em', // Increased width
+        title: 'Đặt bàn',
+        text:
+          'Bạn có một đặt bàn mới từ ' +
+          data.customerName +
+          ' với số lượng người là ' +
+          data.numberOfPeople +
+          ' và số điện thoại là ' +
+          data.phoneNumber,
+        icon: 'success',
+        width: '32em',
         confirmButtonText: 'Đóng',
         customClass: {
           title: 'text-xl font-bold',
@@ -75,12 +87,55 @@ export default function SignalRListener() {
             animate__faster
           `
         }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/in-tables'
+        }
       })
     })
 
+    connection.on('AssignTableForReservation', (data: ReservationCreatedNotification) => {
+      console.log('Received AssignTableForReservation notification:', data)
+
+      Swal.fire({
+        title: 'Sắp xếp bàn',
+        text:
+          'Sắp có khách ' +
+          data.customerName +
+          ' với số lượng người là ' +
+          data.numberOfPeople +
+          ' và số điện thoại là ' +
+          data.phoneNumber +
+          ' đến, vui lòng chọn bàn cho khách',
+        icon: 'success',
+        width: '32em',
+        confirmButtonText: 'Đóng',
+        customClass: {
+          title: 'text-xl font-bold',
+          popup: `
+            animate__animated
+            animate__fadeInUp
+            animate__faster
+          `,
+          htmlContainer: 'text-base'
+        },
+        hideClass: {
+          popup: `
+            animate__animated
+            animate__fadeOutDown
+            animate__faster
+          `
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/in-tables'
+        }
+      })
+    })
     return () => {
-      connection.off('ReceiveNotification')
       connection.off('AssignTableForReservation')
+      connection.off('ReceiveNotification')
+      connection.off('ReservationCreated')
     }
   }, [])
 

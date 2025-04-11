@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye, CalendarIcon, X } from 'lucide-react'
@@ -31,6 +33,7 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
@@ -38,6 +41,7 @@ export default function WorkshopsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [cancelWorkshopId, setCancelWorkshopId] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<string[]>([])
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
 
@@ -65,12 +69,14 @@ export default function WorkshopsPage() {
     switch (status) {
       case 'Scheduled':
         return <Badge className='bg-blue-500'>Đã lên lịch</Badge>
-      case 'Opening':
-        return <Badge className='bg-green-500'>Đang mở</Badge>
+      case 'OpeningToRegister':
+        return <Badge className='bg-green-500'>Đang mở đăng ký</Badge>
+      case 'CloseRegister':
+        return <Badge className='bg-gray-500'>Đã đóng đăng ký</Badge>
       case 'Closed':
         return <Badge className='bg-gray-500'>Đã đóng</Badge>
-      case 'Approved':
-        return <Badge className='bg-blue-500'>Đã duyệt</Badge>
+      case 'Opening':
+        return <Badge className='bg-blue-500'>Đang diễn ra</Badge>
       case 'Cancelled':
         return <Badge className='bg-red-500'>Đã hủy</Badge>
       default:
@@ -129,24 +135,31 @@ export default function WorkshopsPage() {
     }
   }
 
-  // Filter workshops by search term and selected date
+  const handleStatusFilterChange = (status: string) => {
+    setStatusFilter((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
+  }
+
   const filteredWorkshops = workshops.filter((workshop) => {
     const matchesSearch =
       workshop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       workshop.description.toLowerCase().includes(searchTerm.toLowerCase())
+
+    // Check if workshop matches status filter
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(workshop.workshopStatus)
 
     // If date is selected, filter by date
     if (date) {
       const workshopDate = new Date(workshop.workshopDate)
       return (
         matchesSearch &&
+        matchesStatus &&
         workshopDate.getDate() === date.getDate() &&
         workshopDate.getMonth() === date.getMonth() &&
         workshopDate.getFullYear() === date.getFullYear()
       )
     }
 
-    return matchesSearch
+    return matchesSearch && matchesStatus
   })
 
   const formatDate = (dateString: string) => {
@@ -206,9 +219,90 @@ export default function WorkshopsPage() {
               )}
             </div>
 
-            <Button variant='outline' size='sm'>
-              <Filter className='mr-2 h-4 w-4' /> Lọc
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant='outline' size='sm'>
+                  <Filter className='mr-2 h-4 w-4' /> Lọc
+                  {statusFilter.length > 0 && (
+                    <Badge variant='secondary' className='ml-2 rounded-full'>
+                      {statusFilter.length}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className='w-auto p-4' align='end'>
+                <div className='space-y-2'>
+                  <h4 className='font-medium'>Trạng thái</h4>
+                  <div className='grid gap-2'>
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        id='status-scheduled'
+                        checked={statusFilter.includes('Scheduled')}
+                        onCheckedChange={() => handleStatusFilterChange('Scheduled')}
+                      />
+                      <label htmlFor='status-scheduled' className='text-sm cursor-pointer'>
+                        Đã lên lịch
+                      </label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        id='status-opening-register'
+                        checked={statusFilter.includes('OpeningToRegister')}
+                        onCheckedChange={() => handleStatusFilterChange('OpeningToRegister')}
+                      />
+                      <label htmlFor='status-opening-register' className='text-sm cursor-pointer'>
+                        Đang mở đăng ký
+                      </label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        id='status-close-register'
+                        checked={statusFilter.includes('CloseRegister')}
+                        onCheckedChange={() => handleStatusFilterChange('CloseRegister')}
+                      />
+                      <label htmlFor='status-close-register' className='text-sm cursor-pointer'>
+                        Đã đóng đăng ký
+                      </label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        id='status-closed'
+                        checked={statusFilter.includes('Closed')}
+                        onCheckedChange={() => handleStatusFilterChange('Closed')}
+                      />
+                      <label htmlFor='status-closed' className='text-sm cursor-pointer'>
+                        Đã đóng
+                      </label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        id='status-opening'
+                        checked={statusFilter.includes('Opening')}
+                        onCheckedChange={() => handleStatusFilterChange('Opening')}
+                      />
+                      <label htmlFor='status-opening' className='text-sm cursor-pointer'>
+                        Đang diễn ra
+                      </label>
+                    </div>
+                    <div className='flex items-center space-x-2'>
+                      <Checkbox
+                        id='status-cancelled'
+                        checked={statusFilter.includes('Cancelled')}
+                        onCheckedChange={() => handleStatusFilterChange('Cancelled')}
+                      />
+                      <label htmlFor='status-cancelled' className='text-sm cursor-pointer'>
+                        Đã hủy
+                      </label>
+                    </div>
+                  </div>
+                  {statusFilter.length > 0 && (
+                    <Button variant='outline' size='sm' className='w-full mt-2' onClick={() => setStatusFilter([])}>
+                      Xóa bộ lọc
+                    </Button>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </CardHeader>
         <CardContent>
