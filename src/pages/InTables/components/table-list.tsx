@@ -49,6 +49,8 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
 
   const handleTimeUp = (tableId: string) => {
     setRunningTimers((prev) => ({ ...prev, [tableId]: false }))
+    toast.warning(`Hết thời gian đặt trước cho bàn ${tables.find((t) => t.id === tableId)?.code || tableId}`)
+
     console.log(`Hết thời gian cho bàn ${tableId}`)
   }
 
@@ -172,7 +174,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
       case "Reserved":
         return (
           <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">
-            <Button
+            {/* <Button
               size="sm"
               className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 bg-emerald-600 hover:bg-emerald-700 text-white"
               disabled={isLoading}
@@ -186,7 +188,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
               disabled={isLoading}
             >
               Hủy đặt
-            </Button>
+            </Button> */}
           </div>
         )
       case "Locked":
@@ -353,6 +355,8 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                             </div>
                             <div className="font-medium text-blue-700">
                               <TableTimer
+                                tableId={table.id}
+                                status={table.status}
                                 isRunning={runningTimers[table.id] || false}
                                 onTimeUp={() => handleTimeUp(table.id)}
                               />
