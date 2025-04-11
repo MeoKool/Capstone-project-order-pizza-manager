@@ -1,3 +1,7 @@
+'use client'
+
+import type React from 'react'
+
 import { useEffect, useRef, useState } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -226,8 +230,6 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
     }
   }
 
-  // Thay thế hàm fetchWorkshop bằng:
-
   const fetchWorkshop = async (workshopId: string) => {
     try {
       setFetchingData(true)
@@ -287,21 +289,37 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
     try {
       setLoading(true)
 
+      // Create date objects with the correct time values
+      const workshopDateTime = new Date(workshopDate!)
+      workshopDateTime.setHours(Number.parseInt(workshopTime.hour), Number.parseInt(workshopTime.minute))
+
+      const startRegDateTime = new Date(startRegisterDate!)
+      startRegDateTime.setHours(Number.parseInt(startRegisterTime.hour), Number.parseInt(startRegisterTime.minute))
+
+      const endRegDateTime = new Date(endRegisterDate!)
+      endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
+
+      // Log the dates for debugging
+      console.log('Workshop Date:', workshopDateTime.toISOString())
+      console.log('Start Register Date:', startRegDateTime.toISOString())
+      console.log('End Register Date:', endRegDateTime.toISOString())
+
       const payload = {
         ...values,
         totalFee: values.totalFee ?? 0,
         maxRegister: values.maxRegister ?? 0,
         maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
         maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
-        workshopDate: new Date(values.workshopDate).toISOString(),
-        startRegisterDate: new Date(values.startRegisterDate).toISOString(),
-        endRegisterDate: new Date(values.endRegisterDate).toISOString(),
+        // Use the date objects we created above
+        workshopDate: workshopDateTime.toISOString(),
+        startRegisterDate: startRegDateTime.toISOString(),
+        endRegisterDate: endRegDateTime.toISOString(),
         zoneName: zones.find((z) => z.id === values.zoneId)?.name || ''
       }
 
       const res =
         isEditing && id
-          ? await WorkshopService.getInstance().updateWorkshop(id)
+          ? await WorkshopService.getInstance().updateWorkshop(id) // Make sure to pass payload here
           : await WorkshopService.getInstance().createWorkshop(payload)
 
       if (res.success) {
@@ -345,6 +363,7 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           const endRegDateTime = new Date(endRegisterDate)
           endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
 
+          // Compare dates in the same timezone
           if (isAfter(endRegDateTime, workshopDateTime)) {
             isValid = false
             toast.error('Thời gian kết thúc đăng ký không được lớn hơn thời gian diễn ra')
@@ -359,6 +378,7 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           const startRegDateTime = new Date(startRegisterDate)
           startRegDateTime.setHours(Number.parseInt(startRegisterTime.hour), Number.parseInt(startRegisterTime.minute))
 
+          // Compare dates in the same timezone
           if (isAfter(startRegDateTime, workshopDateTime)) {
             isValid = false
             toast.error('Thời gian bắt đầu đăng ký không được lớn hơn thời gian diễn ra')
@@ -373,6 +393,7 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           const endRegDateTime = new Date(endRegisterDate)
           endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
 
+          // Compare dates in the same timezone
           if (isBefore(endRegDateTime, startRegDateTime)) {
             isValid = false
             toast.error('Thời gian kết thúc đăng ký phải sau thời gian bắt đầu đăng ký')

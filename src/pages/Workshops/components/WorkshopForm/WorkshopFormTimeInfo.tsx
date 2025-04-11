@@ -6,11 +6,11 @@ import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon, Clock, AlertCircle } from 'lucide-react'
 import { format, isAfter, isBefore } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { cn } from '@/utils/utils'
 import { useFormContext } from 'react-hook-form'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { Dispatch, SetStateAction } from 'react'
+import { cn } from '@/utils/utils'
 
 type TimeState = { hour: string; minute: string }
 
@@ -27,6 +27,21 @@ type Props = {
   setWorkshopTime: Dispatch<SetStateAction<TimeState>>
   setStartRegisterTime: Dispatch<SetStateAction<TimeState>>
   setEndRegisterTime: Dispatch<SetStateAction<TimeState>>
+}
+
+// Add this debugging function to help see what's happening with dates
+function debugDate(date?: Date, time?: TimeState) {
+  if (!date || !time) return 'No date/time'
+
+  const dateObj = new Date(date)
+  dateObj.setHours(Number.parseInt(time.hour), Number.parseInt(time.minute))
+
+  return {
+    localString: dateObj.toString(),
+    isoString: dateObj.toISOString(),
+    localTime: `${time.hour}:${time.minute}`,
+    utcTime: `${dateObj.getUTCHours()}:${dateObj.getUTCMinutes()}`
+  }
 }
 
 export default function WorkshopFormTimeInfo({
@@ -63,18 +78,26 @@ export default function WorkshopFormTimeInfo({
 
   // Hàm kiểm tra tính hợp lệ của các ngày và thời gian
   const validateDates = () => {
+    // Debug date information
+    console.log('Workshop Date Debug:', debugDate(workshopDate, workshopTime))
+    console.log('Start Register Date Debug:', debugDate(startRegisterDate, startRegisterTime))
+    console.log('End Register Date Debug:', debugDate(endRegisterDate, endRegisterTime))
+
     const errors = {
       workshopDate: false,
       startRegisterDate: false,
       endRegisterDate: false
     }
 
+    // Get current time in local timezone
+    const now = new Date()
+
     // Kiểm tra workshopDate không được nhỏ hơn ngày hôm nay
     if (workshopDate) {
       const workshopDateTime = new Date(workshopDate)
       workshopDateTime.setHours(Number.parseInt(workshopTime.hour), Number.parseInt(workshopTime.minute))
 
-      if (isBefore(workshopDateTime, new Date())) {
+      if (isBefore(workshopDateTime, now)) {
         errors.workshopDate = true
         setValue('workshopDate', '')
       }
@@ -88,6 +111,7 @@ export default function WorkshopFormTimeInfo({
       const startRegDateTime = new Date(startRegisterDate)
       startRegDateTime.setHours(Number.parseInt(startRegisterTime.hour), Number.parseInt(startRegisterTime.minute))
 
+      // Compare dates in the same timezone
       if (isAfter(startRegDateTime, workshopDateTime)) {
         errors.startRegisterDate = true
         setValue('startRegisterDate', '')
@@ -102,6 +126,7 @@ export default function WorkshopFormTimeInfo({
       const endRegDateTime = new Date(endRegisterDate)
       endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
 
+      // Compare dates in the same timezone
       if (isAfter(endRegDateTime, workshopDateTime)) {
         errors.endRegisterDate = true
         setValue('endRegisterDate', '')
@@ -116,6 +141,7 @@ export default function WorkshopFormTimeInfo({
       const endRegDateTime = new Date(endRegisterDate)
       endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
 
+      // Compare dates in the same timezone
       if (isBefore(endRegDateTime, startRegDateTime)) {
         errors.endRegisterDate = true
         setValue('endRegisterDate', '')
@@ -323,6 +349,7 @@ function DateTimePicker({
             className='rounded-md border'
             fromDate={minDate}
             toDate={maxDate}
+            locale={vi}
           />
         </PopoverContent>
       </Popover>
