@@ -5,7 +5,7 @@ import type { AddFoodResponse, CreateOrderResponse, OrdersResult, OrderItemsResu
 class OrderService {
   private static instance: OrderService
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): OrderService {
     if (!OrderService.instance) {
