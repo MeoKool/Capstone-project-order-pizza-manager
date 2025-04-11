@@ -4,13 +4,14 @@ import { Button } from '@/components/ui/button'
 import { SearchBar } from '@/components/ui/search-bar'
 import { Plus, RefreshCw, Coffee, MapPin } from 'lucide-react'
 import type React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { TableFilters } from './components/table-filters'
 import { TableList } from './components/table-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { TableAddDialog } from './components/table-add-dialog'
 import useZone from '@/hooks/useZone'
+import { connection } from '@/lib/signalr-client'
 
 const TableManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -51,7 +52,19 @@ const TableManagement: React.FC = () => {
     // Refresh the table list after a table is updated
     fetchAllTables()
   }
+  // ------------------
+  // Auto refresh khi nhận được sự kiện từ SIGNALR
+  // ------------------
+  useEffect(() => {
+    const handleNewOrder = () => {
+      fetchAllTables()
+    }
 
+    connection.on('OrderItemUpdatedStatus', handleNewOrder)
+    return () => {
+      connection.off('OrderItemUpdatedStatus', handleNewOrder)
+    }
+  }, [])
   const tableStatusCounts = {
     all: tables.length,
     Opening: tables.filter((t) => t.status === 'Opening').length,

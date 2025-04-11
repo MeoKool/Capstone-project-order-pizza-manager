@@ -132,7 +132,10 @@ export default function SignalRListener() {
         }
       })
     })
+    connection.on('OrderItemUpdatedStatus', () => {})
+
     return () => {
+      connection.off('OrderItemUpdatedStatus')
       connection.off('AssignTableForReservation')
       connection.off('ReceiveNotification')
       connection.off('ReservationCreated')
