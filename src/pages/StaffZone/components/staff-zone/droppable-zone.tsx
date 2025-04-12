@@ -80,8 +80,8 @@ export function DroppableZone({ zone, staffZones, isMoving, movingStaffId, isGri
     return (
       <Card
         ref={setNodeRef}
-        className={`border-2 ${getZoneColor(zone.type)} overflow-hidden ${
-          isOver ? 'ring-4 ring-primary ring-opacity-50 shadow-lg transform scale-[1.02]' : ''
+        className={`border-2 ${getZoneColor(zone.type)} overflow-hidden transition-all duration-200 ${
+          isOver ? 'ring-2 ring-primary ring-opacity-70 shadow-lg transform scale-[1.01]' : ''
         }`}
       >
         <div className='p-4 border-b border-gray-100'>
@@ -104,12 +104,16 @@ export function DroppableZone({ zone, staffZones, isMoving, movingStaffId, isGri
             <span className='text-sm text-muted-foreground'>{staffZones.length} nhân viên</span>
           </div>
           <div
-            className={`space-y-3 max-h-[240px] overflow-y-auto pr-1 ${
-              isOver ? 'bg-primary bg-opacity-5 rounded-lg p-2' : ''
+            className={`space-y-3 max-h-[240px] overflow-y-auto pr-1 transition-all duration-200 ${
+              isOver ? 'bg-primary/5 rounded-lg p-2' : ''
             } ${staffZones.length === 0 ? 'flex items-center justify-center min-h-[100px]' : ''}`}
           >
             {staffZones.length === 0 ? (
-              <p className='text-muted-foreground text-sm text-center'>Thả nhân viên vào đây</p>
+              <div
+                className={`text-muted-foreground text-sm text-center p-4 border border-dashed rounded-lg ${isOver ? 'border-primary/50 bg-primary/5' : 'border-gray-200'}`}
+              >
+                <p>Thả nhân viên vào đây</p>
+              </div>
             ) : (
               staffZones.map((staffZone) => (
                 <DraggableStaffCard
@@ -128,8 +132,8 @@ export function DroppableZone({ zone, staffZones, isMoving, movingStaffId, isGri
     return (
       <Card
         ref={setNodeRef}
-        className={`border-l-4 ${getZoneColor(zone.type)} ${
-          isOver ? 'ring-4 ring-primary ring-opacity-50 shadow-lg transform scale-[1.01]' : ''
+        className={`border-l-4 ${getZoneColor(zone.type)} transition-all duration-200 ${
+          isOver ? 'ring-2 ring-primary ring-opacity-70 shadow-lg transform scale-[1.005]' : ''
         }`}
       >
         <CardContent className='p-4'>
@@ -146,9 +150,15 @@ export function DroppableZone({ zone, staffZones, isMoving, movingStaffId, isGri
             </div>
 
             <div
-              className={`flex-1 flex flex-wrap gap-2 mt-2 md:mt-0 ${
-                isOver ? 'bg-primary bg-opacity-5 p-2 rounded-lg' : ''
-              } ${staffZones.length === 0 ? 'justify-center items-center min-h-[50px]' : ''}`}
+              className={`flex-1 flex flex-wrap gap-2 mt-2 md:mt-0 transition-all duration-200 rounded-lg p-2 ${
+                isOver ? 'bg-primary/5' : ''
+              } ${staffZones.length === 0 ? 'justify-center items-center min-h-[50px] border border-dashed' : ''} ${
+                staffZones.length === 0 && isOver
+                  ? 'border-primary/50'
+                  : staffZones.length === 0
+                    ? 'border-gray-200'
+                    : ''
+              }`}
             >
               {staffZones.length === 0 ? (
                 <p className='text-muted-foreground text-sm'>Thả nhân viên vào đây</p>

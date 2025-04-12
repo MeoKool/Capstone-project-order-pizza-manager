@@ -70,6 +70,7 @@ export function StaffZoneHeader({
             <SelectItem value='all'>Tất cả khu vực</SelectItem>
             <SelectItem value='DininingArea'>Khu vực phục vụ</SelectItem>
             <SelectItem value='KitchenArea'>Khu vực bếp</SelectItem>
+            <SelectItem value='WorkshopArea'>Khu vực Workshop</SelectItem>
           </SelectContent>
         </Select>
       </div>

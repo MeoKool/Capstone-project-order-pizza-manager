@@ -48,7 +48,7 @@ export function DraggableStaffCard({ staffZone, isMoving, movingStaffId }: Dragg
       {...attributes}
       {...listeners}
       className={`flex items-center justify-between p-2 rounded-md hover:bg-gray-50 transition-colors cursor-grab active:cursor-grabbing bg-white border ${
-        isDragging ? 'opacity-30' : 'border-transparent'
+        isDragging ? 'opacity-0' : 'border-gray-100 hover:border-gray-200'
       } ${isMoving && movingStaffId === staffZone.staff.id ? 'animate-pulse' : ''}`}
       style={{
         touchAction: 'none' // Prevents touch scrolling while dragging on mobile

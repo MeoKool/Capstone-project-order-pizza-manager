@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -339,7 +337,7 @@ export default function StaffZoneManagement() {
           </TabsList>
         </div>
 
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[]}>
           <TabsContent value='grid' className='mt-0'>
             {filteredZones.length === 0 ? (
               <EmptyZoneState resetFilters={resetFilters} />

@@ -48,9 +48,9 @@ export function DraggableStaffPill({ staffZone, isMoving, movingStaffId }: Dragg
       {...attributes}
       {...listeners}
       className={`flex items-center gap-2 bg-white rounded-full px-3 py-1 shadow-sm cursor-grab active:cursor-grabbing
-        ${isDragging ? 'opacity-30' : ''}
+        ${isDragging ? 'opacity-0' : ''}
         ${isMoving && movingStaffId === staffZone.staff.id ? 'animate-pulse' : ''}
-        border border-gray-200`}
+        border border-gray-200 hover:border-gray-300 hover:shadow transition-all`}
       style={{
         touchAction: 'none' // Prevents touch scrolling while dragging on mobile
       }}

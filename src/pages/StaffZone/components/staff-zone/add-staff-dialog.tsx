@@ -111,7 +111,7 @@ export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline' className='gap-2'>
+        <Button variant='green' className='gap-2'>
           <UserPlus className='h-4 w-4' />
           Thêm nhân viên vào khu vực
         </Button>
