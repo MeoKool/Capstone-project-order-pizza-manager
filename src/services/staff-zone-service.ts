@@ -1,5 +1,5 @@
 import type ApiResponse from '@/apis/apiUtils'
-import { get, put } from '@/apis/apiUtils'
+import { get, put, post } from '@/apis/apiUtils'
 
 export interface Staff {
   id: string
@@ -67,7 +67,7 @@ class StaffZoneService {
    */
   public async getAllStaffZones(): Promise<ApiResponse<StaffZoneResult>> {
     try {
-      return await get<StaffZoneResult>('/staff-zones?TakeCount=1000&IncludeProperties=Staff%2CZone')
+      return await get<StaffZoneResult>('/staff-zones?TakeCount=1000&SortBy=zone.name&IncludeProperties=Staff%2CZone')
     } catch (error) {
       console.error('Error fetching all staff zones:', error)
       throw error
@@ -111,6 +111,27 @@ class StaffZoneService {
       )
     } catch (error) {
       console.error(`Error fetching staff for zone ${zoneId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Create a new staff zone assignment
+   */
+  public async createStaffZone(staffId: string, zoneId: string, note?: string): Promise<ApiResponse<StaffZone>> {
+    try {
+      const data: CreateStaffZoneDto = {
+        staffId,
+        zoneId
+      }
+
+      if (note) {
+        data.note = note
+      }
+
+      return await post<StaffZone>('/staff-zones', data)
+    } catch (error) {
+      console.error(`Error creating staff zone assignment for staff ${staffId} in zone ${zoneId}:`, error)
       throw error
     }
   }

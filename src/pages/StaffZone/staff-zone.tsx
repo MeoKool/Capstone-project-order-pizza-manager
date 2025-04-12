@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -207,25 +209,15 @@ export default function StaffZoneManagement() {
   // Thêm nhân viên vào khu vực
   const handleAddStaff = async (staffId: string, zoneId: string): Promise<boolean> => {
     try {
-      const response = await fetch('https://vietsac.id.vn/api/staff-zones', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          staffId,
-          zoneId
-        })
-      })
+      const staffZoneService = StaffZoneService.getInstance()
+      const response = await staffZoneService.createStaffZone(staffId, zoneId)
 
-      const data = await response.json()
-
-      if (data.success) {
+      if (response.success) {
         // Refresh data after adding
         await fetchZonesAndStaff()
         return true
       } else {
-        toast.error(data.message || 'Không thể thêm nhân viên vào khu vực')
+        toast.error(response.message || 'Không thể thêm nhân viên vào khu vực')
         return false
       }
     } catch (error) {
@@ -276,6 +268,9 @@ export default function StaffZoneManagement() {
 
   return (
     <div className='mx-auto p-4 max-w-full'>
+      {/* Hướng dẫn sử dụng */}
+      <StaffZoneGuide />
+      <div className='mb-10'></div>
       {/* Header with time and search */}
       <StaffZoneHeader
         currentTime={currentTime}
@@ -284,9 +279,7 @@ export default function StaffZoneManagement() {
         filterZoneType={filterZoneType}
         setFilterZoneType={setFilterZoneType}
       />
-
-      {/* Hướng dẫn sử dụng */}
-      <StaffZoneGuide />
+      <div className='mb-10'></div>
 
       {/* Stats cards */}
       <StaffZoneStats

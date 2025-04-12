@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -23,6 +25,8 @@ export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
   const [selectedStaff, setSelectedStaff] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+  // Thêm state để lọc theo loại nhân viên
+  const [filterStaffType, setFilterStaffType] = useState<string>('all')
 
   useEffect(() => {
     if (isOpen) {
@@ -75,8 +79,12 @@ export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
     }
   }
 
-  // Lọc nhân viên theo từ khóa tìm kiếm
-  const filteredStaff = staff.filter((s) => s.fullName.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Cập nhật hàm lọc nhân viên để bao gồm cả lọc theo loại
+  const filteredStaff = staff.filter((s) => {
+    const matchesSearch = s.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesType = filterStaffType === 'all' || s.staffType === filterStaffType
+    return matchesSearch && matchesType
+  })
 
   // Lấy chữ cái đầu của tên
   const getInitials = (name: string) => {
@@ -146,6 +154,33 @@ export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            {/* Thêm vào phần UI, ngay sau input tìm kiếm và trước ScrollArea */}
+            <div className='flex gap-2 mt-2'>
+              <Button
+                variant={filterStaffType === 'all' ? 'yellow' : 'outline'}
+                size='sm'
+                onClick={() => setFilterStaffType('all')}
+                className='flex-1'
+              >
+                Tất cả
+              </Button>
+              <Button
+                variant={filterStaffType === 'Staff' ? 'yellow' : 'outline'}
+                size='sm'
+                onClick={() => setFilterStaffType('Staff')}
+                className='flex-1'
+              >
+                Nhân viên
+              </Button>
+              <Button
+                variant={filterStaffType === 'Cheff' ? 'yellow' : 'outline'}
+                size='sm'
+                onClick={() => setFilterStaffType('Cheff')}
+                className='flex-1'
+              >
+                Đầu bếp
+              </Button>
+            </div>
 
             {loading ? (
               <div className='flex justify-center py-8'>
@@ -203,7 +238,7 @@ export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
             <Button variant='outline' onClick={() => setIsOpen(false)}>
               Hủy
             </Button>
-            <Button onClick={handleAddStaff} disabled={!selectedZone || !selectedStaff || isAdding}>
+            <Button variant='green' onClick={handleAddStaff} disabled={!selectedZone || !selectedStaff || isAdding}>
               {isAdding ? <Loader2 className='h-4 w-4 mr-2 animate-spin' /> : <Plus className='h-4 w-4 mr-2' />}
               Thêm nhân viên
             </Button>

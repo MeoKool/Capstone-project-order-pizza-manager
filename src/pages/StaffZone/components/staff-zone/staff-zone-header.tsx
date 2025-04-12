@@ -41,7 +41,6 @@ export function StaffZoneHeader({
   return (
     <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
       <div className='flex flex-col'>
-        <h1 className='text-2xl font-bold tracking-tight'>Quản lý khu vực làm việc</h1>
         <div className='flex items-center gap-2 text-muted-foreground'>
           <Clock className='h-4 w-4' />
           <span>{formatTime(currentTime)}</span>
