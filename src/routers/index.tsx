@@ -24,6 +24,7 @@ const More = lazy(() => import('@/pages/More/More'))
 
 // Loading component
 import Loading from '@/routers/Loading'
+import StaffZone from '@/pages/StaffZone/staff-zone'
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -155,6 +156,14 @@ export const router = createBrowserRouter([
         element: (
           <Suspense fallback={<Loading />}>
             <Reports />
+          </Suspense>
+        )
+      },
+      {
+        path: 'zones-staff',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <StaffZone />
           </Suspense>
         )
       },
