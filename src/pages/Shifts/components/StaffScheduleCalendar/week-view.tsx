@@ -58,8 +58,9 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
     const fetchWorkingSlots = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('https://vietsac.id.vn/api/working-slots?SortBy=shiftStart')
+        const response = await fetch('https://vietsac.id.vn/api/working-slots?TakeCount=1000&SortBy=shiftStart')
         const data = await response.json()
+        console.log('Working slots data:', data)
 
         if (data.success) {
           setWorkingSlots(data.result.items)
