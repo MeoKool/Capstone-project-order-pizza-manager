@@ -1,5 +1,3 @@
-'use client'
-
 import { Clock, Filter, Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'

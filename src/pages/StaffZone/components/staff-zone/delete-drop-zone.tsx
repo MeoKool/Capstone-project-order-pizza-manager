@@ -1,5 +1,3 @@
-'use client'
-
 import { useDroppable } from '@dnd-kit/core'
 import { Trash2 } from 'lucide-react'
 import { useState } from 'react'
