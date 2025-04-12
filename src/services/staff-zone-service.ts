@@ -1,5 +1,5 @@
 import type ApiResponse from '@/apis/apiUtils'
-import { get, put, post } from '@/apis/apiUtils'
+import { get, put, post, del } from '@/apis/apiUtils'
 
 export interface Staff {
   id: string
@@ -132,6 +132,18 @@ class StaffZoneService {
       return await post<StaffZone>('/staff-zones', data)
     } catch (error) {
       console.error(`Error creating staff zone assignment for staff ${staffId} in zone ${zoneId}:`, error)
+      throw error
+    }
+  }
+
+  /**
+   * Delete a staff zone assignment
+   */
+  public async deleteStaffZone(staffZoneId: string, isHardDeleted: boolean = false): Promise<ApiResponse<void>> {
+    try {
+      return await del<void>(`/staff-zones/${staffZoneId}?isHardDeleted=${isHardDeleted}`)
+    } catch (error) {
+      console.error(`Error deleting staff zone assignment ${staffZoneId}:`, error)
       throw error
     }
   }

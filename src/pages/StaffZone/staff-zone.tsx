@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -13,6 +15,8 @@ import { EmptyZoneState } from './components/staff-zone/empty-zone-state'
 import { DroppableZone } from './components/staff-zone/droppable-zone'
 import { StaffZoneOverlay } from './components/staff-zone/staff-zone-overlay'
 import { AddStaffDialog } from './components/staff-zone/add-staff-dialog'
+import { DeleteDropZone } from './components/staff-zone/delete-drop-zone'
+import { DeleteConfirmDialog } from './components/staff-zone/delete-confirm-dialog'
 
 interface ZoneWithStaff {
   zone: Zone
@@ -31,6 +35,12 @@ export default function StaffZoneManagement() {
   const [isMoving, setIsMoving] = useState(false)
   const [movingStaffId, setMovingStaffId] = useState<string | null>(null)
   const [activeView, setActiveView] = useState<'grid' | 'list'>('grid')
+
+  // Delete related states
+  const [isOverDelete, setIsOverDelete] = useState(false)
+  const [staffZoneToDelete, setStaffZoneToDelete] = useState<StaffZone | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Configure DnD sensors
   const sensors = useSensors(
@@ -144,15 +154,24 @@ export default function StaffZoneManagement() {
 
     setActiveStaffZone(null)
 
-    // If no drop target or same zone, do nothing
+    // If no drop target, do nothing
     if (!over || !active || !active.data.current?.staffZone) return
 
     const staffZone = active.data.current.staffZone as StaffZone
-    const targetZoneId = over.id as string
+    const targetId = over.id as string
+
+    // Check if dropping on delete zone
+    if (targetId === 'delete-zone') {
+      setStaffZoneToDelete(staffZone)
+      setIsDeleteDialogOpen(true)
+      setIsOverDelete(false)
+      return
+    }
+
     const sourceZoneId = staffZone.zone.id
 
     // Don't do anything if dropping in the same zone
-    if (sourceZoneId === targetZoneId) return
+    if (sourceZoneId === targetId) return
 
     setIsMoving(true)
     setMovingStaffId(staffZone.staff.id)
@@ -169,13 +188,13 @@ export default function StaffZoneManagement() {
     // Add to target zone with updated zone reference
     const updatedStaffZone = {
       ...staffZone,
-      zoneId: targetZoneId,
-      zone: zones.find((z) => z.id === targetZoneId) || staffZone.zone
+      zoneId: targetId,
+      zone: zones.find((z) => z.id === targetId) || staffZone.zone
     }
 
-    updatedZoneWithStaff[targetZoneId] = {
-      ...updatedZoneWithStaff[targetZoneId],
-      staffZones: [...updatedZoneWithStaff[targetZoneId].staffZones, updatedStaffZone]
+    updatedZoneWithStaff[targetId] = {
+      ...updatedZoneWithStaff[targetId],
+      staffZones: [...updatedZoneWithStaff[targetId].staffZones, updatedStaffZone]
     }
 
     // Update state immediately for better UX
@@ -183,7 +202,7 @@ export default function StaffZoneManagement() {
 
     try {
       const staffZoneService = StaffZoneService.getInstance()
-      const response = await staffZoneService.moveStaffToZone(staffZone.id, staffZone.staff.id, targetZoneId)
+      const response = await staffZoneService.moveStaffToZone(staffZone.id, staffZone.staff.id, targetId)
 
       if (response.success) {
         toast.success(`${staffZone.staff.fullName} đã được chuyển sang khu vực mới`)
@@ -201,6 +220,51 @@ export default function StaffZoneManagement() {
     } finally {
       setIsMoving(false)
       setMovingStaffId(null)
+    }
+  }
+
+  // Handle drag over delete zone
+  const handleDragOver = (event: any) => {
+    const { over } = event
+    setIsOverDelete(over?.id === 'delete-zone')
+  }
+
+  // Handle delete staff zone
+  const handleDeleteStaffZone = async () => {
+    if (!staffZoneToDelete) return
+
+    setIsDeleting(true)
+
+    try {
+      const staffZoneService = StaffZoneService.getInstance()
+      const response = await staffZoneService.deleteStaffZone(staffZoneToDelete.id, false)
+
+      if (response.success) {
+        // Optimistically update UI
+        const updatedZoneWithStaff = { ...zoneWithStaff }
+        const zoneId = staffZoneToDelete.zone.id
+
+        updatedZoneWithStaff[zoneId] = {
+          ...updatedZoneWithStaff[zoneId],
+          staffZones: updatedZoneWithStaff[zoneId].staffZones.filter((sz) => sz.id !== staffZoneToDelete.id)
+        }
+
+        setZoneWithStaff(updatedZoneWithStaff)
+        toast.success(`${staffZoneToDelete.staff.fullName} đã được xóa khỏi khu vực ${staffZoneToDelete.zone.name}`)
+      } else {
+        toast.error(response.message || 'Đã xảy ra lỗi khi xóa nhân viên')
+        // Refresh data on error
+        await fetchZonesAndStaff()
+      }
+    } catch (err) {
+      console.error('Error deleting staff zone:', err)
+      toast.error('Đã xảy ra lỗi không mong muốn khi xóa nhân viên')
+      // Refresh data on error
+      await fetchZonesAndStaff()
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
+      setStaffZoneToDelete(null)
     }
   }
 
@@ -337,7 +401,12 @@ export default function StaffZoneManagement() {
           </TabsList>
         </div>
 
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} modifiers={[]}>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragOver={handleDragOver}
+        >
           <TabsContent value='grid' className='mt-0'>
             {filteredZones.length === 0 ? (
               <EmptyZoneState resetFilters={resetFilters} />
@@ -376,10 +445,22 @@ export default function StaffZoneManagement() {
             )}
           </TabsContent>
 
+          {/* Delete Drop Zone */}
+          <DeleteDropZone isOver={isOverDelete} />
+
           {/* Drag Overlay - shows what's being dragged */}
           <StaffZoneOverlay activeStaffZone={activeStaffZone} activeView={activeView} getInitials={getInitials} />
         </DndContext>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        staffZone={staffZoneToDelete}
+        onConfirm={handleDeleteStaffZone}
+        isDeleting={isDeleting}
+      />
     </div>
   )
 }
