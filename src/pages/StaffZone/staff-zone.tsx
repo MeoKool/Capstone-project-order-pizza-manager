@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -14,6 +12,7 @@ import { StaffZoneStats } from './components/staff-zone/staff-zone-stats'
 import { EmptyZoneState } from './components/staff-zone/empty-zone-state'
 import { DroppableZone } from './components/staff-zone/droppable-zone'
 import { StaffZoneOverlay } from './components/staff-zone/staff-zone-overlay'
+import { AddStaffDialog } from './components/staff-zone/add-staff-dialog'
 
 interface ZoneWithStaff {
   zone: Zone
@@ -205,6 +204,37 @@ export default function StaffZoneManagement() {
     }
   }
 
+  // Thêm nhân viên vào khu vực
+  const handleAddStaff = async (staffId: string, zoneId: string): Promise<boolean> => {
+    try {
+      const response = await fetch('https://vietsac.id.vn/api/staff-zones', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          staffId,
+          zoneId
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Refresh data after adding
+        await fetchZonesAndStaff()
+        return true
+      } else {
+        toast.error(data.message || 'Không thể thêm nhân viên vào khu vực')
+        return false
+      }
+    } catch (error) {
+      console.error('Error adding staff to zone:', error)
+      toast.error('Đã xảy ra lỗi khi thêm nhân viên vào khu vực')
+      return false
+    }
+  }
+
   // Reset filters
   const resetFilters = () => {
     setSearchTerm('')
@@ -267,9 +297,14 @@ export default function StaffZoneManagement() {
       />
 
       {/* Main content */}
+      <div className='flex justify-between items-center my-4'>
+        <h2 className='text-xl font-semibold'>Phân công khu vực</h2>
+        <AddStaffDialog zones={zones} onAddStaff={handleAddStaff} />
+      </div>
+
       <Tabs defaultValue='grid' className='w-full' onValueChange={(value) => setActiveView(value as 'grid' | 'list')}>
         <div className='flex justify-between items-center mb-4'>
-          <h2 className='text-xl font-semibold'>Phân công khu vực</h2>
+          <div></div> {/* Empty div for spacing */}
           <TabsList>
             <TabsTrigger value='grid' className='flex items-center gap-2'>
               <svg
