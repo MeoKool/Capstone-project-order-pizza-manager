@@ -160,7 +160,7 @@ export const router = createBrowserRouter([
         )
       },
       {
-        path: 'staffs-zone',
+        path: 'zones-staff',
         element: (
           <Suspense fallback={<Loading />}>
             <StaffZone />
