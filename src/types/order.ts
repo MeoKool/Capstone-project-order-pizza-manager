@@ -70,3 +70,51 @@ export interface OrdersResult {
 }
 
 export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
+
+export interface OrderDetail {
+  id: string
+  orderCode: string
+  tableCode: string
+  startTime: string
+  endTime: string | null
+  totalPrice: number
+  totalOrderItemPrice: number
+  totalAdditionalFeePrice: number
+  status: string
+  type: string
+  phone: string | null
+  tableId: string
+  table: any
+  additionalFees: AdditionalFee[]
+  orderItems: OrderItemDetail[]
+}
+
+export interface AdditionalFee {
+  id: string
+  name: string
+  description: string
+  value: number
+  orderId: string
+}
+
+export interface OrderItemDetail {
+  id: string
+  tableCode: string
+  name: string
+  note: string
+  quantity: number
+  price: number
+  totalPrice: number
+  startTime: string
+  orderId: string
+  productId: string
+  orderItemStatus: string
+  type: string
+  product: any
+  productType: string
+  orderItemDetails: any[]
+  startTimeCooking: string | null
+  startTimeServing: string | null
+  endTime: string | null
+  reasonCancel: string | null
+}

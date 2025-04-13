@@ -74,7 +74,9 @@ const DashboardLayout = () => {
           <Link to='/in-tables'>
             <SidebarItem icon={<Table size={20} />} text='Bàn ăn' active={isActive('/in-tables')} />
           </Link>
-
+          <Link to='/zones-staff'>
+            <SidebarItem icon={<Map size={20} />} text='Khu vực nhân viên' active={isActive('/zones-staff')} />
+          </Link>
           <Link to='/orders'>
             <SidebarItem icon={<ClipboardList size={20} />} text='Đơn hàng' active={isActive('/orders')} />
           </Link>
@@ -83,9 +85,6 @@ const DashboardLayout = () => {
           </Link>
           <Link to='/customers'>
             <SidebarItem icon={<Users size={20} />} text='Khách hàng' active={isActive('/customers')} />
-          </Link>
-          <Link to='/zones-staff'>
-            <SidebarItem icon={<Map size={20} />} text='Khu vực nhân viên' active={isActive('/zones-staff')} />
           </Link>
           <Link to='/schedule'>
             <SidebarItem icon={<CalendarCheck size={20} />} text='Lịch làm việc' active={isActive('/schedule')} />
