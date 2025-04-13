@@ -1,11 +1,11 @@
 import type ApiResponse from '@/apis/apiUtils'
 import { get, post } from '@/apis/apiUtils'
-import type { AddFoodResponse, CreateOrderResponse, OrdersResult, OrderItemsResult } from '@/types/order'
+import type { AddFoodResponse, CreateOrderResponse, OrdersResult } from '@/types/order'
 
 class OrderService {
   private static instance: OrderService
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): OrderService {
     if (!OrderService.instance) {
@@ -16,7 +16,7 @@ class OrderService {
 
   public async getAllOrders(): Promise<ApiResponse<OrdersResult>> {
     try {
-      return await get<OrdersResult>('/orders?TakeCount=200&SortBy=startTime desc')
+      return await get<OrdersResult>(`/orders?TakeCount=1000`)
     } catch (error) {
       console.error('Error fetching orders:', error)
       throw error
@@ -44,11 +44,11 @@ class OrderService {
     }
   }
 
-  public async getOrderById(orderId: string): Promise<ApiResponse<OrderItemsResult>> {
+  public async getOrderById(orderId: string): Promise<ApiResponse<any>> {
     try {
-      return await get<OrderItemsResult>(`order-items?=OrderId=${orderId}`)
+      return await get<any>(`/orders/${orderId}?includeProperties=OrderItems%2CAdditionalFees`)
     } catch (error) {
-      console.error(`Error fetching order items with order id ${orderId}:`, error)
+      console.error(`Error fetching order details with order id ${orderId}:`, error)
       throw error
     }
   }
