@@ -441,8 +441,8 @@ export function OrdersList() {
               paginatedOrders.map((order, index) => (
                 <React.Fragment key={order.id}>
                   <TableRow
-                    className={`hover:bg-gray-50 cursor-pointer transition-colors ${
-                      expandedRows[order.id] ? 'bg-gray-50' : ''
+                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${
+                      expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
                     }`}
                     onClick={() => toggleRowExpansion(order.id)}
                   >
@@ -667,14 +667,14 @@ function OrderDetailRows({ orderId }: { orderId: string }) {
   // First, add a header row for the detail columns
   return (
     <>
-      <TableRow className='bg-gray-100 text-xs'>
+      <TableRow className='bg-gray-200 text-sm font-medium'>
         <TableCell className='py-2'></TableCell>
-        <TableCell className='py-2 font-medium'>Tên món</TableCell>
-        <TableCell className='py-2 font-medium text-center'>Bắt đầu</TableCell>
-        <TableCell className='py-2 font-medium text-center'>Phục vụ</TableCell>
-        <TableCell className='py-2 font-medium text-center'>Chế biến</TableCell>
-        <TableCell className='py-2 font-medium text-center'>Hoàn thành</TableCell>
-        <TableCell className='py-2 font-medium text-center'>Tổng thời gian</TableCell>
+        <TableCell className='py-2 text-primary'>Tên món</TableCell>
+        <TableCell className='py-2 text-center text-primary'>Bắt đầu</TableCell>
+        <TableCell className='py-2 text-center text-primary'>Phục vụ</TableCell>
+        <TableCell className='py-2 text-center text-primary'>Chế biến</TableCell>
+        <TableCell className='py-2 text-center text-primary'>Hoàn thành</TableCell>
+        <TableCell className='py-2 text-center text-primary'>Tổng thời gian</TableCell>
       </TableRow>
       {orderDetail.orderItems.map((item: any, index: number) => {
         const isEven = index % 2 === 0
