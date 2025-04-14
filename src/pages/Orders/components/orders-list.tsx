@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import {
   MoreHorizontal,
@@ -9,7 +11,10 @@ import {
   AlertCircle,
   ArrowUpDown,
   Calendar,
-  Filter
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  X
 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
@@ -38,6 +43,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import OrderService from '@/services/order-service'
+import React from 'react'
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100]
 const orderService = OrderService.getInstance()
@@ -64,6 +70,7 @@ export function OrdersList() {
   })
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+  const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     fetchOrders()
@@ -216,6 +223,13 @@ export function OrdersList() {
     return format(date, 'dd/MM/yyyy')
   }
 
+  const toggleRowExpansion = (orderId: string) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [orderId]: !prev[orderId]
+    }))
+  }
+
   return (
     <div className='space-y-6'>
       <div className='flex justify-between items-center'>
@@ -364,10 +378,10 @@ export function OrdersList() {
         </div>
       </div>
 
-      <div className='rounded-md border'>
+      <div className='rounded-md border shadow-sm'>
         <Table>
           <TableHeader>
-            <TableRow className='bg-muted/50'>
+            <TableRow className='bg-gray-50'>
               <TableHead className='w-[60px] text-center'>STT</TableHead>
               <TableHead>
                 <div className='flex items-center gap-2 cursor-pointer' onClick={() => handleSort('tableCode')}>
@@ -425,40 +439,65 @@ export function OrdersList() {
               </TableRow>
             ) : (
               paginatedOrders.map((order, index) => (
-                <TableRow key={order.id} className='hover:bg-muted/50'>
-                  <TableCell className='text-center font-medium'>{(currentPage - 1) * pageSize + index + 1}</TableCell>
-                  <TableCell>{order.tableCode}</TableCell>
-                  <TableCell>{formatDate(order.startTime)}</TableCell>
-                  <TableCell>{formatDate(order.endTime)}</TableCell>
-                  <TableCell className='font-medium'>
-                    {order.totalPrice ? order.totalPrice.toLocaleString('vi-VN') : 'Chưa thanh toán'} ₫
-                  </TableCell>
-                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                  <TableCell className='text-right'>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' size='icon'>
-                          <MoreHorizontal className='h-4 w-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem onClick={() => handleViewDetails(order.id)}>
-                          <Eye className='h-4 w-4 mr-2' />
-                          Xem chi tiết
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className='h-4 w-4 mr-2' />
-                          Chỉnh sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className='text-destructive focus:text-destructive'>
-                          <Trash2 className='h-4 w-4 mr-2' />
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                <React.Fragment key={order.id}>
+                  <TableRow
+                    className={`hover:bg-gray-50 cursor-pointer transition-colors ${
+                      expandedRows[order.id] ? 'bg-gray-50' : ''
+                    }`}
+                    onClick={() => toggleRowExpansion(order.id)}
+                  >
+                    <TableCell className='text-center font-medium'>
+                      <div className='flex items-center justify-center'>
+                        {expandedRows[order.id] ? (
+                          <ChevronDown className='h-4 w-4 mr-1 text-primary' />
+                        ) : (
+                          <ChevronRight className='h-4 w-4 mr-1' />
+                        )}
+                        {(currentPage - 1) * pageSize + index + 1}
+                      </div>
+                    </TableCell>
+                    <TableCell className='font-medium'>{order.tableCode}</TableCell>
+                    <TableCell>{formatDate(order.startTime)}</TableCell>
+                    <TableCell>{formatDate(order.endTime)}</TableCell>
+                    <TableCell className='font-medium text-primary'>
+                      {order.totalPrice ? order.totalPrice.toLocaleString('vi-VN') : 'Chưa thanh toán'} ₫
+                    </TableCell>
+                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell className='text-right'>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant='ghost' size='icon' onClick={(e) => e.stopPropagation()}>
+                            <MoreHorizontal className='h-4 w-4' />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end'>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleViewDetails(order.id)
+                            }}
+                          >
+                            <Eye className='h-4 w-4 mr-2' />
+                            Xem chi tiết
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                            <Edit className='h-4 w-4 mr-2' />
+                            Chỉnh sửa
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className='text-destructive focus:text-destructive'
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Trash2 className='h-4 w-4 mr-2' />
+                            Xóa
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  {expandedRows[order.id] && <OrderDetailRows orderId={order.id} />}
+                </React.Fragment>
               ))
             )}
           </TableBody>
@@ -518,5 +557,149 @@ export function OrdersList() {
         onOpenChange={setIsDetailsDialogOpen}
       />
     </div>
+  )
+}
+
+function OrderDetailRows({ orderId }: { orderId: string }) {
+  const [orderDetail, setOrderDetail] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchOrderDetails = async () => {
+      setIsLoading(true)
+      try {
+        const response = await orderService.getOrderById(orderId)
+        if (response?.success && response.result) {
+          setOrderDetail(response.result)
+        }
+      } catch (error) {
+        console.error('Failed to fetch order details:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchOrderDetails()
+  }, [orderId])
+
+  const formatTime = (dateString: string | null) => {
+    if (!dateString) return '—'
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
+  }
+
+  const calculateDuration = (startTime: string | null, endTime: string | null) => {
+    if (!startTime || !endTime) return '—'
+
+    const start = new Date(startTime)
+    const end = new Date(endTime)
+    const durationMs = end.getTime() - start.getTime()
+
+    const hours = Math.floor(durationMs / 3600000)
+    const minutes = Math.floor((durationMs % 3600000) / 60000)
+
+    if (hours > 0) {
+      return `${hours} giờ ${minutes} phút`
+    } else {
+      return `${minutes} phút`
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Done':
+        return (
+          <div className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200'>
+            <CheckCircle2 className='w-3 h-3 mr-1' />
+            Đã hoàn thành
+          </div>
+        )
+      case 'Cancelled':
+        return (
+          <div className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200'>
+            <X className='w-3 h-3 mr-1' />
+            Đã hủy
+          </div>
+        )
+      case 'Pending':
+      case 'Cooking':
+        return (
+          <div className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200'>
+            <Clock className='w-3 h-3 mr-1' />
+            Đang chế biến
+          </div>
+        )
+      default:
+        return (
+          <div className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200'>
+            {status}
+          </div>
+        )
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <TableRow className='bg-gray-50'>
+        <TableCell colSpan={7} className='text-center py-4'>
+          <div className='flex justify-center'>
+            <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary'></div>
+          </div>
+          <p className='mt-2 text-sm text-muted-foreground'>Đang tải chi tiết đơn hàng...</p>
+        </TableCell>
+      </TableRow>
+    )
+  }
+
+  if (!orderDetail || !orderDetail.orderItems || orderDetail.orderItems.length === 0) {
+    return (
+      <TableRow className='bg-gray-50'>
+        <TableCell colSpan={7} className='text-center py-4'>
+          <p className='text-muted-foreground'>Không có thông tin chi tiết</p>
+        </TableCell>
+      </TableRow>
+    )
+  }
+
+  // First, add a header row for the detail columns
+  return (
+    <>
+      <TableRow className='bg-gray-100 text-xs'>
+        <TableCell className='py-2'></TableCell>
+        <TableCell className='py-2 font-medium'>Tên món</TableCell>
+        <TableCell className='py-2 font-medium text-center'>Bắt đầu</TableCell>
+        <TableCell className='py-2 font-medium text-center'>Phục vụ</TableCell>
+        <TableCell className='py-2 font-medium text-center'>Chế biến</TableCell>
+        <TableCell className='py-2 font-medium text-center'>Hoàn thành</TableCell>
+        <TableCell className='py-2 font-medium text-center'>Tổng thời gian</TableCell>
+      </TableRow>
+      {orderDetail.orderItems.map((item: any, index: number) => {
+        const isEven = index % 2 === 0
+        return (
+          <TableRow key={item.id} className={`${isEven ? 'bg-white' : 'bg-gray-50'} text-sm`}>
+            <TableCell className='py-2'></TableCell>
+            <TableCell className='py-2'>
+              <div className='flex flex-col'>
+                <div>
+                  <span className='font-medium'>{item.name}</span>
+                  <span className='text-xs text-gray-500 ml-2'>(SL: {item.quantity})</span>
+                </div>
+                <div className='mt-1'>{getStatusBadge(item.orderItemStatus)}</div>
+              </div>
+            </TableCell>
+            <TableCell className='py-2 text-center'>{formatTime(item.startTime)}</TableCell>
+            <TableCell className='py-2 text-center'>{formatTime(item.startTimeServing)}</TableCell>
+            <TableCell className='py-2 text-center'>{formatTime(item.startTimeCooking)}</TableCell>
+            <TableCell className='py-2 text-center'>{formatTime(item.endTime)}</TableCell>
+            <TableCell className='py-2 text-center font-medium text-primary'>
+              {calculateDuration(item.startTime, item.endTime)}
+            </TableCell>
+          </TableRow>
+        )
+      })}
+    </>
   )
 }
