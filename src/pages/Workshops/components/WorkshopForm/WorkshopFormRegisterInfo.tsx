@@ -1,3 +1,5 @@
+'use client'
+
 import type React from 'react'
 
 import { useFormContext } from 'react-hook-form'
@@ -66,12 +68,12 @@ export default function WorkshopFormRegisterInfo() {
                   <Input
                     type='text'
                     placeholder='Nhập phí tham gia'
-                    className='h-11 pr-12'
+                    className='h-11 pr-16 shadow-sm'
                     value={formattedFee}
                     onChange={handleFeeChange}
                     onBlur={field.onBlur}
                   />
-                  <div className='absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-500'>
+                  <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
                     VNĐ
                   </div>
                 </div>
@@ -90,17 +92,22 @@ export default function WorkshopFormRegisterInfo() {
                 Số lượng đăng ký tối đa <span className='text-red-500'>*</span>
               </FormLabel>
               <FormControl>
-                <Input
-                  type='number'
-                  placeholder='Nhập số lượng đăng ký tối đa'
-                  className='h-11'
-                  {...field}
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? undefined : Number(e.target.value)
-                    field.onChange(value)
-                  }}
-                />
+                <div className='relative'>
+                  <Input
+                    type='number'
+                    placeholder='Nhập số lượng đăng ký tối đa'
+                    className='h-11 pr-16 shadow-sm'
+                    {...field}
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? undefined : Number(e.target.value)
+                      field.onChange(value)
+                    }}
+                  />
+                  <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
+                    người
+                  </div>
+                </div>
               </FormControl>
               <FormMessage className='text-red-500' />
             </FormItem>
@@ -118,17 +125,22 @@ export default function WorkshopFormRegisterInfo() {
                 Số pizza tối đa/đăng ký <span className='text-red-500'>*</span>
               </FormLabel>
               <FormControl>
-                <Input
-                  type='number'
-                  placeholder='Nhập số pizza tối đa'
-                  className='h-11'
-                  {...field}
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? undefined : Number(e.target.value)
-                    field.onChange(value)
-                  }}
-                />
+                <div className='relative'>
+                  <Input
+                    type='number'
+                    placeholder='Nhập số pizza tối đa'
+                    className='h-11 pr-16 shadow-sm'
+                    {...field}
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? undefined : Number(e.target.value)
+                      field.onChange(value)
+                    }}
+                  />
+                  <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
+                    pizza
+                  </div>
+                </div>
               </FormControl>
               <FormMessage className='text-red-500' />
             </FormItem>
@@ -144,17 +156,22 @@ export default function WorkshopFormRegisterInfo() {
                 Số người tối đa/đăng ký <span className='text-red-500'>*</span>
               </FormLabel>
               <FormControl>
-                <Input
-                  type='number'
-                  placeholder='Nhập số người tối đa'
-                  className='h-11'
-                  {...field}
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    const value = e.target.value === '' ? undefined : Number(e.target.value)
-                    field.onChange(value)
-                  }}
-                />
+                <div className='relative'>
+                  <Input
+                    type='number'
+                    placeholder='Nhập số người tối đa'
+                    className='h-11 pr-16 shadow-sm'
+                    {...field}
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? undefined : Number(e.target.value)
+                      field.onChange(value)
+                    }}
+                  />
+                  <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
+                    người
+                  </div>
+                </div>
               </FormControl>
               <FormMessage className='text-red-500' />
             </FormItem>

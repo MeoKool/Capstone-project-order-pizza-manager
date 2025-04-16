@@ -11,6 +11,19 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { Dispatch, SetStateAction } from 'react'
 import { cn } from '@/utils/utils'
+import { convertToUTC } from '@/utils/date-utils'
+
+// Hàm chuyển đổi từ múi giờ địa phương sang UTC
+function localToUtcDate(localDate: Date | undefined, timeState: TimeState): Date | undefined {
+  if (!localDate) return undefined
+
+  const result = new Date(localDate)
+  // Đặt giờ và phút theo múi giờ địa phương
+  result.setHours(Number.parseInt(timeState.hour), Number.parseInt(timeState.minute))
+  // Chuyển đổi sang UTC (trừ 7 giờ cho múi giờ Việt Nam)
+  const utcResult = convertToUTC(result)
+  return utcResult
+}
 
 type TimeState = { hour: string; minute: string }
 
@@ -40,7 +53,8 @@ function debugDate(date?: Date, time?: TimeState) {
     localString: dateObj.toString(),
     isoString: dateObj.toISOString(),
     localTime: `${time.hour}:${time.minute}`,
-    utcTime: `${dateObj.getUTCHours()}:${dateObj.getUTCMinutes()}`
+    vietnamTime: `UTC+7: ${dateObj.getHours()}:${dateObj.getMinutes()}`,
+    utcTime: `UTC: ${dateObj.getUTCHours()}:${dateObj.getUTCMinutes()}`
   }
 }
 
@@ -167,6 +181,29 @@ export default function WorkshopFormTimeInfo({
       }
     }
   }
+
+  // Thêm hàm để xử lý việc lưu giá trị UTC vào form khi submit:
+  const updateFormWithUtcDates = () => {
+    if (workshopDate) {
+      const utcWorkshopDate = localToUtcDate(workshopDate, workshopTime)
+      setValue('workshopDateUtc', utcWorkshopDate?.toISOString())
+    }
+
+    if (startRegisterDate) {
+      const utcStartRegDate = localToUtcDate(startRegisterDate, startRegisterTime)
+      setValue('startRegisterDateUtc', utcStartRegDate?.toISOString())
+    }
+
+    if (endRegisterDate) {
+      const utcEndRegDate = localToUtcDate(endRegisterDate, endRegisterTime)
+      setValue('endRegisterDateUtc', utcEndRegDate?.toISOString())
+    }
+  }
+
+  // Thêm useEffect để cập nhật giá trị UTC khi các ngày hoặc thời gian thay đổi:
+  useEffect(() => {
+    updateFormWithUtcDates()
+  }, [workshopDate, startRegisterDate, endRegisterDate, workshopTime, startRegisterTime, endRegisterTime])
 
   // Xử lý khi chọn ngày workshop
   const handleWorkshopDateSelect = (date: Date | undefined) => {
@@ -330,7 +367,7 @@ function DateTimePicker({
           <Button
             variant='outline'
             className={cn(
-              'w-full h-11 pl-3 text-left font-normal',
+              'w-full h-11 pl-3 text-left font-normal shadow-sm',
               !selectedDate && 'text-muted-foreground',
               hasError && 'border-red-500',
               disabled && 'opacity-50 cursor-not-allowed'
@@ -357,45 +394,47 @@ function DateTimePicker({
       <div className='flex items-center gap-2 h-11'>
         <div
           className={cn(
-            'flex items-center gap-1 bg-background border rounded-md px-3 py-2 w-full',
+            'flex items-center gap-1 bg-background border rounded-md px-3 py-2 w-full shadow-sm',
             hasError && 'border-red-500',
             disabled && 'opacity-50 cursor-not-allowed'
           )}
         >
           <Clock className='h-4 w-4 text-muted-foreground' />
-          <Select
-            value={time.hour}
-            onValueChange={(value) => setTime({ ...time, hour: value })}
-            disabled={disabled || !selectedDate}
-          >
-            <SelectTrigger className='w-[60px] border-0 p-0 h-auto focus:ring-0'>
-              <SelectValue placeholder='HH' />
-            </SelectTrigger>
-            <SelectContent>
-              {hours.map((hour) => (
-                <SelectItem key={hour} value={hour}>
-                  {hour}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className='text-muted-foreground'>:</span>
-          <Select
-            value={time.minute}
-            onValueChange={(value) => setTime({ ...time, minute: value })}
-            disabled={disabled || !selectedDate}
-          >
-            <SelectTrigger className='w-[60px] border-0 p-0 h-auto focus:ring-0'>
-              <SelectValue placeholder='MM' />
-            </SelectTrigger>
-            <SelectContent>
-              {minutes.map((minute) => (
-                <SelectItem key={minute} value={minute}>
-                  {minute}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className='flex items-center gap-1 w-full'>
+            <Select
+              value={time.hour}
+              onValueChange={(value) => setTime({ ...time, hour: value })}
+              disabled={disabled || !selectedDate}
+            >
+              <SelectTrigger className='w-[70px] border-0 p-0 h-auto focus:ring-0 text-center font-medium'>
+                <SelectValue placeholder='HH' />
+              </SelectTrigger>
+              <SelectContent className='max-h-[300px]'>
+                {hours.map((hour) => (
+                  <SelectItem key={hour} value={hour} className='justify-center'>
+                    {hour}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className='text-muted-foreground font-bold'>:</span>
+            <Select
+              value={time.minute}
+              onValueChange={(value) => setTime({ ...time, minute: value })}
+              disabled={disabled || !selectedDate}
+            >
+              <SelectTrigger className='w-[70px] border-0 p-0 h-auto focus:ring-0 text-center font-medium'>
+                <SelectValue placeholder='MM' />
+              </SelectTrigger>
+              <SelectContent className='max-h-[300px]'>
+                {minutes.map((minute) => (
+                  <SelectItem key={minute} value={minute} className='justify-center'>
+                    {minute}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

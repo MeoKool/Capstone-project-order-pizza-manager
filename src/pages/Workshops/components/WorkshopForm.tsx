@@ -31,6 +31,7 @@ import WorkshopFormBasicInfo from './WorkshopForm/WorkshopFormBasicInfo'
 import WorkshopFormTimeInfo from './WorkshopForm/WorkshopFormTimeInfo'
 import WorkshopFormRegisterInfo from './WorkshopForm/WorkshopFormRegisterInfo'
 import WorkshopFormFoodMenu from './WorkshopForm/WorkshopFormFoodMenu'
+import { convertToVietnamTime, convertToUTC } from '@/utils/date-utils'
 
 import type { ZoneResponse } from '@/types/zone'
 import type { ProductModel } from '@/types/product'
@@ -242,9 +243,10 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           productIds: productIds
         })
 
-        const wd = new Date(w.workshopDate)
-        const sr = new Date(w.startRegisterDate)
-        const er = new Date(w.endRegisterDate)
+        // Chuyển đổi thời gian từ UTC sang múi giờ Việt Nam (UTC+7)
+        const wd = convertToVietnamTime(w.workshopDate)
+        const sr = convertToVietnamTime(w.startRegisterDate)
+        const er = convertToVietnamTime(w.endRegisterDate)
 
         setWorkshopDate(wd)
         setStartRegisterDate(sr)
@@ -297,10 +299,18 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       const endRegDateTime = new Date(endRegisterDate!)
       endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
 
+      // Chuyển đổi thời gian từ múi giờ Việt Nam (UTC+7) sang UTC để gửi lên server
+      const workshopDateTimeUTC = convertToUTC(workshopDateTime)
+      const startRegDateTimeUTC = convertToUTC(startRegDateTime)
+      const endRegDateTimeUTC = convertToUTC(endRegDateTime)
+
       // Log the dates for debugging
-      console.log('Workshop Date:', workshopDateTime.toISOString())
-      console.log('Start Register Date:', startRegDateTime.toISOString())
-      console.log('End Register Date:', endRegDateTime.toISOString())
+      console.log('Workshop Date (Vietnam):', workshopDateTime.toISOString())
+      console.log('Workshop Date (UTC):', workshopDateTimeUTC.toISOString())
+      console.log('Start Register Date (Vietnam):', startRegDateTime.toISOString())
+      console.log('Start Register Date (UTC):', startRegDateTimeUTC.toISOString())
+      console.log('End Register Date (Vietnam):', endRegDateTime.toISOString())
+      console.log('End Register Date (UTC):', endRegDateTimeUTC.toISOString())
 
       const payload = {
         ...values,
@@ -308,16 +318,16 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
         maxRegister: values.maxRegister ?? 0,
         maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
         maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
-        // Use the date objects we created above
-        workshopDate: workshopDateTime.toISOString(),
-        startRegisterDate: startRegDateTime.toISOString(),
-        endRegisterDate: endRegDateTime.toISOString(),
+        // Use the UTC date objects we created above
+        workshopDate: workshopDateTimeUTC.toISOString(),
+        startRegisterDate: startRegDateTimeUTC.toISOString(),
+        endRegisterDate: endRegDateTimeUTC.toISOString(),
         zoneName: zones.find((z) => z.id === values.zoneId)?.name || ''
       }
 
       const res =
         isEditing && id
-          ? await WorkshopService.getInstance().updateWorkshop(id) // Make sure to pass payload here
+          ? await WorkshopService.getInstance().updateWorkshop(id, payload) // Make sure to pass payload here
           : await WorkshopService.getInstance().createWorkshop(payload)
 
       if (res.success) {

@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
+import { formatVietnamDate } from '@/utils/date-utils'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
@@ -160,10 +161,10 @@ export default function WorkshopsPage() {
     return matchesSearch && matchesStatus
   })
 
+  // Format date to Vietnam time
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString)
-      return format(date, 'HH:mm dd/MM/yyyy', { locale: vi })
+      return formatVietnamDate(dateString)
     } catch {
       return dateString
     }

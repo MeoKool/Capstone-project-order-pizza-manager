@@ -48,9 +48,9 @@ export default class WorkshopService {
       throw error
     }
   }
-  public updateWorkshop(workshopId: string): Promise<ApiResponse<void>> {
+  public updateWorkshop(workshopId: string, payload: object): Promise<ApiResponse<void>> {
     try {
-      return put<void>(`/workshops/cancel-workshop`, { workshopId })
+      return put<void>(`/workshops/update-workshop`, { workshopId, payload })
     } catch (error) {
       console.error('Error cancelling workshop:', error)
       throw error
