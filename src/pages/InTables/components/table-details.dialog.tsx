@@ -234,7 +234,7 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw]">
-        <DialogHeader className="-mx-4 sm:-mx-6 mt-2 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100 sticky top-0 bg-white z-10">
+        <DialogHeader className="-mx-4 sm:-mx-6 mt-3 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100 sticky top-0 bg-white z-10">
           <DialogTitle className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-1 sm:gap-2">
               <div className="bg-amber-600 p-1 sm:p-1.5 rounded-md">
@@ -253,7 +253,7 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
 
           {/* Order Details Section */}
           {table.currentOrderId && (
-            <Card className="border-amber-100 max-h-[50vh] overflow-y-auto  scrollbar-hide py-2">
+            <Card className="border-amber-100 max-h-[50vh] overflow-y-auto scrollbar-hide py-2">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between gap-2 mb-3 pr-2">
                   <div className="flex items-center gap-2">

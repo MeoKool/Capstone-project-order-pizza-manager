@@ -36,6 +36,12 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                         <div className="text-green-600 text-center w-[98px] py-0.4">Hoàn thành</div>
                     </Badge>
                 )
+            case "Cooking":
+                return (
+                    <Badge className="bg-orange-100 hover:bg-orange-300 border-orange-500 text-xs px-1">
+                        <div className="text-orange-600 text-center w-[98px] py-0.4">Đang nấu</div>
+                    </Badge>
+                )
             default:
                 return null
         }
@@ -183,12 +189,19 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
 
                             {/* Display order item options if any */}
                             {item.orderItemDetails && item.orderItemDetails.length > 0 && (
-                                <div className="mt-1 pl-2 border-l border-amber-100">
+                                <div className="mt-1 pl-2 border-l-4 border-amber-100">
                                     {item.orderItemDetails.map((option) => (
                                         <p key={option.id} className="text-xs text-amber-600">
-                                            + {option.name} ({formatCurrency(option.additionalPrice)})
+                                            + {option.name} (+{formatCurrency(option.additionalPrice)})
                                         </p>
                                     ))}
+
+                                </div>
+                            )}
+                            {item.orderItemStatus === 'Cancelled' && (
+                                <div className=' flex mt-2 p-2 bg-red-50 rounded-md border truncate border-red-100'>
+                                    <h1 className='font-medium text-red-700 text-sm'>Lý do hủy:</h1>
+                                    <h1 className='ml-2 text-red-700 text-sm'>{item.reasonCancel}</h1>
                                 </div>
                             )}
                         </div>

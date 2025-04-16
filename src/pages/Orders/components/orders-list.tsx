@@ -51,6 +51,7 @@ const orderService = OrderService.getInstance()
 export function OrdersList() {
   const [orders, setOrders] = useState<Order[]>([])
   const [totalCount, setTotalCount] = useState(0)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<any>(null)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -441,9 +442,8 @@ export function OrdersList() {
               paginatedOrders.map((order, index) => (
                 <React.Fragment key={order.id}>
                   <TableRow
-                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${
-                      expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
-                    }`}
+                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
+                      }`}
                     onClick={() => toggleRowExpansion(order.id)}
                   >
                     <TableCell className='text-center font-medium'>
@@ -504,13 +504,14 @@ export function OrdersList() {
         </Table>
       </div>
 
-      <div className='flex items-center justify-between'>
-        <p className='text-sm text-muted-foreground'>
+      <div className='flex items-center'>
+        <p className='text-sm  w-80'>
           Hiển thị {paginatedOrders.length} trên tổng số {filteredOrders.length} đơn hàng
         </p>
-        <Pagination className='cursor-pointer'>
-          <PaginationContent>
-            <PaginationItem>
+        <Pagination className=''>
+
+          <PaginationContent >
+            <PaginationItem className='cursor-pointer'>
               <PaginationPrevious
                 size='default'
                 onClick={currentPage === 1 ? undefined : () => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -561,6 +562,7 @@ export function OrdersList() {
 }
 
 function OrderDetailRows({ orderId }: { orderId: string }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [orderDetail, setOrderDetail] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -676,6 +678,7 @@ function OrderDetailRows({ orderId }: { orderId: string }) {
         <TableCell className='py-2 text-center text-primary'>Hoàn thành</TableCell>
         <TableCell className='py-2 text-center text-primary'>Tổng thời gian</TableCell>
       </TableRow>
+
       {orderDetail.orderItems.map((item: any, index: number) => {
         const isEven = index % 2 === 0
         return (

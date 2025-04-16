@@ -115,7 +115,7 @@ export interface OrderItemDetail {
   startTime: string
   orderId: string
   productId: string
-  orderItemStatus: string
+  orderItemStatus: 'Cancelled' | 'Cooking' | 'Done' | 'Serving' | 'Pending'
   type: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   product: any
