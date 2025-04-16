@@ -1,3 +1,5 @@
+import { OrderVoucher } from "./voucher"
+
 export interface OrderItem {
   id: string
   tableCode: string
@@ -90,6 +92,7 @@ export interface OrderDetail {
   table: any
   additionalFees: AdditionalFee[]
   orderItems: OrderItemDetail[]
+  orderVouchers: OrderVoucher[]
 }
 
 

@@ -46,7 +46,7 @@ class OrderService {
 
   public async getOrderById(orderId: string): Promise<ApiResponse<OrderDetail>> {
     try {
-      return await get<OrderDetail>(`/orders/${orderId}?includeProperties=OrderItems.OrderItemDetails%2CAdditionalFees`)
+      return await get<OrderDetail>(`/orders/${orderId}?includeProperties=OrderItems.OrderItemDetails%2CAdditionalFees%2COrderVouchers.Voucher`)
     } catch (error) {
       console.error(`Error fetching order details with order id ${orderId}:`, error)
       throw error
@@ -60,10 +60,14 @@ class OrderService {
       throw error
     }
   }
-
-
-
-
+  public async cancelCheckOutOrder(orderId: string): Promise<ApiResponse<void>> {
+    try {
+      return await put<void>(`/orders/cancel-check-out/${orderId}`)
+    } catch (error) {
+      console.error(`Error check out order with order id ${orderId}:`, error);
+      throw error
+    }
+  }
 }
 
 export default OrderService

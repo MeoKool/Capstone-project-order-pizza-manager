@@ -6,13 +6,14 @@ import {
   VoucherType,
   VoucherTypeResult,
   CreateVoucherTypeDto,
-  CreateVoucherDto
+  CreateVoucherDto,
+  AddVoucherToOrder
 } from '@/types/voucher'
 
 class VoucherService {
   private static instance: VoucherService
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): VoucherService {
     if (!VoucherService.instance) {
@@ -118,6 +119,34 @@ class VoucherService {
       return await del<unknown>(`/vouchers/${id}`)
     } catch (error) {
       console.error(`Error deleting voucher with id ${id}:`, error)
+      throw error
+    }
+  }
+  public async getVoucherByCode(code: string): Promise<ApiResponse<Voucher>> {
+    try {
+      return await get<Voucher>(`/vouchers/get-by-code?Code=${code}`)
+    } catch (error) {
+      console.error(`Error getget voucher with id ${code}:`, error)
+      throw error
+    }
+  }
+  public async addVoucherToOrder(orderId: string, voucherId: string): Promise<ApiResponse<AddVoucherToOrder>> {
+    try {
+      const payload = {
+        orderId,
+        voucherId
+      };
+      return await post<AddVoucherToOrder>(`/order-vouchers`, payload)
+    } catch (error) {
+      console.error(`Error add voucher to order `, error)
+      throw error
+    }
+  }
+  public async removeVoucherOfOrder(id: string): Promise<ApiResponse<void>> {
+    try {
+      return await del<void>(`/order-vouchers/${id}?isHardDeleted=false`)
+    } catch (error) {
+      console.error(`Error add voucher to order `, error)
       throw error
     }
   }

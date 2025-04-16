@@ -19,10 +19,9 @@ export interface Voucher {
   code: string
   discountType: string
   discountValue: number
-  voucherStatus: 'Available' | 'Used' | 'Expired'
+  voucherStatus: 'Available' | 'Used' | 'Expired' | 'Pending'
   voucherBatchId: string
   voucherBatch: VoucherType | null
-  isUsed: boolean
   expiryDate?: string
 }
 
@@ -46,4 +45,14 @@ export interface CreateVoucherDto {
   discountType: number
   expiryDate: string
   voucherTypeId: string
+}
+export interface AddVoucherToOrder {
+  id: string
+}
+
+export interface OrderVoucher {
+  id: string
+  orderId: string
+  voucherId: string
+  voucher: Voucher
 }
