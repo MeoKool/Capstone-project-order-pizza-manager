@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useMemo } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -166,7 +168,7 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
             <SelectItem value='all'>Tất cả trạng thái</SelectItem>
             <SelectItem value='Available'>Khả dụng</SelectItem>
             <SelectItem value='Used'>Đã sử dụng</SelectItem>
-            <SelectItem value='Expired'>Hết hạn</SelectItem>
+            <SelectItem value='PendingPayment'>Đang sử dụng</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -241,7 +243,7 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
               className='flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-0'
             >
               Trạng thái:{' '}
-              {statusFilter === 'Available' ? 'Khả dụng' : statusFilter === 'Used' ? 'Đã sử dụng' : 'Hết hạn'}
+              {statusFilter === 'Available' ? 'Khả dụng' : statusFilter === 'Used' ? 'Đã sử dụng' : 'Đang sử dụng'}
               <Button
                 variant='ghost'
                 size='sm'
@@ -375,12 +377,12 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
                           ? 'bg-green-100 text-green-800 hover:bg-green-200 border-0'
                           : voucher.voucherStatus === 'Used'
                             ? 'bg-purple-100 text-purple-800 hover:bg-purple-200 border-0'
-                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-0'
+                            : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-0'
                       }
                     >
                       {voucher.voucherStatus === 'Available' && 'Khả dụng'}
                       {voucher.voucherStatus === 'Used' && 'Đã sử dụng'}
-                      {voucher.voucherStatus === 'Expired' && 'Hết hạn'}
+                      {voucher.voucherStatus === 'PendingPayment' && 'Đang sử dụng'}
                     </Badge>
                   </TableCell>
                   <TableCell>{getVoucherTypeName(voucher.voucherBatchId)}</TableCell>
