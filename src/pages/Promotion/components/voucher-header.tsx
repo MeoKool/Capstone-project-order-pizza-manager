@@ -12,7 +12,7 @@ interface VoucherHeaderProps {
   setActiveTab: (tab: string) => void
 }
 
-export function VoucherHeader({ onAddVoucherType, onAddVoucher, activeTab, setActiveTab }: VoucherHeaderProps) {
+export function VoucherHeader({ onAddVoucherType, activeTab, setActiveTab }: VoucherHeaderProps) {
   const { voucherTotalCount, voucherTypeTotalCount } = useVoucher()
 
   return (
@@ -39,13 +39,6 @@ export function VoucherHeader({ onAddVoucherType, onAddVoucher, activeTab, setAc
           <Button variant='green' onClick={onAddVoucherType} className='ml-4'>
             <PlusCircle className='h-4 w-4 mr-2' />
             Thêm loại voucher
-          </Button>
-        )}
-
-        {activeTab === 'vouchers' && (
-          <Button variant='green' onClick={onAddVoucher} className='ml-4'>
-            <PlusCircle className='h-4 w-4 mr-2' />
-            Thêm voucher
           </Button>
         )}
       </div>
