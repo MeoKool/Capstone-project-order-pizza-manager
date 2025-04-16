@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useMemo } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -9,21 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { useVoucher } from './voucher-provider'
 import type { Voucher } from '@/types/voucher'
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  MoreHorizontal,
-  Search,
-  X,
-  Calendar
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, MoreHorizontal, Search, X } from 'lucide-react'
 import { format, isValid, parseISO } from 'date-fns'
-import { vi } from 'date-fns/locale'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Popover, PopoverContent } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
-import { cn } from '@/utils/utils'
 
 interface VoucherTableProps {
   onDelete: (voucher: Voucher) => void
@@ -202,18 +189,6 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
           </SelectContent>
         </Select>
         <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={'outline'}
-              className={cn(
-                'w-[180px] justify-start text-left font-normal bg-white border-input',
-                !dateFilter && 'text-muted-foreground'
-              )}
-            >
-              <Calendar className='mr-2 h-4 w-4' />
-              {dateFilter ? format(dateFilter, 'PPP', { locale: vi }) : <span>Ngày hết hạn</span>}
-            </Button>
-          </PopoverTrigger>
           <PopoverContent className='w-auto p-0'>
             <CalendarComponent
               mode='single'

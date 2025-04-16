@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { PlusCircle, Ticket } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 import { useVoucher } from './voucher-provider'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -10,7 +10,7 @@ interface VoucherHeaderProps {
   setActiveTab: (tab: string) => void
 }
 
-export function VoucherHeader({ onAddVoucherType, onAddVoucher, activeTab, setActiveTab }: VoucherHeaderProps) {
+export function VoucherHeader({ onAddVoucherType, activeTab, setActiveTab }: VoucherHeaderProps) {
   const { voucherTotalCount, voucherTypeTotalCount } = useVoucher()
 
   return (
@@ -21,15 +21,10 @@ export function VoucherHeader({ onAddVoucherType, onAddVoucher, activeTab, setAc
           <p className='text-muted-foreground mt-1'>Tạo và quản lý các loại voucher và voucher cá nhân</p>
         </div>
         <div className='flex gap-2'>
-          {activeTab === 'types' ? (
+          {activeTab === 'types' && (
             <Button variant='green' onClick={onAddVoucherType}>
               <PlusCircle className='h-4 w-4 mr-2' />
               Thêm loại voucher
-            </Button>
-          ) : (
-            <Button variant='green' onClick={onAddVoucher}>
-              <Ticket className='h-4 w-4 mr-2' />
-              Tạo voucher
             </Button>
           )}
         </div>
