@@ -40,7 +40,6 @@ export interface CreateVoucherTypeDto {
   totalQuantity: number
   discountValue: number
   discountType: string
-  changePoint: number
 }
 
 export interface CreateVoucherDto {

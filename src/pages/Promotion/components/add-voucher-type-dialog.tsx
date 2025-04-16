@@ -40,8 +40,7 @@ const formSchema = z
     }),
     totalQuantity: z.coerce.number().min(1, 'Số lượng phải lớn hơn 0'),
     discountValue: z.coerce.number().min(1, 'Giá trị giảm giá phải lớn hơn 0'),
-    discountType: z.enum(['Percentage', 'Direct']),
-    changePoint: z.coerce.number().min(0, 'Điểm thay đổi không được âm')
+    discountType: z.enum(['Percentage', 'Direct'])
   })
   .refine((data) => data.endDate > data.startDate, {
     message: 'Ngày kết thúc phải sau ngày bắt đầu',
@@ -61,8 +60,7 @@ export function AddVoucherTypeDialog({ open, onOpenChange }: AddVoucherTypeDialo
       description: '',
       totalQuantity: 1,
       discountValue: 10,
-      discountType: 'Percentage',
-      changePoint: 0
+      discountType: 'Percentage'
     }
   })
 
@@ -254,25 +252,6 @@ export function AddVoucherTypeDialog({ open, onOpenChange }: AddVoucherTypeDialo
                         min={1}
                         max={form.watch('discountType') === 'Percentage' ? 100 : undefined}
                         placeholder='Nhập giá trị'
-                        {...field}
-                        className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
-                      />
-                    </FormControl>
-                    <FormMessage className='text-xs font-medium text-destructive' />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='changePoint'
-                render={({ field }) => (
-                  <FormItem className='space-y-1.5'>
-                    <FormLabel className='font-medium'>Điểm thay đổi</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='number'
-                        min={0}
-                        placeholder='Nhập điểm'
                         {...field}
                         className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
                       />
