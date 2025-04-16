@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useMemo } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -21,8 +19,8 @@ interface VoucherTableProps {
 export function VoucherTable({ onDelete }: VoucherTableProps) {
   const { vouchers, voucherTypes, loading } = useVoucher()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
-  const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<Date | null>(null)
 
   // Pagination state
@@ -34,9 +32,10 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
     return vouchers.filter((voucher) => {
       const matchesSearch = searchTerm === '' || voucher.code.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesStatus = statusFilter === '' || voucher.voucherStatus === statusFilter
+      // Cập nhật logic lọc để sử dụng 'all' thay vì ''
+      const matchesStatus = statusFilter === 'all' || voucher.voucherStatus === statusFilter
 
-      const matchesVoucherType = voucherTypeFilter === '' || voucher.voucherBatchId === voucherTypeFilter
+      const matchesVoucherType = voucherTypeFilter === 'all' || voucher.voucherBatchId === voucherTypeFilter
 
       const matchesDate =
         !dateFilter ||
@@ -55,12 +54,12 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
 
   const clearFilters = () => {
     setSearchTerm('')
-    setStatusFilter('')
-    setVoucherTypeFilter('')
+    setStatusFilter('all')
+    setVoucherTypeFilter('all')
     setDateFilter(null)
   }
 
-  const hasFilters = searchTerm !== '' || statusFilter !== '' || voucherTypeFilter !== '' || dateFilter !== null
+  const hasFilters = searchTerm !== '' || statusFilter !== 'all' || voucherTypeFilter !== 'all' || dateFilter !== null
 
   // Pagination handlers
   const goToFirstPage = () => setCurrentPage(1)
@@ -237,7 +236,7 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
               </Button>
             </Badge>
           )}
-          {statusFilter && (
+          {statusFilter !== 'all' && (
             <Badge
               variant='secondary'
               className='flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-0'
@@ -249,12 +248,32 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
                 size='sm'
                 className='h-4 w-4 p-0 ml-1 text-primary hover:bg-transparent'
                 onClick={() => {
-                  setStatusFilter('')
+                  setStatusFilter('all')
                   setCurrentPage(1) // Reset to first page on clear
                 }}
               >
                 <X className='h-3 w-3' />
                 <span className='sr-only'>Xóa bộ lọc trạng thái</span>
+              </Button>
+            </Badge>
+          )}
+          {voucherTypeFilter !== 'all' && (
+            <Badge
+              variant='secondary'
+              className='flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-0'
+            >
+              Loại voucher: {getVoucherTypeName(voucherTypeFilter)}
+              <Button
+                variant='ghost'
+                size='sm'
+                className='h-4 w-4 p-0 ml-1 text-primary hover:bg-transparent'
+                onClick={() => {
+                  setVoucherTypeFilter('all')
+                  setCurrentPage(1) // Reset to first page on clear
+                }}
+              >
+                <X className='h-3 w-3' />
+                <span className='sr-only'>Xóa bộ lọc loại voucher</span>
               </Button>
             </Badge>
           )}
@@ -377,7 +396,7 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
                           ? 'bg-green-100 text-green-800 hover:bg-green-200 border-0'
                           : voucher.voucherStatus === 'Used'
                             ? 'bg-purple-100 text-purple-800 hover:bg-purple-200 border-0'
-                            : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-0'
+                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-0'
                       }
                     >
                       {voucher.voucherStatus === 'Available' && 'Khả dụng'}

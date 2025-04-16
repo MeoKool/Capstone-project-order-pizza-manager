@@ -7,7 +7,6 @@ import { toast } from 'sonner'
 import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import StaffZoneService, { type StaffZone, type Zone } from '@/services/staff-zone-service'
 import { StaffZoneHeader } from './components/staff-zone/staff-zone-header'
-import { StaffZoneGuide } from './components/staff-zone/staff-zone-guide'
 import { StaffZoneStats } from './components/staff-zone/staff-zone-stats'
 import { EmptyZoneState } from './components/staff-zone/empty-zone-state'
 import { DroppableZone } from './components/staff-zone/droppable-zone'
@@ -328,8 +327,6 @@ export default function StaffZoneManagement() {
 
   return (
     <div className='mx-auto p-4 max-w-full'>
-      {/* Hướng dẫn sử dụng */}
-      <StaffZoneGuide />
       <div className='mb-10'></div>
       {/* Header with time and search */}
       <StaffZoneHeader

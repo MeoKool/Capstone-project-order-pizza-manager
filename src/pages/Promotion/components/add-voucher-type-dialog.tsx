@@ -101,7 +101,7 @@ export function AddVoucherTypeDialog({ open, onOpenChange }: AddVoucherTypeDialo
                     <FormLabel className='font-medium'>Mã lô</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder='Nhập mã lô'
+                        placeholder='Nhập mã lo'
                         {...field}
                         className='border-input focus:ring-2 focus:ring-offset-1 focus:ring-primary/20'
                       />

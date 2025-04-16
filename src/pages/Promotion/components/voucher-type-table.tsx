@@ -18,10 +18,10 @@ import {
   Search,
   X,
   Calendar,
-  Ticket
+  Ticket,
+  FilterX
 } from 'lucide-react'
 import { format, isValid, parseISO } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar as CalendarComponent } from '@/components/ui/calendar'
 import { cn } from '@/utils/utils'
@@ -35,7 +35,7 @@ interface VoucherTypeTableProps {
 export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: VoucherTypeTableProps) {
   const { voucherTypes, loading } = useVoucher()
   const [searchTerm, setSearchTerm] = useState('')
-  const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('')
+  const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<Date | null>(null)
 
   // Pagination state
@@ -50,7 +50,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
         type.batchCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
         type.description.toLowerCase().includes(searchTerm.toLowerCase())
 
-      const matchesDiscountType = discountTypeFilter === '' || type.discountType === discountTypeFilter
+      const matchesDiscountType = discountTypeFilter === 'all' || type.discountType === discountTypeFilter
 
       const matchesDate =
         !dateFilter ||
@@ -72,11 +72,11 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
 
   const clearFilters = () => {
     setSearchTerm('')
-    setDiscountTypeFilter('')
+    setDiscountTypeFilter('all')
     setDateFilter(null)
   }
 
-  const hasFilters = searchTerm !== '' || discountTypeFilter !== '' || dateFilter !== null
+  const hasFilters = searchTerm !== '' || discountTypeFilter !== 'all' || dateFilter !== null
 
   // Pagination handlers
   const goToFirstPage = () => setCurrentPage(1)
@@ -137,8 +137,9 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
 
   return (
     <div className='space-y-4'>
-      <div className='flex flex-col sm:flex-row gap-4 mb-6 bg-gray-50/50 p-4 rounded-xl border'>
-        <div className='relative flex-1'>
+      {/* Filter controls - restructured for better spacing */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 bg-gray-50/50 p-4 rounded-xl border'>
+        <div className='relative sm:col-span-2'>
           <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
           <Input
             placeholder='Tìm kiếm theo mã lô, mô tả...'
@@ -164,6 +165,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
             </Button>
           )}
         </div>
+
         <Select
           value={discountTypeFilter}
           onValueChange={(value) => {
@@ -171,7 +173,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
             setCurrentPage(1) // Reset to first page on filter change
           }}
         >
-          <SelectTrigger className='w-[180px] bg-white border-input'>
+          <SelectTrigger className='bg-white border-input'>
             <SelectValue placeholder='Loại giảm giá' />
           </SelectTrigger>
           <SelectContent>
@@ -180,40 +182,46 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
             <SelectItem value='Direct'>Trực tiếp (VNĐ)</SelectItem>
           </SelectContent>
         </Select>
-        <Popover>
-          <PopoverTrigger asChild>
+
+        <div className='flex gap-2'>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={'outline'}
+                className={cn(
+                  'flex-1 justify-start text-left font-normal bg-white border-input',
+                  !dateFilter && 'text-muted-foreground'
+                )}
+              >
+                <Calendar className='mr-2 h-4 w-4' />
+                {dateFilter ? format(dateFilter, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className='w-auto p-0' align='start'>
+              <CalendarComponent
+                mode='single'
+                selected={dateFilter || undefined}
+                onSelect={(date) => {
+                  setDateFilter(date || null)
+                  setCurrentPage(1) // Reset to first page on date change
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          {hasFilters && (
             <Button
-              variant={'outline'}
-              className={cn(
-                'w-[180px] justify-start text-left font-normal bg-white border-input',
-                !dateFilter && 'text-muted-foreground'
-              )}
+              variant='outline'
+              onClick={clearFilters}
+              className='border-gray-300 hover:bg-gray-50 bg-white min-w-[42px] px-2'
+              title='Xóa bộ lọc'
             >
-              <Calendar className='mr-2 h-4 w-4' />
-              {dateFilter ? format(dateFilter, 'PPP', { locale: vi }) : <span>Chọn ngày</span>}
+              <FilterX className='h-4 w-4' />
+              <span className='sr-only md:not-sr-only md:ml-2'>Xóa bộ lọc</span>
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className='w-auto p-0'>
-            <CalendarComponent
-              mode='single'
-              selected={dateFilter || undefined}
-              onSelect={(date) => setDateFilter(date || null)}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-        {hasFilters && (
-          <Button
-            variant='outline'
-            onClick={() => {
-              clearFilters()
-              setCurrentPage(1) // Reset to first page on clear filters
-            }}
-            className='border-gray-300 hover:bg-gray-50 bg-white'
-          >
-            Xóa bộ lọc
-          </Button>
-        )}
+          )}
+        </div>
       </div>
 
       {hasFilters && (
@@ -239,7 +247,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
               </Button>
             </Badge>
           )}
-          {discountTypeFilter && (
+          {discountTypeFilter !== 'all' && (
             <Badge
               variant='secondary'
               className='flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-0'
@@ -250,7 +258,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
                 size='sm'
                 className='h-4 w-4 p-0 ml-1 text-primary hover:bg-transparent'
                 onClick={() => {
-                  setDiscountTypeFilter('')
+                  setDiscountTypeFilter('all')
                   setCurrentPage(1) // Reset to first page on clear
                 }}
               >
