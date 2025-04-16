@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, MapPin, Clock, Utensils, ShoppingBag, Receipt, CreditCard, CalendarClock } from "lucide-react"
+import { Users, MapPin, Clock, Utensils, ShoppingBag, Receipt, CreditCard, CalendarClock, Loader2, CheckCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,7 +20,7 @@ import useZone from "@/hooks/useZone"
 import { TableTimer } from "./table-timer"
 import { getZoneName } from "@/utils/zone-utils"
 import { getStatusBadge, getStatusIcon } from "@/utils/table-utils"
-
+import { toast } from "sonner"
 interface TableDetailsDialogProps {
   table: TableResponse
   open: boolean
@@ -33,6 +33,8 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
   const [error, setError] = useState<string | null>(null)
   const { zones_ } = useZone()
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+
 
   // Fetch order items when the dialog opens and currentOrderId exists
   useEffect(() => {
@@ -65,8 +67,33 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
     fetchOrderDetails()
   }, [table.currentOrderId, open])
 
-  // Function to get action buttons based on table status
+  // Function to handle order checkout
+  const handleCheckOut = async () => {
+    if (!orderDetail || !table.currentOrderId) return
 
+    setIsCheckingOut(true)
+    try {
+      const orderService = OrderService.getInstance()
+      const response = await orderService.checkOutOrder(table.currentOrderId)
+
+      if (response.success) {
+        toast.success("Đã checkout đơn hàng thành công")
+
+        // Refresh order details to show updated status
+        const updatedResponse = await orderService.getOrderById(table.currentOrderId)
+        if (updatedResponse.success && updatedResponse.result) {
+          setOrderDetail(updatedResponse.result)
+        }
+      } else {
+        toast.error(response.message || "Không thể checkout đơn hàng")
+      }
+    } catch (err) {
+      toast.error("Đã xảy ra lỗi khi checkout đơn hàng")
+      console.error("Error checking out order:", err)
+    } finally {
+      setIsCheckingOut(false)
+    }
+  }
   const handleTimeUp = () => {
     setIsTimerRunning(false)
     console.log(`Hết thời gian cho bàn ${table.id}`)
@@ -240,10 +267,10 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
                   {orderDetail && (
                     <Badge
                       className={`text-xs p-1 ${orderDetail.status === "Paid"
-                          ? "bg-emerald-100 hover:bg-emerald-300  border-emerald-500 text-emerald-400"
-                          : orderDetail.status === "CheckedOut"
-                            ? "bg-blue-100 hover:bg-blue-300 border-blue-500 text-blue-600"
-                            : "bg-amber-100 hover:bg-amber-300 border-amber-500 text-amber-600"
+                        ? "bg-emerald-100 hover:bg-emerald-300  border-emerald-500 text-emerald-400"
+                        : orderDetail.status === "CheckedOut"
+                          ? "bg-blue-100 hover:bg-blue-300 border-blue-500 text-blue-600"
+                          : "bg-amber-100 hover:bg-amber-300 border-amber-500 text-amber-600"
                         }`}
                     >
                       <div className="w-[98px] text-center truncate">
@@ -374,6 +401,28 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
                               {formatCurrency(orderDetail.totalPrice)}
                             </p>
                           </div>
+                          {/* Checkout Button - Only show for Unpaid orders */}
+                          {orderDetail.status === "Unpaid" && (
+                            <div className="mt-3 pt-2">
+                              <Button
+                                onClick={handleCheckOut}
+                                disabled={isCheckingOut}
+                                className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                              >
+                                {isCheckingOut ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Đang xử lý...
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Checkout đơn hàng
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

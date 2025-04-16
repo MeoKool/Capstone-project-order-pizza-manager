@@ -1,5 +1,5 @@
 import type ApiResponse from '@/apis/apiUtils'
-import { get, post } from '@/apis/apiUtils'
+import { get, post, put } from '@/apis/apiUtils'
 import type { AddFoodResponse, CreateOrderResponse, OrderDetail, OrdersResult } from '@/types/order'
 
 class OrderService {
@@ -52,6 +52,18 @@ class OrderService {
       throw error
     }
   }
+  public async checkOutOrder(orderId: string): Promise<ApiResponse<void>> {
+    try {
+      return await put<void>(`/orders/check-out-order/${orderId}`)
+    } catch (error) {
+      console.error(`Error check out order with order id ${orderId}:`, error);
+      throw error
+    }
+  }
+
+
+
+
 }
 
 export default OrderService
