@@ -7,7 +7,6 @@ export interface VoucherType {
   totalQuantity: number
   discountValue: number
   discountType: string
-  changePoint: number
 }
 
 export interface VoucherTypeResult {

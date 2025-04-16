@@ -292,7 +292,6 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
               <TableHead className='font-medium'>Giá trị</TableHead>
               <TableHead className='font-medium'>Số lượng</TableHead>
               <TableHead className='font-medium'>Thời gian</TableHead>
-              <TableHead className='font-medium'>Điểm</TableHead>
               <TableHead className='w-[80px]'></TableHead>
             </TableRow>
           </TableHeader>
@@ -364,7 +363,6 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
                       <div>Đến: {format(new Date(type.endDate), 'dd/MM/yyyy')}</div>
                     </div>
                   </TableCell>
-                  <TableCell>{type.changePoint}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
