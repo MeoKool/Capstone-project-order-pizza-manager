@@ -201,7 +201,7 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                             {item.orderItemStatus === 'Cancelled' && (
                                 <div className=' flex mt-2 p-2 bg-red-50 rounded-md border truncate border-red-100'>
                                     <h1 className='font-medium text-red-700 text-sm'>Lý do hủy:</h1>
-                                    <h1 className='ml-2 text-red-700 text-sm'>{item.reasonCancel}</h1>
+                                    <h1 className='ml-2 text-red-700 text-sm'>{item.reasonCancel || 'Không có lý do'} </h1>
                                 </div>
                             )}
                         </div>

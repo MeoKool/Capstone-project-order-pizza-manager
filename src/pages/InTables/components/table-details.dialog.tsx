@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Utensils, ShoppingBag, Receipt } from "lucide-react"
+import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
@@ -27,7 +27,8 @@ import { OrderItemsList } from "./table-details/order-items-list"
 import { VoucherSection } from "./table-details/voucher-section"
 import { OrderInfoSection } from "./table-details/order-info-section"
 import { AdditionalFees } from "./table-details/additional-fees"
-import { OrderActions } from "./table-details/order-actions"
+import { Button } from "@/components/ui/button"
+import { PaymentDialog } from "./table-details/payment-dialog"
 
 interface TableDetailsDialogProps {
   table: TableResponse
@@ -47,6 +48,7 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
   // Voucher related states
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false)
   const [voucherError, setVoucherError] = useState<string | null>(null)
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -230,148 +232,242 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
     setIsTimerRunning(false)
     console.log(`Hết thời gian cho bàn ${table.id}`)
   }
+  // Function to open payment dialog and close details dialog
+  const handleOpenPayment = () => {
+    if (!orderDetail) return
+    onOpenChange(false) // Close the details dialog
+    setIsPaymentDialogOpen(true) // Open the payment dialog
+  }
 
+  // Function to refresh order details after payment
+  const handlePaymentComplete = () => {
+    if (table.currentOrderId) {
+      const orderService = OrderService.getInstance()
+      orderService
+        .getOrderById(table.currentOrderId)
+        .then((response) => {
+          if (response.success && response.result) {
+            setOrderDetail(response.result)
+            // Reopen the details dialog after payment is complete
+            onOpenChange(true)
+          }
+        })
+        .catch((error) => {
+          console.error("Error refreshing order details:", error)
+        })
+    }
+  }
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw]">
-        <DialogHeader className="-mx-4 sm:-mx-6 mt-3 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100 sticky top-0 bg-white z-10">
-          <DialogTitle className="flex items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-1 sm:gap-2">
-              <div className="bg-amber-600 p-1 sm:p-1.5 rounded-md">
-                <Utensils className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
-              </div>
-              <div className="text-base sm:text-xl text-amber-800">{table.code}</div>
-            </div>
-            <div className="ml-auto">{getStatusBadge(table.status)}</div>
-          </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">Chi tiết thông tin bàn ăn</DialogDescription>
-        </DialogHeader>
 
-        <div className="space-y-2 sm:space-y-2">
-          <TableInfoCard table={table} zones={zones_} />
-          <TableStatusCard table={table} isTimerRunning={isTimerRunning} onTimeUp={handleTimeUp} />
+    <>
 
-          {/* Order Details Section */}
-          {table.currentOrderId && (
-            <Card className="border-amber-100 max-h-[50vh] overflow-y-auto scrollbar-hide py-2">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center justify-between gap-2 mb-3 pr-2">
-                  <div className="flex items-center gap-2">
-                    <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                    <h3 className="font-medium text-amber-900 text-xs sm:text-sm">Thông tin đơn hàng</h3>
-                  </div>
-                  {orderDetail && (
-                    <Badge
-                      className={`text-xs p-1 ${orderDetail.status === "Paid"
-                        ? "bg-emerald-100 hover:bg-emerald-300 border-emerald-300 text-emerald-400"
-                        : orderDetail.status === "CheckedOut"
-                          ? "bg-blue-100 hover:bg-blue-300 border-blue-300 text-blue-600"
-                          : "bg-amber-100 hover:bg-amber-300 border-amber-300 text-amber-600"
-                        }`}
-                    >
-                      <div className="w-[98px] text-center truncate">
-                        {orderDetail.status === "Paid"
-                          ? "Đã thanh toán"
-                          : orderDetail.status === "CheckedOut"
-                            ? "Đã checkout"
-                            : "Chưa thanh toán"}
-                      </div>
-                    </Badge>
-                  )}
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw]">
+          <DialogHeader className="-mx-4 sm:-mx-6 mt-3 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100 sticky top-0 bg-white z-10">
+            <DialogTitle className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <div className="bg-amber-600 p-1 sm:p-1.5 rounded-md">
+                  <Utensils className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
+                <div className="text-base sm:text-xl text-amber-800">{table.code}</div>
+              </div>
+              <div className="ml-auto">{getStatusBadge(table.status)}</div>
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">Chi tiết thông tin bàn ăn</DialogDescription>
+          </DialogHeader>
 
-                {isLoading ? (
-                  <div className="text-center py-3">
-                    <p className="text-xs sm:text-sm text-amber-700">Đang tải đơn hàng</p>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-3">
-                    <p className="text-xs sm:text-sm text-red-500">{error}</p>
-                  </div>
-                ) : !orderDetail ? (
-                  <div className="text-center py-3">
-                    <p className="text-xs sm:text-sm text-amber-700">Không có thông tin đơn hàng</p>
-                  </div>
-                ) : (
-                  <div className="">
-                    {/* Order Info */}
-                    <OrderInfoSection orderDetail={orderDetail} formatCurrency={formatCurrency} />
+          <div className="space-y-2 sm:space-y-2">
+            <TableInfoCard table={table} zones={zones_} />
+            <TableStatusCard table={table} isTimerRunning={isTimerRunning} onTimeUp={handleTimeUp} />
 
-                    {/* Order Items */}
-                    <div className="mt-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <ShoppingBag className="h-4 w-4 text-amber-600" />
-                        <h4 className="font-medium text-amber-900 text-xs sm:text-sm">Món ăn đã gọi</h4>
-                      </div>
-
-                      {!orderDetail.orderItems || orderDetail.orderItems.length === 0 ? (
-                        <div className="text-center py-2">
-                          <p className="text-xs sm:text-sm text-amber-700">Chưa có món ăn nào được gọi</p>
-                        </div>
-                      ) : (
-                        <div className="">
-                          {/* Order Items with fixed height and scrolling */}
-                          <OrderItemsList
-                            orderItems={orderDetail.orderItems}
-                            formatCurrency={formatCurrency}
-                            orderStatus={orderDetail.status}
-                          />
-
-
-                          {/* Additional Fees */}
-                          <AdditionalFees fees={orderDetail.additionalFees} formatCurrency={formatCurrency} />
-
-                          {/* Voucher section - Only show for Unpaid orders */}
-                          {orderDetail.status === "Unpaid" && (
-                            <>
-
-                              <VoucherSection
-                                orderVouchers={orderDetail.orderVouchers}
-                                onApplyVoucher={handleApplyVoucher}
-                                onRemoveVoucher={handleRemoveVoucher}
-                                formatCurrency={formatCurrency}
-                                isApplyingVoucher={isApplyingVoucher}
-                                voucherError={voucherError}
-                              />
-
-                            </>
-                          )}
-
-                          {/* Total */}
-
-                          {orderDetail.status === 'CheckedOut' && (
-                            <div className="flex justify-between items-center border-t border-amber-100 pt-2 mt-3">
-                              <div className="flex items-center gap-1">
-                                <p className="font-medium text-amber-900 text-xs sm:text-sm">Tổng cộng</p>
-                              </div>
-                              <p className="font-bold text-amber-900 text-sm sm:text-base">
-                                {formatCurrency(orderDetail.totalPrice)}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+            {/* Order Details Section */}
+            {table.currentOrderId && (
+              <Card className="border-amber-100 max-h-[50vh] overflow-y-auto scrollbar-hide py-2">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-2 mb-3 pr-2">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                      <h3 className="font-medium text-amber-900 text-xs sm:text-sm">Thông tin đơn hàng</h3>
                     </div>
+                    {orderDetail && (
+                      <Badge
+                        className={`text-xs p-1 ${orderDetail.status === "Paid"
+                          ? "bg-emerald-100 hover:bg-emerald-300 border-emerald-300 text-emerald-400"
+                          : orderDetail.status === "CheckedOut"
+                            ? "bg-blue-100 hover:bg-blue-300 border-blue-300 text-blue-600"
+                            : "bg-amber-100 hover:bg-amber-300 border-amber-300 text-amber-600"
+                          }`}
+                      >
+                        <div className="w-[98px] text-center truncate">
+                          {orderDetail.status === "Paid"
+                            ? "Đã thanh toán"
+                            : orderDetail.status === "CheckedOut"
+                              ? "Đã checkout"
+                              : "Chưa thanh toán"}
+                        </div>
+                      </Badge>
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
 
-        <DialogFooter>
-          {orderDetail && (
-            <OrderActions
-              status={orderDetail.status}
-              onCheckOut={handleCheckOut}
-              onCancelCheckout={handleCancelCheckout}
-              isCheckingOut={isCheckingOut}
-              isCancelingCheckout={isCancelingCheckout}
-              onClose={() => onOpenChange(false)}
-            />
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+                  {isLoading ? (
+                    <div className="text-center py-3">
+                      <p className="text-xs sm:text-sm text-amber-700">Đang tải đơn hàng</p>
+                    </div>
+                  ) : error ? (
+                    <div className="text-center py-3">
+                      <p className="text-xs sm:text-sm text-red-500">{error}</p>
+                    </div>
+                  ) : !orderDetail ? (
+                    <div className="text-center py-3">
+                      <p className="text-xs sm:text-sm text-amber-700">Không có thông tin đơn hàng</p>
+                    </div>
+                  ) : (
+                    <div className="">
+                      {/* Order Info */}
+                      <OrderInfoSection orderDetail={orderDetail} formatCurrency={formatCurrency} />
+
+                      {/* Order Items */}
+                      <div className="mt-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <ShoppingBag className="h-4 w-4 text-amber-600" />
+                          <h4 className="font-medium text-amber-900 text-xs sm:text-sm">Món ăn đã gọi</h4>
+                        </div>
+
+                        {!orderDetail.orderItems || orderDetail.orderItems.length === 0 ? (
+                          <div className="text-center py-2">
+                            <p className="text-xs sm:text-sm text-amber-700">Chưa có món ăn nào được gọi</p>
+                          </div>
+                        ) : (
+                          <div className="">
+                            {/* Order Items with fixed height and scrolling */}
+                            <OrderItemsList
+                              orderItems={orderDetail.orderItems}
+                              formatCurrency={formatCurrency}
+                              orderStatus={orderDetail.status}
+                            />
+
+
+                            {/* Additional Fees */}
+                            <AdditionalFees fees={orderDetail.additionalFees} formatCurrency={formatCurrency} />
+
+                            {/* Voucher section - Only show for Unpaid orders */}
+                            {orderDetail.status === "Unpaid" && (
+                              <>
+
+                                <VoucherSection
+                                  orderVouchers={orderDetail.orderVouchers}
+                                  onApplyVoucher={handleApplyVoucher}
+                                  onRemoveVoucher={handleRemoveVoucher}
+                                  formatCurrency={formatCurrency}
+                                  isApplyingVoucher={isApplyingVoucher}
+                                  voucherError={voucherError}
+                                />
+
+                              </>
+                            )}
+
+                            {/* Total */}
+
+                            {orderDetail.status === 'CheckedOut' && (
+                              <div className="flex justify-between items-center border-t border-amber-100 pt-2 mt-3">
+                                <div className="flex items-center gap-1">
+                                  <p className="font-medium text-amber-900 text-xs sm:text-sm">Tổng cộng</p>
+                                </div>
+                                <p className="font-bold text-amber-900 text-sm sm:text-base">
+                                  {formatCurrency(orderDetail.totalPrice)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          <DialogFooter className="flex justify-end">
+            {orderDetail && (
+              <div className="flex flex-col-reverse sm:flex-row gap-1 sm:gap-2 mt-2 sm:mt-0 sm:justify-end">
+                {/* Checkout button only for Unpaid state */}
+                {orderDetail.status === "Unpaid" && (
+                  <Button
+                    onClick={handleCheckOut}
+                    disabled={isCheckingOut}
+                    className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
+                  >
+                    {isCheckingOut ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Checkout đơn hàng
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {/* Payment and Cancel checkout buttons only for CheckedOut state */}
+                {orderDetail.status === "CheckedOut" && (
+                  <>
+                    <Button
+                      onClick={handleOpenPayment}
+                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Thanh toán
+                    </Button>
+                    <Button
+                      onClick={handleCancelCheckout}
+                      disabled={isCancelingCheckout}
+                      className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
+                    >
+                      {isCancelingCheckout ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Đang xử lý...
+                        </>
+                      ) : (
+                        <>
+                          <CircleX className="mr-2 h-4 w-4" />
+                          Hủy Checkout
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )}
+
+                {/* Close button for all states */}
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
+                >
+                  Đóng
+                </Button>
+              </div>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {orderDetail && (
+        <PaymentDialog
+          orderId={orderDetail.id}
+          totalAmount={orderDetail.totalPrice}
+          open={isPaymentDialogOpen}
+          onOpenChange={setIsPaymentDialogOpen}
+          onPaymentComplete={handlePaymentComplete}
+          onBackToDetails={() => {
+            setIsPaymentDialogOpen(false)
+            onOpenChange(true)
+          }}
+        />
+      )}
+    </>
   )
 }
