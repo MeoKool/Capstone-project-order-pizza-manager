@@ -71,6 +71,8 @@ export interface OrdersResult {
 
 export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
 
+
+/////////
 export interface OrderDetail {
   id: string
   orderCode: string
@@ -80,14 +82,16 @@ export interface OrderDetail {
   totalPrice: number
   totalOrderItemPrice: number
   totalAdditionalFeePrice: number
-  status: string
-  type: string
+  status: 'Paid' | 'Unpaid' | 'CheckedOut'
+  type: 'Order' | 'Workshop'
   phone: string | null
   tableId: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: any
   additionalFees: AdditionalFee[]
   orderItems: OrderItemDetail[]
 }
+
 
 export interface AdditionalFee {
   id: string
@@ -110,11 +114,19 @@ export interface OrderItemDetail {
   productId: string
   orderItemStatus: string
   type: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   product: any
-  productType: string
-  orderItemDetails: any[]
+  productType: 'ColdKitchen' | 'HotKitChen'
+  orderItemDetails: OrderItemOption[]
   startTimeCooking: string | null
   startTimeServing: string | null
   endTime: string | null
   reasonCancel: string | null
+}
+
+export interface OrderItemOption {
+  id: string
+  name: string
+  additionalPrice: number
+  orderItemId: string
 }

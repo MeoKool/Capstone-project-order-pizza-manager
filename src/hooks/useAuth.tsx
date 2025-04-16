@@ -18,13 +18,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check if user is already logged in
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('user')
+    const storedUser = localStorage.getItem('user')
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser))
       } catch (error) {
         console.error('Error parsing stored user:', error)
-        sessionStorage.removeItem('user')
+        localStorage.removeItem('user')
       }
     }
     setIsLoading(false)
@@ -35,8 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const staffDetails = await authService.login(username, password)
 
-      // Save only staff details to sessionStorage
-      sessionStorage.setItem('user', JSON.stringify(staffDetails))
+      // Save only staff details to localStorage
+      localStorage.setItem('user', JSON.stringify(staffDetails))
 
       // Update state with staff details only
       setUser(staffDetails)
@@ -49,9 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
-    // Clear user data from sessionStorage
-    sessionStorage.removeItem('user')
-    sessionStorage.removeItem('token')
+    // Clear user data from localStorage
+    localStorage.removeItem('user')
+    localStorage.removeItem('token')
 
     // Update state
     setUser(null)

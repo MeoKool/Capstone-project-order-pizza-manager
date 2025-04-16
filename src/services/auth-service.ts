@@ -30,7 +30,7 @@ export interface StaffDetails {
 class AuthService {
   private static instance: AuthService
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -53,8 +53,8 @@ class AuthService {
 
       const token = loginResponse.result.token
 
-      // Store token in sessionStorage for API calls
-      sessionStorage.setItem('token', token)
+      // Store token in localStorage for API calls
+      localStorage.setItem('token', token)
 
       // Step 2: Decode the JWT token
       const decodedToken = jwtDecode<JwtPayload>(token)

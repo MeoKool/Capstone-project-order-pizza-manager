@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, MapPin, Clock, Utensils, ShoppingBag } from "lucide-react"
+import { Users, MapPin, Clock, Utensils, ShoppingBag, Receipt, CreditCard, CalendarClock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,14 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { getStatusBadge, getStatusIcon } from "@/utils/table-utils"
-import { getZoneName } from "@/utils/zone-utils"
-import { TableTimer } from "./table-timer"
 import { Card, CardContent } from "@/components/ui/card"
-import useZone from "@/hooks/useZone"
 import type TableResponse from "@/types/tables"
-import type { OrderItem } from "@/types/order"
+import type { OrderDetail } from "@/types/order"
 import OrderService from "@/services/order-service"
+import useZone from "@/hooks/useZone"
+import { TableTimer } from "./table-timer"
+import { getZoneName } from "@/utils/zone-utils"
+import { getStatusBadge, getStatusIcon } from "@/utils/table-utils"
 
 interface TableDetailsDialogProps {
   table: TableResponse
@@ -29,14 +29,14 @@ interface TableDetailsDialogProps {
 
 export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDialogProps) {
   const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { zones_ } = useZone()
+  const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null)
 
   // Fetch order items when the dialog opens and currentOrderId exists
   useEffect(() => {
-    const fetchOrderItems = async () => {
+    const fetchOrderDetails = async () => {
       if (!table.currentOrderId || !open) return
 
       setIsLoading(true)
@@ -45,93 +45,27 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
       try {
         const orderService = OrderService.getInstance()
         const response = await orderService.getOrderById(table.currentOrderId)
+
         if (response.success && response.result) {
-          setOrderItems(response.result.items)
+          setOrderDetail(response.result)
+          // Set orderItems from the orderDetail for backward compatibility
         } else {
-          setError(response.message || "Không thể tải thông tin món ăn")
+          setOrderDetail(null)
+          setError(response.message || "Không thể tải thông tin đơn hàng")
         }
       } catch (err) {
-        setError("Đã xảy ra lỗi khi tải thông tin món ăn")
-        console.error("Error fetching order items:", err)
+        setOrderDetail(null)
+        setError("Đã xảy ra lỗi khi tải thông tin đơn hàng")
+        console.error("Error fetching order details:", err)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchOrderItems()
+    fetchOrderDetails()
   }, [table.currentOrderId, open])
 
-  const handleOpenTable = () => {
-    return () => {
-      console.log(`Mở bàn ${table.id}`)
-    }
-  }
-
-  const handleCloseTable = () => {
-    return () => {
-      console.log(`Khóa bàn ${table.id}`)
-    }
-  }
-
   // Function to get action buttons based on table status
-  const getActionButtons = (table: TableResponse) => {
-    switch (table.status) {
-      case "Closing":
-        return (
-          <>
-            <Button
-              onClick={handleOpenTable()}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
-            >
-              Mở bàn
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
-            >
-              Đặt trước
-            </Button>
-          </>
-        )
-      case "Opening":
-        return (
-          <>
-            <Button
-              variant="destructive"
-              onClick={handleCloseTable()}
-              className="flex-1 text-xs sm:text-sm py-1 h-7 sm:h-9"
-            >
-              Khóa bàn
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
-            >
-              Bảo trì
-            </Button>
-          </>
-        )
-      case "Reserved":
-        return (
-          <>
-            <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9">
-              Xác nhận
-            </Button>
-            <Button variant="destructive" className="flex-1 text-xs sm:text-sm py-1 h-7 sm:h-9">
-              Hủy đặt
-            </Button>
-          </>
-        )
-      case "Locked":
-        return (
-          <Button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9">
-            Mở khóa
-          </Button>
-        )
-      default:
-        return null
-    }
-  }
 
   const handleTimeUp = () => {
     setIsTimerRunning(false)
@@ -205,11 +139,29 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
   const getOrderItemStatusBadge = (status: string) => {
     switch (status) {
       case "Pending":
-        return <Badge className="bg-amber-500 hover:bg-amber-600 text-xs">Chờ</Badge>
+        return (
+          <Badge className="bg-amber-100 hover:bg-amber-300 border-amber-500 text-xs px-1">
+            <div className="text-amber-600 text-center w-[98px] py-0.4">Đang chờ</div>
+          </Badge>
+        )
+      case "Cancelled":
+        return (
+          <Badge className="bg-red-100 hover:bg-red-300 border-red-500 text-xs px-1">
+            <div className="text-red-600 text-center w-[98px] py-0.4">Đã hủy</div>
+          </Badge>
+        )
       case "Serving":
-        return <Badge className="bg-blue-500 hover:bg-blue-600 text-xs">Đang phục vụ</Badge>
+        return (
+          <Badge className="bg-blue-100 hover:bg-blue-300 border-blue-500 text-xs px-1">
+            <div className="text-blue-600 text-center w-[98px] py-0.4">Đang phục vụ</div>
+          </Badge>
+        )
       case "Done":
-        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-xs">Hoàn thành</Badge>
+        return (
+          <Badge className="bg-green-100 hover:bg-green-300 border-green-500 text-xs px-1">
+            <div className="text-green-600 text-center w-[98px] py-0.4">Hoàn thành</div>
+          </Badge>
+        )
       default:
         return null
     }
@@ -217,49 +169,46 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw] p-4 sm:p-6">
-        <DialogHeader className="bg-gradient-to-r from-amber-50 to-orange-50 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 rounded-t-lg border-b border-amber-100">
+      <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw] min-h-[600px] ">
+        <DialogHeader className="-mx-4 sm:-mx-6 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100">
           <DialogTitle className="flex items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-1 sm:gap-2">
               <div className="bg-amber-600 p-1 sm:p-1.5 rounded-md">
                 <Utensils className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
               </div>
               <div className="text-base sm:text-xl text-amber-800">{table.code}</div>
-              {table.code && (
-                <Badge variant="outline" className="border-amber-500 text-amber-500 bg-amber-50 text-xs">
-                  VIP
-                </Badge>
-              )}
             </div>
             <div className="ml-auto">{getStatusBadge(table.status)}</div>
           </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">Chi tiết thông tin bàn ăn</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
+        <div className="space-y-2 sm:space-y-2">
           <Card className="border-amber-100">
-            <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-              <div className="grid grid-cols-[20px_1fr] sm:grid-cols-[24px_1fr] items-start gap-2 sm:gap-3">
-                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                <div>
-                  <p className="font-medium text-amber-900 text-xs sm:text-sm">Sức chứa</p>
-                  <p className="text-xs sm:text-sm text-amber-700">{table.capacity} người</p>
+            <CardContent className="p-3 sm:p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex items-start gap-2">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-900 text-xs sm:text-sm">Sức chứa</p>
+                    <p className="text-xs sm:text-sm text-amber-700">{table.capacity} người</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-[20px_1fr] sm:grid-cols-[24px_1fr] items-start gap-2 sm:gap-3">
-                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                <div>
-                  <p className="font-medium text-amber-900 text-xs sm:text-sm">Vị trí</p>
-                  <p className="text-xs sm:text-sm text-amber-700">{getZoneName(table.zoneId, zones_)}</p>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-900 text-xs sm:text-sm">Khu vực</p>
+                    <p className="text-xs sm:text-sm text-amber-700"> Khu vực{getZoneName(table.zoneId, zones_)}</p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-[20px_1fr] sm:grid-cols-[24px_1fr] items-start gap-2 sm:gap-3">
-                <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                <div>
-                  <p className="font-medium text-amber-900 text-xs sm:text-sm">Cập nhật lần cuối</p>
-                  <p className="text-xs sm:text-sm text-amber-700">{new Date().toLocaleString("vi-VN")}</p>
+                <div className="flex items-start gap-2">
+                  <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-amber-900 text-xs sm:text-sm">Cập nhật lần cuối</p>
+                    <p className="text-xs sm:text-sm text-amber-700">{new Date().toLocaleString("vi-VN")}</p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -279,55 +228,154 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
             </Card>
           )}
 
-          {/* Order Items Section */}
+          {/* Order Details Section */}
           {table.currentOrderId && (
             <Card className="border-amber-100">
               <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                  <h3 className="font-medium text-amber-900 text-xs sm:text-sm">Món ăn đã gọi</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 pr-2">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
+                    <h3 className="font-medium text-amber-900 text-xs sm:text-sm">Thông tin đơn hàng</h3>
+                  </div>
+                  {orderDetail && (
+                    <Badge
+                      className={`text-xs p-1 ${orderDetail.status === "Paid"
+                          ? "bg-emerald-100 hover:bg-emerald-300  border-emerald-500 text-emerald-400"
+                          : orderDetail.status === "CheckedOut"
+                            ? "bg-blue-100 hover:bg-blue-300 border-blue-500 text-blue-600"
+                            : "bg-amber-100 hover:bg-amber-300 border-amber-500 text-amber-600"
+                        }`}
+                    >
+                      <div className="w-[98px] text-center truncate">
+                        {orderDetail.status === "Paid"
+                          ? "Đã thanh toán"
+                          : orderDetail.status === "CheckedOut"
+                            ? "Đã checkout"
+                            : "Chưa thanh toán"}
+                      </div>
+                    </Badge>
+                  )}
                 </div>
 
                 {isLoading ? (
                   <div className="text-center py-3">
-                    <p className="text-xs sm:text-sm text-amber-700">Đang tải...</p>
+                    <p className="text-xs sm:text-sm text-amber-700">Đang tải đơn hàng</p>
                   </div>
                 ) : error ? (
                   <div className="text-center py-3">
                     <p className="text-xs sm:text-sm text-red-500">{error}</p>
                   </div>
-                ) : orderItems.length === 0 ? (
+                ) : !orderDetail ? (
                   <div className="text-center py-3">
-                    <p className="text-xs sm:text-sm text-amber-700">Chưa có món ăn nào được gọi</p>
+                    <p className="text-xs sm:text-sm text-amber-700">Không có thông tin đơn hàng</p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {orderItems.map((item) => (
-                      <div key={item.id} className="border border-amber-100 rounded-md p-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-amber-900 text-xs sm:text-sm">{item.name}</p>
-                            <p className="text-xs text-amber-700">
-                              {item.quantity} x {formatCurrency(item.price)}
-                            </p>
-                            {item.note && <p className="text-xs italic text-amber-600 mt-1">Ghi chú: {item.note}</p>}
+                  <div className="">
+                    {/* Order Info */}
+                    <div className="grid grid-cols-2 items-center gap-2 text-xs sm:text-sm">
+                      <div className="flex items-center gap-1">
+                        <CalendarClock className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
+                        <span className="text-amber-700">Mã đơn:</span>
+                      </div>
+                      <div className="text-right font-medium text-amber-900">
+                        {orderDetail.orderCode || "Chưa thanh toán"}
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
+                        <span className="text-amber-700">Bắt đầu:</span>
+                      </div>
+                      <div className="text-right font-medium text-amber-900">
+                        {new Date(orderDetail.startTime).toLocaleString("vi-VN")}
+                      </div>
+
+                      {orderDetail.endTime && (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
+                            <span className="text-amber-700">Kết thúc:</span>
                           </div>
-                          <div className="flex flex-col items-end">
-                            <p className="font-medium text-amber-900 text-xs sm:text-sm">
-                              {formatCurrency(item.totalPrice)}
+                          <div className="text-right font-medium text-amber-900">
+                            {new Date(orderDetail.endTime).toLocaleString("vi-VN")}
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="mt-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ShoppingBag className="h-4 w-4 text-amber-600" />
+                        <h4 className="font-medium text-amber-900 text-xs sm:text-sm">Món ăn đã gọi</h4>
+                      </div>
+
+                      {!orderDetail.orderItems || orderDetail.orderItems.length === 0 ? (
+                        <div className="text-center py-2">
+                          <p className="text-xs sm:text-sm text-amber-700">Chưa có món ăn nào được gọi</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {/* Order Items with fixed height and scrolling */}
+                          <div className="max-h-[200px] sm:max-h-[250px] overflow-y-auto space-y-2 scrollbar-hide ">
+                            {orderDetail.orderItems.map((item) => (
+                              <div key={item.id} className="border border-amber-100 rounded-md p-2">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <p className="font-medium text-amber-900 text-xs sm:text-sm">{item.name}</p>
+                                    <p className="text-xs text-amber-700">
+                                      {item.quantity} x {formatCurrency(item.price)}
+                                    </p>
+                                    {item.note && (
+                                      <p className="text-xs italic text-amber-600 mt-1">Ghi chú: {item.note}</p>
+                                    )}
+
+                                    {/* Display order item options if any */}
+                                    {item.orderItemDetails && item.orderItemDetails.length > 0 && (
+                                      <div className="mt-1 pl-2 border-l border-amber-100">
+                                        {item.orderItemDetails.map((option) => (
+                                          <p key={option.id} className="text-xs text-amber-600">
+                                            + {option.name} ({formatCurrency(option.additionalPrice)})
+                                          </p>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-col justify-between min-h-[76px]">
+                                    <div>{getOrderItemStatusBadge(item.orderItemStatus)}</div>
+                                    <p className="font-medium text-amber-900 text-xs sm:text-sm text-right mt-auto">
+                                      {formatCurrency(item.totalPrice)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Additional Fees - Outside the scrollable area */}
+                          {orderDetail.additionalFees && orderDetail.additionalFees.length > 0 && (
+                            <div className="mt-3 pt-2 border-t border-amber-100">
+                              <h4 className="font-medium text-amber-900 text-xs sm:text-sm mb-2">Phụ thu</h4>
+                              {orderDetail.additionalFees.map((fee) => (
+                                <div key={fee.id} className="flex justify-between text-xs sm:text-sm">
+                                  <span className="text-amber-700">{fee.name}</span>
+                                  <span className="font-medium text-amber-900">{formatCurrency(fee.value)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Total - Outside the scrollable area */}
+                          <div className="flex justify-between items-center border-t border-amber-100 pt-2 mt-3">
+                            <div className="flex items-center gap-1">
+                              <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
+                              <p className="font-medium text-amber-900 text-xs sm:text-sm">Tổng cộng</p>
+                            </div>
+                            <p className="font-bold text-amber-900 text-sm sm:text-base">
+                              {formatCurrency(orderDetail.totalPrice)}
                             </p>
-                            <div className="mt-1">{getOrderItemStatusBadge(item.orderItemStatus)}</div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-
-                    {/* Total */}
-                    <div className="flex justify-between items-center border-t border-amber-100 pt-2 mt-3">
-                      <p className="font-medium text-amber-900 text-xs sm:text-sm">Tổng cộng</p>
-                      <p className="font-bold text-amber-900 text-sm sm:text-base">
-                        {formatCurrency(orderItems.reduce((sum, item) => sum + item.totalPrice, 0))}
-                      </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -337,7 +385,6 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row gap-1 sm:gap-2 mt-2 sm:mt-0">
-          <div className="flex gap-1 sm:gap-2 w-full sm:w-auto">{getActionButtons(table)}</div>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
