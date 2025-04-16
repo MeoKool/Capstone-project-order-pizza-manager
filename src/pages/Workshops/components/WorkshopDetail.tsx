@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 import WorkshopService from '@/services/workshop-service'
@@ -15,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Edit, X } from 'lucide-react'
+import { ArrowLeft, Edit, Pizza, X } from 'lucide-react'
 
 export default function WorkshopDetail() {
   const { id } = useParams<{ id: string }>()
@@ -80,7 +82,7 @@ export default function WorkshopDetail() {
         </Button>
       </div>
 
-      <Card className='shadow-md border border-gray-200 rounded-xl'>
+      <Card className='shadow-md border border-gray-200 rounded-xl mb-6'>
         <CardHeader className='pb-4 border-b flex flex-row items-center justify-between'>
           <div>
             <CardTitle className='text-2xl'>{workshop.name}</CardTitle>
@@ -89,6 +91,14 @@ export default function WorkshopDetail() {
                 <span className='bg-red-500 text-white px-3 py-1 rounded-full text-sm'>Đã hủy</span>
               ) : workshop.workshopStatus === 'Opening' ? (
                 <span className='bg-green-500 text-white px-3 py-1 rounded-full text-sm'>Đang mở</span>
+              ) : workshop.workshopStatus === 'OpeningToRegister' ? (
+                <span className='bg-blue-500 text-white px-3 py-1 rounded-full text-sm'>Đang mở đăng ký</span>
+              ) : workshop.workshopStatus === 'Scheduled' ? (
+                <span className='bg-blue-500 text-white px-3 py-1 rounded-full text-sm'>Đã lên lịch</span>
+              ) : workshop.workshopStatus === 'Closed' ? (
+                <span className='bg-gray-500 text-white px-3 py-1 rounded-full text-sm'>Đã kết thúc</span>
+              ) : workshop.workshopStatus === 'CloseRegister' ? (
+                <span className='bg-red-500 text-white px-3 py-1 rounded-full text-sm'>Đã đóng đăng ký</span>
               ) : (
                 <span className='bg-blue-500 text-white px-3 py-1 rounded-full text-sm'>{workshop.workshopStatus}</span>
               )}
@@ -152,6 +162,30 @@ export default function WorkshopDetail() {
               <p>{workshop.maxParticipantPerRegister}</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Food Items Section */}
+      <Card className='shadow-md border border-gray-200 rounded-xl'>
+        <CardHeader className='pb-4 border-b'>
+          <CardTitle className='flex items-center gap-2'>
+            <Pizza className='h-5 w-5' />
+            Danh sách món ăn đã chọn
+          </CardTitle>
+        </CardHeader>
+        <CardContent className='py-6'>
+          {workshop.workshopFoodDetails && workshop.workshopFoodDetails.length > 0 ? (
+            <div className='grid gap-4'>
+              {workshop.workshopFoodDetails.map((food) => (
+                <div key={food.id} className='flex justify-between items-center p-4 border rounded-lg hover:bg-gray-50'>
+                  <div className='font-medium'>{food.name}</div>
+                  <div className='text-amber-600 font-semibold'>{food.price.toLocaleString('vi-VN')} đ</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className='text-center text-muted-foreground py-4'>Không có món ăn nào được thêm vào workshop này</div>
+          )}
         </CardContent>
       </Card>
 

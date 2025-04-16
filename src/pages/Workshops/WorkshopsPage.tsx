@@ -73,7 +73,7 @@ export default function WorkshopsPage() {
       case 'CloseRegister':
         return <Badge className='bg-gray-500'>Đã đóng đăng ký</Badge>
       case 'Closed':
-        return <Badge className='bg-gray-500'>Đã đóng</Badge>
+        return <Badge className='bg-gray-500'>Đã kết thúc</Badge>
       case 'Opening':
         return <Badge className='bg-blue-500'>Đang diễn ra</Badge>
       case 'Cancelled':

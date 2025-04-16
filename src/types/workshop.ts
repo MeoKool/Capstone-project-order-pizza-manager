@@ -7,6 +7,8 @@ export interface WorkshopFoodDetail {
   id: string
   productId: string
   product: null | string // Replace with proper Product interface if available
+  name: string
+  price: number
 }
 
 export interface Workshop {
