@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye, CalendarIcon, X } from 'lucide-react'
@@ -17,7 +19,6 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { WorkshopStatus, type Workshop } from '@/types/workshop'
-import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/utils/utils'
 import {
@@ -33,6 +34,7 @@ import {
 import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
 import { formatVietnamDate } from '@/utils/date-utils'
+import { Calendar } from '@/components/ui/calendar'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
@@ -139,14 +141,23 @@ export default function WorkshopsPage() {
   }
 
   const filteredWorkshops = workshops.filter((workshop) => {
+    // Safely check if name or description includes search term
+    const name = workshop.name || ''
+    const description = workshop.description || ''
+    const organizer = workshop.organizer || ''
+    const location = workshop.location || ''
+
     const matchesSearch =
-      workshop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      workshop.description.toLowerCase().includes(searchTerm.toLowerCase())
+      searchTerm === '' ||
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      organizer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      location.toLowerCase().includes(searchTerm.toLowerCase())
 
     // Check if workshop matches status filter
     const matchesStatus = statusFilter.length === 0 || statusFilter.includes(workshop.workshopStatus)
 
-    // If date is selected, filter by date
+    // If date is selected, filter by workshop date (Thời gian diễn ra)
     if (date) {
       const workshopDate = new Date(workshop.workshopDate)
       return (
@@ -203,7 +214,7 @@ export default function WorkshopsPage() {
                     className={cn('justify-start text-left font-normal', !date && 'text-muted-foreground')}
                   >
                     <CalendarIcon className='mr-2 h-4 w-4' />
-                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày</span>}
+                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày diễn ra</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className='w-auto p-0' align='start'>
@@ -213,7 +224,7 @@ export default function WorkshopsPage() {
 
               {date && (
                 <Button variant='ghost' size='sm' onClick={clearDateFilter}>
-                  Xóa bộ lọc ngày
+                  Xóa bộ lọc ngày diễn ra
                 </Button>
               )}
             </div>
