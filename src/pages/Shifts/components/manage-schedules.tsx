@@ -37,7 +37,9 @@ export default function ManageSchedules() {
       const shiftsData = await shiftsResponse.json()
 
       // Fetch working slots data from API
-      const workingSlotsResponse = await fetch('https://vietsac.id.vn/api/working-slots?IncludeProperties=Day')
+      const workingSlotsResponse = await fetch(
+        'https://vietsac.id.vn/api/working-slots?TakeCount=1000&IncludeProperties=Day'
+      )
       const workingSlotsData = await workingSlotsResponse.json()
 
       if (shiftsData.success) {

@@ -34,8 +34,8 @@ export function ScheduleView({ workingSlots = [] }: { workingSlots: ScheduleSlot
       }
     })
 
-    // Sort days (assuming days are in Vietnamese)
-    const dayOrder = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
+    // Sort days from Monday to Sunday (Vietnamese days)
+    const dayOrder = ['Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy', 'Chủ nhật']
     uniqueDays.sort((a, b) => {
       return dayOrder.indexOf(a.name) - dayOrder.indexOf(b.name)
     })
@@ -51,7 +51,23 @@ export function ScheduleView({ workingSlots = [] }: { workingSlots: ScheduleSlot
       grouped[slot.shiftName].push(slot)
     })
 
-    setGroupedSlots(grouped)
+    // Sort shifts by working hours
+    const sortedGrouped: Record<string, ScheduleSlot[]> = {}
+
+    // Get all shift names and sort them by start time
+    const shiftNames = Object.keys(grouped)
+    shiftNames.sort((a, b) => {
+      const slotA = grouped[a][0]
+      const slotB = grouped[b][0]
+      return slotA.shiftStart.localeCompare(slotB.shiftStart)
+    })
+
+    // Rebuild the grouped object in the sorted order
+    shiftNames.forEach((name) => {
+      sortedGrouped[name] = grouped[name]
+    })
+
+    setGroupedSlots(sortedGrouped)
   }, [workingSlots])
 
   return (
