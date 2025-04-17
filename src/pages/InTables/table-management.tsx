@@ -6,12 +6,12 @@ import { Plus, RefreshCw, Coffee, MapPin } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { TableFilters } from './components/table-filters'
-import { TableList } from './components/table-list'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { TableAddDialog } from './components/table-add-dialog'
 import useZone from '@/hooks/useZone'
 import { connection } from '@/lib/signalr-client'
+import { TableList } from './components/tables/table-list'
 
 const TableManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
@@ -122,11 +122,10 @@ const TableManagement: React.FC = () => {
             <Button
               variant={activeZone === 'all' ? 'default' : 'outline'}
               size='sm'
-              className={`whitespace-nowrap text-xs sm:text-sm py-1.5 sm:py-3 px-2 sm:px-3 ${
-                activeZone === 'all'
-                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                  : 'border-amber-200 text-amber-800 hover:bg-amber-50'
-              }`}
+              className={`whitespace-nowrap text-xs sm:text-sm py-1.5 sm:py-3 px-2 sm:px-3 ${activeZone === 'all'
+                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                : 'border-amber-200 text-amber-800 hover:bg-amber-50'
+                }`}
               onClick={() => setActiveZone('all')}
             >
               <Coffee className='mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4' />
@@ -138,11 +137,10 @@ const TableManagement: React.FC = () => {
                 key={zone.id}
                 variant={activeZone === zone.id ? 'default' : 'outline'}
                 size='sm'
-                className={`whitespace-nowrap text-xs sm:text-sm py-1.5 sm:py-3 px-2 sm:px-3 ${
-                  activeZone === zone.id
-                    ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                    : 'border-amber-200 text-amber-800 hover:bg-amber-50'
-                }`}
+                className={`whitespace-nowrap text-xs sm:text-sm py-1.5 sm:py-3 px-2 sm:px-3 ${activeZone === zone.id
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'border-amber-200 text-amber-800 hover:bg-amber-50'
+                  }`}
                 onClick={() => setActiveZone(zone.id)}
               >
                 <MapPin className='mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4' />
@@ -153,7 +151,6 @@ const TableManagement: React.FC = () => {
         </div>
 
         <TableList tables={filteredTables} onTableUpdated={handleTableUpdated} />
-
         {filteredTables.length === 0 && searchQuery.length > 0 && (
           <div className='text-center py-6 sm:py-10 bg-amber-50 rounded-lg border border-amber-100'>
             <div className='flex flex-col items-center'>

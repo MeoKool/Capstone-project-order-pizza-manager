@@ -33,8 +33,8 @@ export function PaymentDialog({
     const [isCancelingQR, setIsCancelingQR] = useState(false)
     const [qrCodeData, setQrCodeData] = useState<string | null>(null)
     const [isQRDialogOpen, setIsQRDialogOpen] = useState(false)
-    const [qrCodeGenerated, setQrCodeGenerated] = useState(false)
-    const [orderDetail, setOrderDetail] = useState<OrderDetail>()
+    const [, setQrCodeGenerated] = useState(false)
+    const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null)
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -46,7 +46,6 @@ export function PaymentDialog({
         if (open && orderId) {
             fetchOrderDetails()
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, orderId])
 
     const fetchOrderDetails = async () => {
@@ -60,15 +59,6 @@ export function PaymentDialog({
             console.error("Error fetching order details:", error)
         }
     }
-
-    // Effect to handle QR code cancellation when the QR dialog is closed
-    useEffect(() => {
-        // If QR code was generated but dialog is now closed, cancel the QR code silently
-        if (qrCodeGenerated && !isQRDialogOpen && !isCancelingQR) {
-            handleSilentCancelQR()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isQRDialogOpen, qrCodeGenerated])
 
     const handlePayByCash = async () => {
         if (!orderId) return
@@ -119,25 +109,6 @@ export function PaymentDialog({
         }
     }
 
-    // Silent cancellation - no toast messages
-    const handleSilentCancelQR = async () => {
-        if (!orderId || isCancelingQR) return
-
-        setIsCancelingQR(true)
-        try {
-            const paymentService = PaymentService.getInstance()
-            await paymentService.cancelPaymentQRCode(orderId)
-            // Reset QR code state without showing toast
-            setQrCodeGenerated(false)
-            setQrCodeData(null)
-        } catch (error) {
-            console.error("Error silently canceling QR code:", error)
-        } finally {
-            setIsCancelingQR(false)
-        }
-    }
-
-    // Visible cancellation with toast messages - only used when clicking "Quay lại" in payment-dialog.tsx
     const handleCancelPaymentQR = async () => {
         if (!orderId || isCancelingQR) return
 
@@ -147,9 +118,8 @@ export function PaymentDialog({
             const response = await paymentService.cancelPaymentQRCode(orderId)
 
             if (response.success) {
-                // Only show toast when explicitly canceling from the main payment dialog
-                toast.success("Đã hủy mã QR thanh toán")
-                // Reset QR code state
+                toast.success("Đã hủy thanh toán bằng mã QR thành công")
+
                 setQrCodeGenerated(false)
                 setQrCodeData(null)
             } else {
@@ -164,12 +134,8 @@ export function PaymentDialog({
     }
 
     const handleBack = () => {
-        // Always cancel payment QR when going back
-        handleCancelPaymentQR()
-
         onOpenChange(false)
         if (onBackToDetails) {
-            // Give a small delay to avoid dialog transition issues
             setTimeout(() => {
                 onBackToDetails()
             }, 100)
@@ -177,7 +143,7 @@ export function PaymentDialog({
     }
 
     const handleQRDialogBack = () => {
-        // Just close the QR dialog, the useEffect will handle silent cancellation
+        // Just close the QR dialog
         setIsQRDialogOpen(false)
     }
 
@@ -265,7 +231,8 @@ export function PaymentDialog({
                     qrCodeData={qrCodeData}
                     amount={totalAmount}
                     onBack={handleQRDialogBack}
-                    orderDetail={orderDetail}
+                    onCancel={handleCancelPaymentQR}
+                    orderDetail={orderDetail || undefined}
                 />
             )}
         </>

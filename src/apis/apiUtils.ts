@@ -1,4 +1,3 @@
-import { ApiErrorResponse } from '@/services/booking-service'
 import api from './axiosConfig'
 import type { AxiosResponse, AxiosError } from 'axios'
 
@@ -8,7 +7,15 @@ export default interface ApiResponse<T> {
   message: string
   statusCode: number
 }
-
+export type ApiErrorResponse = {
+  error: {
+    code: number
+    message: string
+    statusCode: number
+    timestamp: string
+    title: string
+  }
+}
 export const get = async <T>(url: string, params?: object): Promise<ApiResponse<T>> => {
   try {
     const response: AxiosResponse<ApiResponse<T>> = await api.get(url, { params })
@@ -48,7 +55,7 @@ export const put = async <T>(url: string, data?: object): Promise<ApiResponse<T>
     return {
       success: false,
       result: {} as T,
-      message: axiosError.error.message,
+      message: axiosError.error.message || ' Error put req',
       statusCode: axiosError.error?.code || 500
     }
   }
