@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -14,6 +16,8 @@ import { StaffZoneOverlay } from './components/staff-zone/staff-zone-overlay'
 import { AddStaffDialog } from './components/staff-zone/add-staff-dialog'
 import { DeleteDropZone } from './components/staff-zone/delete-drop-zone'
 import { DeleteConfirmDialog } from './components/staff-zone/delete-confirm-dialog'
+import { Button } from '@/components/ui/button'
+import { CalendarClock } from 'lucide-react'
 
 interface ZoneWithStaff {
   zone: Zone
@@ -38,6 +42,9 @@ export default function StaffZoneManagement() {
   const [staffZoneToDelete, setStaffZoneToDelete] = useState<StaffZone | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const [isSyncingSchedule, setIsSyncingSchedule] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
 
   // Configure DnD sensors
   const sensors = useSensors(
@@ -292,10 +299,53 @@ export default function StaffZoneManagement() {
     setFilterZoneType('all')
   }
 
+  const handleViewSchedule = async () => {
+    try {
+      setIsSyncingSchedule(true)
+      setSyncError(null)
+
+      // Fetch current working slot
+      const response = await fetch('https://vietsac.id.vn/api/working-slots/current')
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to fetch current working slot')
+      }
+
+      const workingSlotId = data.result.id
+
+      // Call sync API with the working slot ID
+      const syncResponse = await fetch('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ workingSlotId })
+      })
+
+      const syncData = await syncResponse.json()
+
+      if (!syncData.success) {
+        throw new Error(syncData.message || 'Failed to sync staff zone')
+      }
+
+      // Refresh data after successful sync
+      await fetchZonesAndStaff()
+
+      toast.success(`Đã đồng bộ lịch phân công: ${data.result.dayName} - ${data.result.shiftName}`)
+    } catch (err: any) {
+      console.error('Error syncing schedule:', err)
+      setSyncError(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
+      toast.error(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
+    } finally {
+      setIsSyncingSchedule(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className='container mx-auto py-6 space-y-6'>
-        <div className='flex flex-col md:flex-row justify-between gap-4'>
+        <div className='flex flex-col md:flex-row justify-end gap-4'>
           <Skeleton className='h-12 w-full md:w-1/3' />
           <Skeleton className='h-12 w-full md:w-1/3' />
         </div>
@@ -327,17 +377,6 @@ export default function StaffZoneManagement() {
 
   return (
     <div className='mx-auto p-4 max-w-full'>
-      <div className='mb-10'></div>
-      {/* Header with time and search */}
-      <StaffZoneHeader
-        currentTime={currentTime}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterZoneType={filterZoneType}
-        setFilterZoneType={setFilterZoneType}
-      />
-      <div className='mb-10'></div>
-
       {/* Stats cards */}
       <StaffZoneStats
         totalStaff={totalStaff}
@@ -345,11 +384,42 @@ export default function StaffZoneManagement() {
         diningZones={diningZones}
         kitchenZones={kitchenZones}
       />
+      <div className='mb-10'></div>
+      {/* Header with time and search */}
+
+      <div className='flex flex-col md:flex-row justify-start items-start gap-4'>
+        <StaffZoneHeader
+          currentTime={currentTime}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterZoneType={filterZoneType}
+          setFilterZoneType={setFilterZoneType}
+        />
+      </div>
+      <div className='mb-10'>
+        {syncError && (
+          <Alert variant='destructive' className='mt-4'>
+            <AlertCircle className='h-4 w-4' />
+            <AlertTitle>Lỗi đồng bộ</AlertTitle>
+            <AlertDescription>{syncError}</AlertDescription>
+          </Alert>
+        )}
+      </div>
 
       {/* Main content */}
-      <div className='flex justify-between items-center my-4'>
-        <h2 className='text-xl font-semibold'>Phân công khu vực</h2>
-        <AddStaffDialog zones={zones} onAddStaff={handleAddStaff} />
+      <div className='flex justify-end items-center my-4'>
+        <div className='flex gap-2'>
+          <Button
+            variant='yellow'
+            onClick={handleViewSchedule}
+            disabled={isSyncingSchedule}
+            className='flex gap-2 whitespace-nowrap'
+          >
+            <CalendarClock className='h-4 w-4' />
+            {isSyncingSchedule ? 'Đang đồng bộ...' : 'Xem lịch phân công'}
+          </Button>
+          <AddStaffDialog zones={zones} onAddStaff={handleAddStaff} />
+        </div>
       </div>
 
       <Tabs defaultValue='grid' className='w-full' onValueChange={(value) => setActiveView(value as 'grid' | 'list')}>
