@@ -72,7 +72,7 @@ export function GeneralSettings() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={handleSave} disabled={isSubmitting} className='ml-auto'>
+        <Button onClick={handleSave} disabled={isSubmitting} className='ml-auto' variant='green'>
           {isSubmitting ? (
             <>
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />

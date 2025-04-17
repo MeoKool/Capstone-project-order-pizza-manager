@@ -165,7 +165,7 @@ export function ReservationSlotSettings() {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant={'green'} className='ml-auto'>
                 <Plus className='mr-2 h-4 w-4' />
                 Thêm khung giờ
               </Button>
