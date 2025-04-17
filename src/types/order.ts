@@ -1,4 +1,4 @@
-import { OrderVoucher } from "./voucher"
+import { OrderVoucher } from './voucher'
 
 export interface OrderItem {
   id: string
@@ -63,7 +63,8 @@ export interface AddFoodResponse {
 export const PAYMENT_STATUS = {
   PAID: 'Paid',
   CHECKOUT: 'CheckedOut',
-  UNPAID: 'Unpaid'
+  UNPAID: 'Unpaid',
+  CANCELLED: 'Cancelled'
 } as const
 
 export interface OrdersResult {
@@ -72,7 +73,6 @@ export interface OrdersResult {
 }
 
 export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
-
 
 /////////
 export interface OrderDetail {
@@ -94,7 +94,6 @@ export interface OrderDetail {
   orderItems: OrderItemDetail[]
   orderVouchers: OrderVoucher[]
 }
-
 
 export interface AdditionalFee {
   id: string

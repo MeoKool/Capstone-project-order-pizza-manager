@@ -14,7 +14,8 @@ import {
   Filter,
   ChevronDown,
   ChevronRight,
-  X
+  X,
+  Ban
 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
@@ -198,6 +199,13 @@ export function OrdersList() {
             Chưa thanh toán
           </div>
         )
+      case PAYMENT_STATUS.CANCELLED:
+        return (
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-red-50 text-red-600'>
+            <Ban className='mr-1 h-3.5 w-3.5' />
+            Đã hủy
+          </div>
+        )
       default:
         return (
           <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'>
@@ -319,7 +327,11 @@ export function OrdersList() {
                         ? 'Đã thanh toán'
                         : statusFilter === PAYMENT_STATUS.UNPAID
                           ? 'Chưa thanh toán'
-                          : 'Đã checkout'}
+                          : statusFilter === PAYMENT_STATUS.CHECKOUT
+                            ? 'Đã checkout'
+                            : statusFilter === PAYMENT_STATUS.CANCELLED
+                              ? 'Đã hủy'
+                              : 'Khác'}
                     </>
                   ) : (
                     'Lọc trạng thái'
@@ -343,6 +355,10 @@ export function OrdersList() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setStatusFilter(PAYMENT_STATUS.CHECKOUT)}>
                   Đã checkout
+                  {statusFilter === PAYMENT_STATUS.CHECKOUT && <CheckCircle2 className='ml-auto h-4 w-4' />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter(PAYMENT_STATUS.CANCELLED)}>
+                  Đã hủy
                   {statusFilter === PAYMENT_STATUS.CHECKOUT && <CheckCircle2 className='ml-auto h-4 w-4' />}
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -442,8 +458,9 @@ export function OrdersList() {
               paginatedOrders.map((order, index) => (
                 <React.Fragment key={order.id}>
                   <TableRow
-                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
-                      }`}
+                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${
+                      expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
+                    }`}
                     onClick={() => toggleRowExpansion(order.id)}
                   >
                     <TableCell className='text-center font-medium'>
@@ -509,8 +526,7 @@ export function OrdersList() {
           Hiển thị {paginatedOrders.length} trên tổng số {filteredOrders.length} đơn hàng
         </p>
         <Pagination className=''>
-
-          <PaginationContent >
+          <PaginationContent>
             <PaginationItem className='cursor-pointer'>
               <PaginationPrevious
                 size='default'
