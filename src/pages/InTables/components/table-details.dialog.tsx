@@ -21,14 +21,14 @@ import { toast } from "sonner"
 import VoucherService from "@/services/voucher-service"
 
 // Import the smaller components
-import { TableInfoCard } from "./table-details/table-info-card"
-import { TableStatusCard } from "./table-details/table-status-card"
-import { OrderItemsList } from "./table-details/order-items-list"
-import { VoucherSection } from "./table-details/voucher-section"
-import { OrderInfoSection } from "./table-details/order-info-section"
-import { AdditionalFees } from "./table-details/additional-fees"
+import { TableInfoCard } from "./tables-details/table-info-card"
+import { TableStatusCard } from "./tables-details/table-status-card"
+import { OrderItemsList } from "./tables-details/order-items-list"
+import { VoucherSection } from "./tables-details/voucher-section"
+import { OrderInfoSection } from "./tables-details/order-info-section"
+import { AdditionalFees } from "./tables-details/additional-fees"
 import { Button } from "@/components/ui/button"
-import { PaymentDialog } from "./table-details/payment-dialog"
+import { PaymentDialog } from "./tables-details/payment-dialog"
 
 interface TableDetailsDialogProps {
   table: TableResponse

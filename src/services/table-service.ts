@@ -40,7 +40,27 @@ export default class TableService {
         }
     }
 
+    public async putCloseTable(id: string): Promise<ApiResponse<void>> {
+        try {
+            return await put<void>(`/tables/close-table/${id}`)
+        } catch (error) {
+            console.log(`Error close table id : ${id}`, error);
+            throw error
+        }
+    }
 
+    public async putLockTable(id: string, note: string): Promise<ApiResponse<void>> {
+        try {
+            const req = {
+                id,
+                note
+            }
+            return await put<void>(`/tables/lock-table/${id}`, req)
+        } catch (error) {
+            console.log(`err lock table ${id}`, error)
+            throw error
+        }
+    }
 
 
     public async checkStatusTable(id: string): Promise<ApiResponse<TableResponse>> {
