@@ -7,7 +7,6 @@ import {
   Table,
   ClipboardList,
   Utensils,
-  Users,
   UserCircle,
   Tag,
   BarChart,
@@ -83,9 +82,9 @@ const DashboardLayout = () => {
           <Link to='/menuFood'>
             <SidebarItem icon={<Utensils size={20} />} text='Thực đơn' active={isActive('/menuFood')} />
           </Link>
-          <Link to='/customers'>
+          {/* <Link to='/customers'>
             <SidebarItem icon={<Users size={20} />} text='Khách hàng' active={isActive('/customers')} />
-          </Link>
+          </Link> */}
           <Link to='/schedule'>
             <SidebarItem icon={<CalendarCheck size={20} />} text='Lịch làm việc' active={isActive('/schedule')} />
           </Link>

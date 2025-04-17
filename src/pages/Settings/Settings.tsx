@@ -6,6 +6,7 @@ import { SettingsProvider, useSettings } from './components/settings-provider'
 import { GeneralSettings } from './components/general-settings'
 import { TaxSettings } from './components/tax-settings'
 import { RegistrationSettings } from './components/registration-settings'
+import { ReservationSlotSettings } from './components/reservation-slot-settings'
 
 function SettingsContent() {
   const { loading, error } = useSettings()
@@ -41,11 +42,12 @@ function SettingsContent() {
         <p className='text-muted-foreground'>Quản lý các cài đặt và cấu hình hệ thống</p>
       </div>
 
-      <Tabs defaultValue='general' value={activeTab} onValueChange={setActiveTab} className='space-y-4'>
+      <Tabs defaultValue='general' value={activeTab} onValueChange={setActiveTab} className='space-y-4 mt-6'>
         <TabsList>
           <TabsTrigger value='general'>Cài đặt chung</TabsTrigger>
           <TabsTrigger value='registration'>Đăng ký</TabsTrigger>
           <TabsTrigger value='tax'>Thuế & Phí</TabsTrigger>
+          <TabsTrigger value='reservation'>Khung giờ đặt bàn</TabsTrigger>
         </TabsList>
 
         <TabsContent value='general' className='space-y-4'>
@@ -58,6 +60,10 @@ function SettingsContent() {
 
         <TabsContent value='tax' className='space-y-4'>
           <TaxSettings />
+        </TabsContent>
+
+        <TabsContent value='reservation' className='space-y-4'>
+          <ReservationSlotSettings />
         </TabsContent>
       </Tabs>
     </div>

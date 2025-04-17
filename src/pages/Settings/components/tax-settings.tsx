@@ -14,12 +14,12 @@ export function TaxSettings() {
   // Find the VAT setting
   const vatSetting = settings?.find((setting) => setting.key === 'VAT')
 
-  const [vatValue, setVatValue] = useState(vatSetting ? (Number.parseFloat(vatSetting.value) * 100).toString() : '8')
+  const [vatValue, setVatValue] = useState(vatSetting ? Number.parseFloat(vatSetting.value).toString() : '8')
 
   // Update state values when settings are loaded
   useEffect(() => {
     if (vatSetting) {
-      setVatValue((Number.parseFloat(vatSetting.value) * 100).toString())
+      setVatValue(Number.parseFloat(vatSetting.value).toString())
     }
   }, [vatSetting])
 
@@ -29,7 +29,7 @@ export function TaxSettings() {
     setIsSubmitting(true)
     try {
       // Convert percentage back to decimal
-      const decimalValue = (Number.parseFloat(vatValue) / 100).toString()
+      const decimalValue = Number.parseFloat(vatValue).toString()
       await updateSetting(vatSetting.id, decimalValue)
       toast.success('Thuế VAT đã được cập nhật')
     } catch (error) {
@@ -80,7 +80,7 @@ export function TaxSettings() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button onClick={handleSave} disabled={isSubmitting} className='ml-auto'>
+        <Button onClick={handleSave} disabled={isSubmitting} className='ml-auto' variant='green'>
           {isSubmitting ? (
             <>
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />
