@@ -1,4 +1,4 @@
-import axios from 'axios'
+import ApiResponse, { del, get, post } from '@/apis/apiUtils'
 
 export interface ReservationSlot {
   id: string
@@ -38,28 +38,25 @@ class ReservationSlotService {
 
   public async getAllSlots(): Promise<ReservationSlotResponse> {
     try {
-      const response = await axios.get(`${this.baseUrl}?TakeCount=1000`)
-      return response.data
+      return await get(`${this.baseUrl}?TakeCount=1000`)
     } catch (error) {
       console.error('Error fetching reservation slots:', error)
       throw error
     }
   }
 
-  public async createSlot(data: CreateReservationSlotDto): Promise<void> {
+  public async createSlot(data: CreateReservationSlotDto): Promise<ApiResponse<void>> {
     try {
-      const response = await axios.post(this.baseUrl, data)
-      return response.data
+      return await post<void>(this.baseUrl, data)
     } catch (error) {
       console.error('Error creating reservation slot:', error)
       throw error
     }
   }
 
-  public async deleteSlot(id: string): Promise<void> {
+  public async deleteSlot(id: string): Promise<ApiResponse<void>> {
     try {
-      const response = await axios.delete(`${this.baseUrl}/${id}?isHardDeleted=false`)
-      return response.data
+      return await del(`${this.baseUrl}/${id}?isHardDeleted=false`)
     } catch (error) {
       console.error(`Error deleting reservation slot with id ${id}:`, error)
       throw error

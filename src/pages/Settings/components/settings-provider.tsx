@@ -7,6 +7,7 @@ export interface ConfigItem {
   configType: string
   key: string
   value: string
+  unit?: string
 }
 
 // Kiểu dữ liệu cho phần result của API getAllSettings
@@ -92,10 +93,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const getConfigTypeAsNumber = (configType: string): number => {
     const configTypeMap: Record<string, number> = {
       MAXIMUM_REGISTER_SLOT: 0,
-      VAT: 1,
-      SWAP_WORKING_SLOT_CUTOFF_DAY: 2,
-      REGISTRATION_CUTOFF_DAY: 3,
-      REGISTRATION_WEEK_LIMIT: 4
+      MAXIMUM_REGISTER_PER_STAFF: 1,
+      VAT: 2,
+      SWAP_WORKING_SLOT_CUTOFF_DAY: 3,
+      REGISTRATION_CUTOFF_DAY: 4,
+      REGISTRATION_WEEK_LIMIT: 5
       // Add more mappings as needed
     }
     return configTypeMap[configType] ?? 0 // Use nullish coalescing for safety
