@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { TableIcon, Clock, CalendarDays } from 'lucide-react'
+import { TableIcon, Clock } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/pagination'
 import { toast } from 'sonner'
 import type { Shift } from '@/types/staff-schedule'
+import { ScheduleView } from './schedule-view'
 
 export default function ManageSchedules() {
   const [shiftsData, setShiftsData] = useState<Shift[]>([])
@@ -80,21 +81,21 @@ export default function ManageSchedules() {
         </h2>
       </div>
 
-      <Tabs defaultValue='shifts' className='w-full'>
+      <Tabs defaultValue='timetable' className='w-full'>
         <TabsList className='bg-orange-100 mb-4'>
+          <TabsTrigger
+            value='timetable'
+            className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
+          >
+            <TableIcon className='h-4 w-4' />
+            <span>Thời khóa biểu</span>
+          </TabsTrigger>
           <TabsTrigger
             value='shifts'
             className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
           >
             <Clock className='h-4 w-4' />
             <span>Ca làm</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value='workingSlots'
-            className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
-          >
-            <CalendarDays className='h-4 w-4' />
-            <span>Lịch làm việc</span>
           </TabsTrigger>
         </TabsList>
 
@@ -233,6 +234,9 @@ export default function ManageSchedules() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value='timetable' className='mt-0'>
+          <ScheduleView workingSlots={workingSlots} />
         </TabsContent>
       </Tabs>
     </div>
