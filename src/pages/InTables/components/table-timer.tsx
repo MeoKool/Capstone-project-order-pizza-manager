@@ -1,8 +1,8 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { formatDistanceToNow, isPast, parseISO, differenceInSeconds } from "date-fns"
-import { vi } from "date-fns/locale"
+import { useState, useEffect } from 'react'
+import { formatDistanceToNow, isPast, parseISO, differenceInSeconds } from 'date-fns'
+import { vi } from 'date-fns/locale'
 
 interface TableTimerProps {
   tableId: string
@@ -19,9 +19,9 @@ export function TableTimer({
   bookingTime,
   isRunning = false,
   onTimeUp,
-  duration = 30,
+  duration = 30
 }: TableTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<string>("")
+  const [timeLeft, setTimeLeft] = useState<string>('')
   const [expired, setExpired] = useState<boolean>(false)
   const [timerStarted, setTimerStarted] = useState<boolean>(false)
 
@@ -46,7 +46,7 @@ export function TableTimer({
 
         // If the time is up
         if (diffInSeconds <= -duration * 60) {
-          setTimeLeft("Hết hạn")
+          setTimeLeft('Hết hạn')
           setExpired(true)
 
           // Call the onTimeUp callback
@@ -85,7 +85,7 @@ export function TableTimer({
   // Format seconds to MM:SS or HH:MM:SS
   const formatTimeLeft = (seconds: number): string => {
     if (seconds <= 0) {
-      return "00:00"
+      return '00:00'
     }
 
     const hours = Math.floor(seconds / 3600)
@@ -101,17 +101,17 @@ export function TableTimer({
 
   // Add leading zero if needed
   const padZero = (num: number): string => {
-    return num.toString().padStart(2, "0")
+    return num.toString().padStart(2, '0')
   }
 
   // Determine the color based on time left
   const getTimerColor = (): string => {
     if (expired) {
-      return "text-red-600"
+      return 'text-red-600 font-bold'
     } else if (timerStarted) {
-      return "text-blue-600"
+      return 'text-blue-600'
     } else {
-      return "text-gray-600"
+      return 'text-gray-600'
     }
   }
 
