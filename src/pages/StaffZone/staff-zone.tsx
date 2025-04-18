@@ -44,7 +44,7 @@ export default function StaffZoneManagement() {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const [isSyncingSchedule, setIsSyncingSchedule] = useState(false)
-  const [syncError, setSyncError] = useState<string | null>(null)
+  const [, setSyncError] = useState<string | null>(null)
 
   // Configure DnD sensors
   const sensors = useSensors(
@@ -309,7 +309,7 @@ export default function StaffZoneManagement() {
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.message || 'Failed to fetch current working slot')
+        throw new Error(data.error.message || 'Failed to fetch current working slot')
       }
 
       const workingSlotId = data.result.id
@@ -395,15 +395,6 @@ export default function StaffZoneManagement() {
           filterZoneType={filterZoneType}
           setFilterZoneType={setFilterZoneType}
         />
-      </div>
-      <div className='mb-10'>
-        {syncError && (
-          <Alert variant='destructive' className='mt-4'>
-            <AlertCircle className='h-4 w-4' />
-            <AlertTitle>Lỗi đồng bộ</AlertTitle>
-            <AlertDescription>{syncError}</AlertDescription>
-          </Alert>
-        )}
       </div>
 
       {/* Main content */}

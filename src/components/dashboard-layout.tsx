@@ -14,7 +14,8 @@ import {
   Settings,
   CalendarCheck,
   Store,
-  Map
+  Map,
+  Users
 } from 'lucide-react'
 import Header from './header'
 
@@ -40,8 +41,8 @@ const DashboardLayout = () => {
         return 'đơn hàng'
       case '/menuFood':
         return 'thực đơn'
-      case '/customers':
-        return 'khách hàng'
+      case '/feedbacks':
+        return 'Đánh giá'
       case '/zones-staff':
         return 'khu vực nhân viên'
       case '/workshops':
@@ -82,9 +83,9 @@ const DashboardLayout = () => {
           <Link to='/menuFood'>
             <SidebarItem icon={<Utensils size={20} />} text='Thực đơn' active={isActive('/menuFood')} />
           </Link>
-          {/* <Link to='/customers'>
-            <SidebarItem icon={<Users size={20} />} text='Khách hàng' active={isActive('/customers')} />
-          </Link> */}
+          <Link to='/feedbacks'>
+            <SidebarItem icon={<Users size={20} />} text='Đánh giá' active={isActive('/feedbacks')} />
+          </Link>
           <Link to='/schedule'>
             <SidebarItem icon={<CalendarCheck size={20} />} text='Lịch làm việc' active={isActive('/schedule')} />
           </Link>

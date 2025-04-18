@@ -16,7 +16,6 @@ const InTables = lazy(() => import('@/pages/InTables/InTables'))
 const Kitchens = lazy(() => import('@/pages/Kitchens/Kitchens'))
 const Orders = lazy(() => import('@/pages/Orders/Orders'))
 const MenuFood = lazy(() => import('@/pages/MenuFood/MenuFood'))
-const Customers = lazy(() => import('@/pages/Customers/Customers'))
 const Staffs = lazy(() => import('@/pages/Staffs/Staffs'))
 const Promotion = lazy(() => import('@/pages/Promotion/Promotion'))
 const Reports = lazy(() => import('@/pages/Reports/Reports'))
@@ -25,6 +24,7 @@ const More = lazy(() => import('@/pages/More/More'))
 // Loading component
 import Loading from '@/routers/Loading'
 import StaffZone from '@/pages/StaffZone/staff-zone'
+import FeedbackPage from '@/pages/Feedback/page'
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -80,10 +80,10 @@ export const router = createBrowserRouter([
         )
       },
       {
-        path: 'customers',
+        path: 'feedbacks',
         element: (
           <Suspense fallback={<Loading />}>
-            <Customers />
+            <FeedbackPage />
           </Suspense>
         )
       },

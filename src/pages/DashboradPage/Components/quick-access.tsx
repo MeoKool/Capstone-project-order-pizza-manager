@@ -13,7 +13,7 @@ export default function QuickAccess() {
           <QuickAccessItem icon={<Menu className='h-4 w-4' />} label='Thực đơn' />
           <QuickAccessItem icon={<Utensils className='h-4 w-4' />} label='Bàn ăn' />
           <QuickAccessItem icon={<ShoppingBag className='h-4 w-4' />} label='Đơn hàng' />
-          <QuickAccessItem icon={<Users className='h-4 w-4' />} label='Khách hàng' />
+          <QuickAccessItem icon={<Users className='h-4 w-4' />} label='Đánh giá' />
           <QuickAccessItem icon={<Map className='h-4 w-4' />} label='Khu vực nhân viên' />
           <QuickAccessItem icon={<Calendar className='h-4 w-4' />} label='Lịch làm việc' />
           <QuickAccessItem icon={<Coffee className='h-4 w-4' />} label='Workshop' />
