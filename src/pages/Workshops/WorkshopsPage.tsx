@@ -392,6 +392,9 @@ export default function WorkshopsPage() {
                         <span className='ml-1 text-xs'>↑↓</span>
                       </div>
                     </TableHead>
+                    <TableHead className='font-semibold'>
+                      <div className='flex items-center'>Số lượng đăng ký</div>
+                    </TableHead>
                     <TableHead className='font-semibold cursor-pointer' onClick={() => handleSort('zoneName')}>
                       <div className='flex items-center'>
                         Khu vực
@@ -422,7 +425,12 @@ export default function WorkshopsPage() {
                         <TableCell>
                           {formatDate(workshop.startRegisterDate)} - {formatDate(workshop.endRegisterDate)}
                         </TableCell>
+                        <TableCell>
+                          {workshop.totalRegisteredParticipant}/{workshop.maxRegister} đăng ký
+                        </TableCell>
+
                         <TableCell>{workshop.zoneName}</TableCell>
+
                         <TableCell>{getStatusBadge(workshop.workshopStatus)}</TableCell>
                         <TableCell className='text-right'>
                           <DropdownMenu>

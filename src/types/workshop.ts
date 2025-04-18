@@ -27,6 +27,7 @@ export interface Workshop {
   maxPizzaPerRegister: number
   maxParticipantPerRegister: number
   workshopStatus: WorkshopStatus
+  totalRegisteredParticipant: number
   zoneId: string
   zone: null | string
   zoneName: string
@@ -48,6 +49,7 @@ export interface WorkshopCreate {
   maxParticipantPerRegister: number
   productIds: string[]
   zoneId: string
+  totalRegisteredParticipant: number
 }
 
 export enum WorkshopStatus {
