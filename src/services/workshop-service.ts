@@ -2,6 +2,26 @@ import type ApiResponse from '@/apis/apiUtils'
 import { get, post, put } from '@/apis/apiUtils'
 import { Workshop, WorkshopCreate, WorkshopResult } from '@/types/workshop'
 
+// Add this new interface for workshop registrations
+interface WorkshopRegisterResult {
+  items: WorkshopRegister[]
+  totalCount: number
+}
+
+interface WorkshopRegister {
+  id: string
+  customerPhone: string
+  customerName: string
+  workshopId: string
+  workshopRegisterStatus: string
+  registeredAt: string
+  totalParticipant: number
+  totalFee: number
+  code: string
+  tableId: string | null
+  tableCode: string | null
+}
+
 export default class WorkshopService {
   private static instance: WorkshopService
 
@@ -53,6 +73,16 @@ export default class WorkshopService {
       return put<void>(`/workshops/update-workshop`, { workshopId, payload })
     } catch (error) {
       console.error('Error cancelling workshop:', error)
+      throw error
+    }
+  }
+
+  // Add this new method to the WorkshopService class
+  public getWorkshopRegistrations(workshopId: string): Promise<ApiResponse<WorkshopRegisterResult>> {
+    try {
+      return get<WorkshopRegisterResult>(`/workshop-register?WorkshopId=${workshopId}`)
+    } catch (error) {
+      console.error(`Error fetching registrations for workshop ${workshopId}:`, error)
       throw error
     }
   }

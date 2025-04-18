@@ -17,13 +17,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Edit, Pizza, X } from 'lucide-react'
+import { ArrowLeft, Edit, Pizza, Users, X } from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+
+// Add interface for workshop registrations
+interface WorkshopRegister {
+  id: string
+  customerPhone: string
+  customerName: string
+  workshopId: string
+  workshopRegisterStatus: string
+  registeredAt: string
+  totalParticipant: number
+  totalFee: number
+  code: string
+  tableId: string | null
+  tableCode: string | null
+}
 
 export default function WorkshopDetail() {
   const { id } = useParams<{ id: string }>()
   const [workshop, setWorkshop] = useState<Workshop | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
+  // Add state for registrations
+  const [registrations, setRegistrations] = useState<WorkshopRegister[]>([])
+  const [registrationsLoading, setRegistrationsLoading] = useState(true)
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
 
@@ -43,6 +62,25 @@ export default function WorkshopDetail() {
       }
     }
     fetchData()
+  }, [id])
+
+  // Add effect to fetch registrations
+  useEffect(() => {
+    const fetchRegistrations = async () => {
+      if (!id) return
+      setRegistrationsLoading(true)
+      try {
+        const response = await workshopService.getWorkshopRegistrations(id)
+        if (response.success) {
+          setRegistrations(response.result.items)
+        }
+      } catch (error) {
+        console.error('Error fetching workshop registrations:', error)
+      } finally {
+        setRegistrationsLoading(false)
+      }
+    }
+    fetchRegistrations()
   }, [id])
 
   const handleCancelWorkshop = async () => {
@@ -72,6 +110,18 @@ export default function WorkshopDetail() {
 
   if (!workshop) {
     return <div className='p-4'>Không tìm thấy dữ liệu workshop</div>
+  }
+
+  // Format date function
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
   }
 
   return (
@@ -162,6 +212,62 @@ export default function WorkshopDetail() {
               <p>{workshop.maxParticipantPerRegister}</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Registration Section */}
+      <Card className='shadow-md border border-gray-200 rounded-xl mb-6'>
+        <CardHeader className='pb-4 border-b'>
+          <CardTitle className='flex items-center gap-2'>
+            <Users className='h-5 w-5' />
+            Danh sách người đăng ký ({registrations.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className='py-6'>
+          {registrationsLoading ? (
+            <div className='flex justify-center items-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary'></div>
+            </div>
+          ) : registrations.length > 0 ? (
+            <div className='overflow-x-auto'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mã đăng ký</TableHead>
+                    <TableHead>Họ tên</TableHead>
+                    <TableHead>Số điện thoại</TableHead>
+                    <TableHead>Số người tham gia</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead>Thời gian đăng ký</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {registrations.map((registration) => (
+                    <TableRow key={registration.id}>
+                      <TableCell className='font-medium'>{registration.code}</TableCell>
+                      <TableCell>{registration.customerName}</TableCell>
+                      <TableCell>{registration.customerPhone}</TableCell>
+                      <TableCell>{registration.totalParticipant}</TableCell>
+                      <TableCell>
+                        {registration.workshopRegisterStatus === 'Registered' ? (
+                          <span className='bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'>Đã đăng ký</span>
+                        ) : registration.workshopRegisterStatus === 'Attended' ? (
+                          <span className='bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs'>Đã checkin</span>
+                        ) : (
+                          <span className='bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs'>
+                            {registration.workshopRegisterStatus}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{formatDate(registration.registeredAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className='text-center text-muted-foreground py-8'>Chưa có người đăng ký tham gia workshop này</div>
+          )}
         </CardContent>
       </Card>
 
