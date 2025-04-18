@@ -253,6 +253,8 @@ export default function WorkshopDetail() {
                           <span className='bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'>Đã đăng ký</span>
                         ) : registration.workshopRegisterStatus === 'Attended' ? (
                           <span className='bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs'>Đã checkin</span>
+                        ) : registration.workshopRegisterStatus === 'Cancel' ? (
+                          <span className='bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs'>Đã hủy</span>
                         ) : (
                           <span className='bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs'>
                             {registration.workshopRegisterStatus}
