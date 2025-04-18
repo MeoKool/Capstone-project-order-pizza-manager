@@ -71,17 +71,41 @@ export default function WorkshopsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Scheduled':
-        return <Badge className='bg-blue-500'>Đã lên lịch</Badge>
+        return (
+          <Badge className='bg-blue-100 hover:bg-blue-300 border-blue-500 text-xs px-1'>
+            <div className='text-blue-600 text-center w-[110px] py-0.4'>Đã lên lịch</div>
+          </Badge>
+        )
       case 'OpeningToRegister':
-        return <Badge className='bg-green-500'>Đang mở đăng ký</Badge>
+        return (
+          <Badge className='bg-green-100 hover:bg-green-300 border-green-500 text-xs px-1'>
+            <div className='text-green-600 text-center w-[110px] py-0.4'>Đang mở đăng ký</div>
+          </Badge>
+        )
       case 'CloseRegister':
-        return <Badge className='bg-gray-500'>Đã đóng đăng ký</Badge>
+        return (
+          <Badge className='bg-gray-100 hover:bg-gray-300 border-gray-500 text-xs px-1'>
+            <div className='text-gray-600 text-center w-[110px] py-0.4'>Đã đóng đăng ký</div>
+          </Badge>
+        )
       case 'Closed':
-        return <Badge className='bg-gray-500'>Đã kết thúc</Badge>
+        return (
+          <Badge className='bg-slate-100 hover:bg-slate-300 border-slate-500 text-xs px-1'>
+            <div className='text-slate-600 text-center w-[110px] py-0.4'>Đã kết thúc</div>
+          </Badge>
+        )
       case 'Opening':
-        return <Badge className='bg-blue-500'>Đang diễn ra</Badge>
+        return (
+          <Badge className='bg-orange-100 hover:bg-orange-300 border-orange-500 text-xs px-1'>
+            <div className='text-orange-600 text-center w-[110px] py-0.4'>Đang diễn ra</div>
+          </Badge>
+        )
       case 'Cancelled':
-        return <Badge className='bg-red-500'>Đã hủy</Badge>
+        return (
+          <Badge className='bg-red-100 hover:bg-red-300 border-red-500 text-xs px-1'>
+            <div className='text-red-600 text-center w-[110px] py-0.4'>Đã hủy</div>
+          </Badge>
+        )
       default:
         return <Badge className='bg-gray-400'>{status}</Badge>
     }
