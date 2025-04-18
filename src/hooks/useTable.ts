@@ -1,20 +1,23 @@
+'use client'
+
 import TableService from '@/services/table-service'
 import type TableResponse from '@/types/tables'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useRef } from 'react'
 
 const useTable = () => {
   const [tables, setTables] = useState<TableResponse[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const tableService = TableService.getInstance()
+  // Use useRef to maintain a stable reference to the service
+  const tableServiceRef = useRef(TableService.getInstance())
 
-  // get all tables
+  // Fetch all tables with empty dependency array to prevent recreating on each render
   const fetchAllTables = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const response = await tableService.getAllTables()
+      const response = await tableServiceRef.current.getAllTables()
       if (response.success && response.result.items) {
         setTables(response.result.items)
       } else {
@@ -26,11 +29,13 @@ const useTable = () => {
     } finally {
       setLoading(false)
     }
-  }, [tableService])
+  }, []) // Empty dependency array since tableServiceRef is stable
 
+  // Only run once on component mount
   useEffect(() => {
     fetchAllTables()
-  }, [fetchAllTables])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array to run only once
 
   return { tables, loading, error, fetchAllTables }
 }
