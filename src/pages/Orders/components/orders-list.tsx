@@ -689,8 +689,8 @@ function OrderDetailRows({ orderId }: { orderId: string }) {
         <TableCell className='py-2'></TableCell>
         <TableCell className='py-2 text-primary'>Tên món</TableCell>
         <TableCell className='py-2 text-center text-primary'>Bắt đầu</TableCell>
-        <TableCell className='py-2 text-center text-primary'>Phục vụ</TableCell>
         <TableCell className='py-2 text-center text-primary'>Chế biến</TableCell>
+        <TableCell className='py-2 text-center text-primary'>Phục vụ</TableCell>
         <TableCell className='py-2 text-center text-primary'>Hoàn thành</TableCell>
         <TableCell className='py-2 text-center text-primary'>Tổng thời gian</TableCell>
       </TableRow>
@@ -710,8 +710,8 @@ function OrderDetailRows({ orderId }: { orderId: string }) {
               </div>
             </TableCell>
             <TableCell className='py-2 text-center'>{formatTime(item.startTime)}</TableCell>
-            <TableCell className='py-2 text-center'>{formatTime(item.startTimeServing)}</TableCell>
             <TableCell className='py-2 text-center'>{formatTime(item.startTimeCooking)}</TableCell>
+            <TableCell className='py-2 text-center'>{formatTime(item.startTimeServing)}</TableCell>
             <TableCell className='py-2 text-center'>{formatTime(item.endTime)}</TableCell>
             <TableCell className='py-2 text-center font-medium text-primary'>
               {calculateDuration(item.startTime, item.endTime)}

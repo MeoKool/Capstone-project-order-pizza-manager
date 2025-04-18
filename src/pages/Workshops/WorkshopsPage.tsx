@@ -45,6 +45,8 @@ export default function WorkshopsPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([])
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     fetchWorkshops()
@@ -140,6 +142,17 @@ export default function WorkshopsPage() {
     setStatusFilter((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
   }
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Nếu đang sắp xếp theo cột này, đổi hướng sắp xếp
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Nếu sắp xếp cột mới, đặt cột và hướng mặc định là tăng dần
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
   const filteredWorkshops = workshops.filter((workshop) => {
     // Safely check if name or description includes search term
     const name = workshop.name || ''
@@ -170,6 +183,42 @@ export default function WorkshopsPage() {
     }
 
     return matchesSearch && matchesStatus
+  })
+
+  // Sắp xếp workshops sau khi đã lọc
+  const sortedWorkshops = [...filteredWorkshops].sort((a, b) => {
+    if (!sortColumn) return 0
+
+    let valueA, valueB
+
+    switch (sortColumn) {
+      case 'name':
+        valueA = a.name || ''
+        valueB = b.name || ''
+        break
+      case 'workshopDate':
+        valueA = new Date(a.workshopDate).getTime()
+        valueB = new Date(b.workshopDate).getTime()
+        break
+      case 'startRegisterDate':
+        valueA = new Date(a.startRegisterDate).getTime()
+        valueB = new Date(b.startRegisterDate).getTime()
+        break
+      case 'zoneName':
+        valueA = a.zoneName || ''
+        valueB = b.zoneName || ''
+        break
+      case 'workshopStatus':
+        valueA = a.workshopStatus || ''
+        valueB = b.workshopStatus || ''
+        break
+      default:
+        return 0
+    }
+
+    if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1
+    if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1
+    return 0
   })
 
   // Format date to Vietnam time
@@ -214,7 +263,7 @@ export default function WorkshopsPage() {
                     className={cn('justify-start text-left font-normal', !date && 'text-muted-foreground')}
                   >
                     <CalendarIcon className='mr-2 h-4 w-4' />
-                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày diễn ra</span>}
+                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày bắt đầu</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className='w-auto p-0' align='start'>
@@ -325,30 +374,63 @@ export default function WorkshopsPage() {
               <Table>
                 <TableHeader className='bg-gray-50'>
                   <TableRow>
-                    <TableHead className='font-semibold'>Tên workshop</TableHead>
-                    <TableHead className='font-semibold'>Thời gian diễn ra</TableHead>
-                    <TableHead className='font-semibold'>Thời gian đăng ký</TableHead>
-                    <TableHead className='font-semibold'>Khu vực</TableHead>
-                    <TableHead className='font-semibold'>Trạng thái</TableHead>
+                    <TableHead className='font-semibold cursor-pointer' onClick={() => handleSort('name')}>
+                      <div className='flex items-center'>
+                        Tên workshop
+                        <span className='ml-1 text-xs'>↑↓</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className='font-semibold cursor-pointer' onClick={() => handleSort('workshopDate')}>
+                      <div className='flex items-center'>
+                        Thời gian bắt đầu
+                        <span className='ml-1 text-xs'>↑↓</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className='font-semibold cursor-pointer' onClick={() => handleSort('startRegisterDate')}>
+                      <div className='flex items-center'>
+                        Thời gian đăng ký
+                        <span className='ml-1 text-xs'>↑↓</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className='font-semibold'>
+                      <div className='flex items-center'>Số lượng đăng ký</div>
+                    </TableHead>
+                    <TableHead className='font-semibold cursor-pointer' onClick={() => handleSort('zoneName')}>
+                      <div className='flex items-center'>
+                        Khu vực
+                        <span className='ml-1 text-xs'>↑↓</span>
+                      </div>
+                    </TableHead>
+                    <TableHead className='font-semibold cursor-pointer' onClick={() => handleSort('workshopStatus')}>
+                      <div className='flex items-center'>
+                        Trạng thái
+                        <span className='ml-1 text-xs'>↑↓</span>
+                      </div>
+                    </TableHead>
                     <TableHead className='text-right font-semibold'>Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredWorkshops.length === 0 ? (
+                  {sortedWorkshops.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className='h-24 text-center'>
                         Không có dữ liệu
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredWorkshops.map((workshop) => (
+                    sortedWorkshops.map((workshop) => (
                       <TableRow key={workshop.id}>
                         <TableCell>{workshop.name}</TableCell>
                         <TableCell>{formatDate(workshop.workshopDate)}</TableCell>
                         <TableCell>
                           {formatDate(workshop.startRegisterDate)} - {formatDate(workshop.endRegisterDate)}
                         </TableCell>
+                        <TableCell>
+                          {workshop.totalRegisteredParticipant}/{workshop.maxRegister} đăng ký
+                        </TableCell>
+
                         <TableCell>{workshop.zoneName}</TableCell>
+
                         <TableCell>{getStatusBadge(workshop.workshopStatus)}</TableCell>
                         <TableCell className='text-right'>
                           <DropdownMenu>
