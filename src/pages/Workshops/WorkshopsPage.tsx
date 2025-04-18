@@ -214,7 +214,7 @@ export default function WorkshopsPage() {
                     className={cn('justify-start text-left font-normal', !date && 'text-muted-foreground')}
                   >
                     <CalendarIcon className='mr-2 h-4 w-4' />
-                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày diễn ra</span>}
+                    {date ? format(date, 'dd/MM/yyyy', { locale: vi }) : <span>Chọn ngày bắt đầu</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className='w-auto p-0' align='start'>
@@ -326,7 +326,7 @@ export default function WorkshopsPage() {
                 <TableHeader className='bg-gray-50'>
                   <TableRow>
                     <TableHead className='font-semibold'>Tên workshop</TableHead>
-                    <TableHead className='font-semibold'>Thời gian diễn ra</TableHead>
+                    <TableHead className='font-semibold'>Thời gian bắt đầu</TableHead>
                     <TableHead className='font-semibold'>Thời gian đăng ký</TableHead>
                     <TableHead className='font-semibold'>Khu vực</TableHead>
                     <TableHead className='font-semibold'>Trạng thái</TableHead>
