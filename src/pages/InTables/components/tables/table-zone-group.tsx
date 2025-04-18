@@ -2,6 +2,7 @@ import { MapPin } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { TableCard } from "./table-card"
 import type TableResponse from "@/types/tables"
+import { Reservation } from "@/types/reservation"
 
 interface TableZoneGroupProps {
     zoneId: string
@@ -9,6 +10,7 @@ interface TableZoneGroupProps {
     tables: TableResponse[]
     loadingTableIds: string[]
     runningTimers: { [key: string]: boolean }
+    tableReservations: { [tableId: string]: Reservation } | undefined
     onTimeUp: (tableId: string) => void
     onOpenTable: (tableId: string) => Promise<void>
     onCloseTable: (tableId: string) => Promise<void>
@@ -16,10 +18,13 @@ interface TableZoneGroupProps {
     onOpenQRCode: (table: TableResponse) => void
     onOpenUpdateDialog: (table: TableResponse) => void
     onOpenLockDialog: (table: TableResponse) => void
+    onOpenSwapDialog: (table: TableResponse) => void
+    onOpenCancelOrderDialog: (table: TableResponse) => void
+    onOpenReserveDialog: (table: TableResponse) => void
 }
 
 export function TableZoneGroup({
-
+    tableReservations = {},
     zoneName,
     tables,
     loadingTableIds,
@@ -31,6 +36,9 @@ export function TableZoneGroup({
     onOpenQRCode,
     onOpenUpdateDialog,
     onOpenLockDialog,
+    onOpenReserveDialog,
+    onOpenSwapDialog,
+    onOpenCancelOrderDialog,
 }: TableZoneGroupProps) {
     return (
         <div className="mb-6 last:mb-0">
@@ -53,9 +61,13 @@ export function TableZoneGroup({
                         onOpenTable={onOpenTable}
                         onCloseTable={onCloseTable}
                         onOpenDetails={onOpenDetails}
+                        reservation={tableReservations && tableReservations[table.id]}
                         onOpenQRCode={onOpenQRCode}
                         onOpenUpdateDialog={onOpenUpdateDialog}
                         onOpenLockDialog={onOpenLockDialog}
+                        onOpenSwapDialog={onOpenSwapDialog}
+                        onOpenCancelOrderDialog={onOpenCancelOrderDialog}
+                        onOpenReserveDialog={onOpenReserveDialog}
                     />
                 ))}
             </div>

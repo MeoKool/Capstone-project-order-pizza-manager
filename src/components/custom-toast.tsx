@@ -172,18 +172,16 @@ export const showGeneralNotificationToast = (
   const toastFunction = toast[type] || toast.info
 
   return toastFunction(
-    <div className='flex flex-col gap-3'>
+    <div className='flex flex-col '>
       <div className='flex items-center gap-2'>
         <h3 className='font-bold text-lg'>{title}</h3>
       </div>
+      <p className={cn('text-sm font-semibold', style.textColor)}>{message}</p>
 
-      <div className={cn('p-3 rounded-lg border', style.bgColor, `border-${type}-100`)}>
-        <p className={cn('text-base', style.textColor)}>{message}</p>
-      </div>
     </div>,
     {
       duration: Infinity,
-      className: `p-4 border-l-4 ${style.borderColor} max-w-md w-full shadow-lg rounded-lg`,
+      className: `p-4 border-l-4 max-w-md w-full bg-amber-300 text-amber-700 rounded-lg`,
       action: {
         label: 'Xác nhận',
         onClick: () => {

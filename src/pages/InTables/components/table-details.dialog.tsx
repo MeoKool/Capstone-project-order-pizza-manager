@@ -1,8 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX, } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -29,6 +28,8 @@ import { OrderInfoSection } from "./tables-details/order-info-section"
 import { AdditionalFees } from "./tables-details/additional-fees"
 import { Button } from "@/components/ui/button"
 import { PaymentDialog } from "./tables-details/payment-dialog"
+import OrderProgress from "./tables-details/OrderLoadingBar/OrderLoadingBar"
+import { OrderStatusBadge } from "@/components/order-status-badge"
 
 interface TableDetailsDialogProps {
   table: TableResponse
@@ -289,30 +290,13 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
                       <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                       <h3 className="font-medium text-amber-900 text-xs sm:text-sm">Thông tin đơn hàng</h3>
                     </div>
-                    {orderDetail && (
-                      <Badge
-                        className={`text-xs p-1 ${orderDetail.status === "Paid"
-                          ? "bg-emerald-100 hover:bg-emerald-300 border-emerald-300 text-emerald-400"
-                          : orderDetail.status === "CheckedOut"
-                            ? "bg-blue-100 hover:bg-blue-300 border-blue-300 text-blue-600"
-                            : "bg-amber-100 hover:bg-amber-300 border-amber-300 text-amber-600"
-                          }`}
-                      >
-                        <div className="w-[98px] text-center truncate">
-                          {orderDetail.status === "Paid"
-                            ? "Đã thanh toán"
-                            : orderDetail.status === "CheckedOut"
-                              ? "Đã checkout"
-                              : "Chưa thanh toán"}
-                        </div>
-                      </Badge>
-                    )}
+                    {orderDetail && <OrderStatusBadge status={orderDetail.status} />}
                   </div>
 
                   {isLoading ? (
-                    <div className="text-center py-3">
-                      <p className="text-xs sm:text-sm text-amber-700">Đang tải đơn hàng</p>
-                    </div>
+
+                    <OrderProgress />
+
                   ) : error ? (
                     <div className="text-center py-3">
                       <p className="text-xs sm:text-sm text-red-500">{error}</p>
@@ -323,6 +307,7 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
                     </div>
                   ) : (
                     <div className="">
+
                       {/* Order Info */}
                       <OrderInfoSection orderDetail={orderDetail} formatCurrency={formatCurrency} />
 

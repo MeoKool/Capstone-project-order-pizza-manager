@@ -1,165 +1,119 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Badge } from "@/components/ui/badge"
-import type { TableStatus } from "@/types/tables"
+import { formatDistanceToNow, isPast, parseISO, differenceInSeconds } from "date-fns"
+import { vi } from "date-fns/locale"
 
 interface TableTimerProps {
-  tableId: string // Add tableId to identify which table's timer we're tracking
-  status?: TableStatus
+  tableId: string
+  status: string
+  bookingTime?: string // ISO string format for booking time
   isRunning?: boolean
   onTimeUp: () => void
-  initialMinutes?: number
+  duration?: number // Duration in minutes for the timer (default: 30)
 }
 
-export function TableTimer({ tableId, status, isRunning = false, onTimeUp, initialMinutes = 30 }: TableTimerProps) {
-  const [timeLeft, setTimeLeft] = useState(0) // Start at 0 and initialize in useEffect
-  const [timerActive, setTimerActive] = useState(false)
+export function TableTimer({
+  tableId,
+  status,
+  bookingTime,
+  isRunning = false,
+  onTimeUp,
+  duration = 30,
+}: TableTimerProps) {
+  const [timeLeft, setTimeLeft] = useState<string>("")
+  const [expired, setExpired] = useState<boolean>(false)
+  const [timerStarted, setTimerStarted] = useState<boolean>(false)
 
-  // Load saved timer state or initialize new timer
   useEffect(() => {
-    const initializeTimer = () => {
-      const storageKey = `table-timer-${tableId}`
-      const savedTimerData = localStorage.getItem(storageKey)
+    // If no booking time is provided, use the current time + duration
+    const targetTime = bookingTime ? parseISO(bookingTime) : new Date(Date.now() + duration * 60 * 1000)
+    let intervalId: NodeJS.Timeout | null = null
 
-      if (savedTimerData) {
-        try {
-          const { endTime, status: savedStatus } = JSON.parse(savedTimerData)
+    // Function to update the timer
+    const updateTimer = () => {
+      const now = new Date()
 
-          // Only restore timer if the status is still "Reserved"
-          if (status === "Reserved" && savedStatus === "Reserved") {
-            const now = new Date().getTime()
-            const end = Number.parseInt(endTime)
-            const remaining = Math.max(0, Math.floor((end - now) / 1000))
-
-            if (remaining > 0) {
-              setTimeLeft(remaining)
-              setTimerActive(true)
-              return remaining
-            }
-          }
-        } catch (error) {
-          console.error("Error parsing saved timer data:", error)
+      // If the booking time is in the past, start the countdown
+      if (isPast(targetTime)) {
+        // If the timer hasn't started yet, set it as started
+        if (!timerStarted) {
+          setTimerStarted(true)
         }
-      }
 
-      // If no valid saved timer or different status, initialize a new one
-      const newTimeLeft = initialMinutes * 60
-      setTimeLeft(newTimeLeft)
-      return newTimeLeft
-    }
+        // Calculate seconds difference
+        const diffInSeconds = differenceInSeconds(targetTime, now)
 
-    const initialTimeLeft = initializeTimer()
+        // If the time is up
+        if (diffInSeconds <= -duration * 60) {
+          setTimeLeft("Hết hạn")
+          setExpired(true)
 
-    // If status is Reserved, save the end time
-    if (status === "Reserved") {
-      const endTime = new Date().getTime() + initialTimeLeft * 1000
-      localStorage.setItem(
-        `table-timer-${tableId}`,
-        JSON.stringify({
-          endTime,
-          status: "Reserved",
-          initialMinutes,
-        }),
-      )
-      setTimerActive(true)
-    }
-  }, [tableId, initialMinutes, status])
-
-  // Effect to handle status changes
-  useEffect(() => {
-    if (status === "Reserved") {
-      setTimerActive(true)
-
-      // Save timer state when status changes to Reserved
-      const endTime = new Date().getTime() + timeLeft * 1000
-      localStorage.setItem(
-        `table-timer-${tableId}`,
-        JSON.stringify({
-          endTime,
-          status: "Reserved",
-          initialMinutes,
-        }),
-      )
-    } else if (status == "Closing" || status == "Locked" || status == "Opening") {
-      setTimerActive(false)
-      // Clear saved timer if status is no longer Reserved
-      localStorage.removeItem(`table-timer-${tableId}`)
-    }
-  }, [status, tableId, timeLeft, initialMinutes])
-
-  // Effect to handle manual control via isRunning prop
-  useEffect(() => {
-    if (status !== "Reserved") {
-      setTimerActive(isRunning)
-    }
-  }, [isRunning, status])
-
-  // Timer countdown effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-
-    if (timerActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          const newTime = prevTime - 1
-
-          // Update the saved end time as the timer counts down
-          if (status === "Reserved" && newTime > 0) {
-            const storageKey = `table-timer-${tableId}`
-            const endTime = new Date().getTime() + newTime * 1000
-            localStorage.setItem(
-              storageKey,
-              JSON.stringify({
-                endTime,
-                status: "Reserved",
-                initialMinutes,
-              }),
-            )
-          }
-
-          if (newTime <= 0) {
-            if (interval) clearInterval(interval)
-            // Clear saved timer when it reaches zero
-            localStorage.removeItem(`table-timer-${tableId}`)
+          // Call the onTimeUp callback
+          if (isRunning && !expired) {
             onTimeUp()
-            return 0
           }
-          return newTime
-        })
-      }, 1000)
-    } else if (!timerActive && interval) {
-      clearInterval(interval)
+
+          // Clear the interval
+          if (intervalId) {
+            clearInterval(intervalId)
+          }
+        } else {
+          // Format the time left
+          setTimeLeft(formatTimeLeft(-diffInSeconds))
+        }
+      } else {
+        // If the booking time is in the future, show how much time until it starts
+        setTimeLeft(`Còn ${formatDistanceToNow(targetTime, { locale: vi, addSuffix: false })}`)
+      }
     }
 
+    // Initial update
+    updateTimer()
+
+    // Set up interval to update every second
+    intervalId = setInterval(updateTimer, 1000)
+
+    // Clean up on unmount
     return () => {
-      if (interval) clearInterval(interval)
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
     }
-  }, [timerActive, timeLeft, onTimeUp, tableId, status, initialMinutes])
+  }, [tableId, status, bookingTime, isRunning, onTimeUp, duration, timerStarted, expired])
 
-  const formatTime = (seconds: number) => {
+  // Format seconds to MM:SS or HH:MM:SS
+  const formatTimeLeft = (seconds: number): string => {
+    if (seconds <= 0) {
+      return "00:00"
+    }
+
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
+    const remainingSeconds = Math.floor(seconds % 60)
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+      return `${padZero(hours)}:${padZero(minutes)}:${padZero(remainingSeconds)}`
+    } else {
+      return `${padZero(minutes)}:${padZero(remainingSeconds)}`
     }
-    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  const getTimerColor = () => {
-    if (timeLeft < 60) return "text-red-500 font-bold"
-    if (timeLeft < 300) return "text-amber-500"
-    return "text-green-500"
+  // Add leading zero if needed
+  const padZero = (num: number): string => {
+    return num.toString().padStart(2, "0")
   }
 
-  return (
-    <Badge
-      variant="outline"
-      className={`font-mono ${getTimerColor()} text-xs py-0 h-5 min-w-[2.5rem] ${timeLeft < 60 ? "animate-pulse" : ""}`}
-    >
-      {formatTime(timeLeft)}
-    </Badge>
-  )
+  // Determine the color based on time left
+  const getTimerColor = (): string => {
+    if (expired) {
+      return "text-red-600"
+    } else if (timerStarted) {
+      return "text-blue-600"
+    } else {
+      return "text-gray-600"
+    }
+  }
+
+  return <span className={`font-mono ${getTimerColor()}`}>{timeLeft}</span>
 }

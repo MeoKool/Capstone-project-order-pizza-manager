@@ -1,6 +1,6 @@
 "use client"
 
-import { Users, MoreVertical, QrCode, Edit, History, Eye, Clock, Lock, Utensils, CircleX } from "lucide-react"
+import { Users, MoreVertical, QrCode, Edit, History, Eye, Clock, Lock, Utensils, CircleX, ArrowRightLeft, XCircle, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -9,11 +9,13 @@ import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/utils/table-utils"
 import type TableResponse from "@/types/tables"
 import { TableTimer } from "../table-timer"
+import { Reservation } from "@/types/reservation"
 
 interface TableCardProps {
     table: TableResponse
     isLoading: boolean
     isTimerRunning: boolean
+    reservation?: Reservation
     onTimeUp: () => void
     onOpenTable: (tableId: string) => Promise<void>
     onCloseTable: (tableId: string) => Promise<void>
@@ -21,11 +23,15 @@ interface TableCardProps {
     onOpenQRCode: (table: TableResponse) => void
     onOpenUpdateDialog: (table: TableResponse) => void
     onOpenLockDialog: (table: TableResponse) => void
+    onOpenSwapDialog: (table: TableResponse) => void
+    onOpenCancelOrderDialog: (table: TableResponse) => void
+    onOpenReserveDialog: (table: TableResponse) => void
 }
 
 export function TableCard({
     table,
     isLoading,
+    reservation,
     isTimerRunning,
     onTimeUp,
     onOpenTable,
@@ -34,6 +40,9 @@ export function TableCard({
     onOpenQRCode,
     onOpenUpdateDialog,
     onOpenLockDialog,
+    onOpenSwapDialog,
+    onOpenCancelOrderDialog,
+    onOpenReserveDialog
 }: TableCardProps) {
     // Function to get status color
     const getStatusColor = (status: string) => {
@@ -83,6 +92,7 @@ export function TableCard({
                             {isLoading ? "Đang xử lý..." : "Mở bàn"}
                         </Button>
                         <Button
+                            onClick={() => onOpenReserveDialog(table)}
                             variant="outline"
                             size="sm"
                             className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-blue-200 text-blue-700 hover:bg-blue-50"
@@ -117,7 +127,26 @@ export function TableCard({
                 )
             case "Reserved":
                 return (
-                    <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">{/* Reserved state buttons would go here if needed */}</div>
+                    <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">
+                        <Button
+                            onClick={() => onCloseTable(table.id)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-50"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Đang xử lý..." : "Đóng bàn"}
+                        </Button>
+                        <Button
+                            onClick={() => onOpenLockDialog(table)}
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-amber-200 text-amber-700 hover:bg-amber-50"
+                            disabled={isLoading}
+                        >
+                            Bảo trì
+                        </Button>
+                    </div>
                 )
             case "Locked":
                 return (
@@ -146,18 +175,21 @@ export function TableCard({
                 return null
         }
     }
-
+    const formatPhoneNumber = (phone: string) => {
+        if (!phone) return ""
+        return phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3")
+    }
     return (
         <Card
             className={`overflow-hidden transition-all border-l-4 truncate ${table.status === "Opening"
-                    ? "border-l-emerald-500"
-                    : table.status === "Reserved"
-                        ? "border-l-blue-500"
-                        : table.status === "Closing"
-                            ? "border-l-red-500"
-                            : table.status === "Locked"
-                                ? "border-l-amber-500"
-                                : "border-l-gray-300"
+                ? "border-l-emerald-500"
+                : table.status === "Reserved"
+                    ? "border-l-blue-500"
+                    : table.status === "Closing"
+                        ? "border-l-red-500"
+                        : table.status === "Locked"
+                            ? "border-l-amber-500"
+                            : "border-l-gray-300"
                 } hover:scale-[1.02] transition-transform duration-200`}
         >
             <CardHeader
@@ -219,6 +251,35 @@ export function TableCard({
                                     Khóa bàn
                                 </DropdownMenuItem>
                             )}
+                            {/* Add Swap table option to dropdown menu */}
+                            {table.status === "Opening" && table.currentOrderId && (
+                                <DropdownMenuItem
+                                    onClick={() => onOpenSwapDialog(table)}
+                                    className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
+                                >
+                                    <ArrowRightLeft className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
+                                    Chuyển bàn
+                                </DropdownMenuItem>
+                            )}
+                            {/* Add Cancel order option to dropdown menu */}
+                            {table.status === "Opening" && table.currentOrderId && (
+                                <DropdownMenuItem
+                                    onClick={() => onOpenCancelOrderDialog(table)}
+                                    className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
+                                >
+                                    <XCircle className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
+                                    Hủy đơn hàng
+                                </DropdownMenuItem>
+                            )}
+                            {(table.status === "Closing") && (
+                                <DropdownMenuItem
+                                    onClick={() => onOpenReserveDialog(table)}
+                                    className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
+                                >
+                                    <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                                    Đặt trước
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -234,15 +295,51 @@ export function TableCard({
                     </div>
 
                     {table.status === "Reserved" && (
-                        <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
-                            <div className="flex items-center">
-                                <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                                <span className="text-blue-700 font-medium">Thời gian:</span>
-                            </div>
-                            <div className="font-medium text-blue-700">
-                                <TableTimer tableId={table.id} status={table.status} isRunning={isTimerRunning} onTimeUp={onTimeUp} />
-                            </div>
-                        </div>
+
+                        <>
+                            {reservation ? (
+                                <>
+                                    <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
+                                        <Users className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                                        <span className="text-blue-700 font-medium truncate">{reservation.customerName}</span>
+                                    </div>
+                                    <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
+                                        <Phone className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                                        <span className="text-blue-700 font-medium">{formatPhoneNumber(reservation.phoneNumber)}</span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
+                                        <div className="flex items-center">
+                                            <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                                            <span className="text-blue-700 font-medium">Thời gian:</span>
+                                        </div>
+                                        <div className="font-medium text-blue-700">
+                                            <TableTimer
+                                                tableId={table.id}
+                                                status={table.status}
+                                                bookingTime={reservation.bookingTime}
+                                                isRunning={isTimerRunning}
+                                                onTimeUp={onTimeUp}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
+                                    <div className="flex items-center">
+                                        <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                                        <span className="text-blue-700 font-medium">Đã đặt trước</span>
+                                    </div>
+                                    <div className="font-medium text-blue-700">
+                                        <TableTimer
+                                            tableId={table.id}
+                                            status={table.status}
+                                            isRunning={isTimerRunning}
+                                            onTimeUp={onTimeUp}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
 
                     {table.status === "Closing" && (

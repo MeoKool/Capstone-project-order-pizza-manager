@@ -68,6 +68,32 @@ class OrderService {
       throw error
     }
   }
+  public async swapTable(orderId: string, newTableId: string): Promise<ApiResponse<void>> {
+    try {
+      const req = {
+        orderId,
+        newTableId
+      }
+      return await put(`/orders/swap-table-order/${orderId}`, req)
+    } catch (error) {
+      console.log(`error swap table with orderId ${orderId}`, error);
+      throw error
+
+    }
+  }
+  public async cancelOrder(orderId: string, note: string): Promise<ApiResponse<void>> {
+    try {
+      const req = {
+        orderId,
+        note
+      }
+      return await put(`/orders/cancel-order/${orderId}`, req)
+    } catch (error) {
+      console.log(`err cancelOrder with order Id ${orderId} `, error);
+      throw error
+    }
+  }
+
 }
 
 export default OrderService

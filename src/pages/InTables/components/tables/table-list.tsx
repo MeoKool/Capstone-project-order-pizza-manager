@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Coffee, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -15,6 +15,12 @@ import { TableDetailsDialog } from "../table-details.dialog"
 import { TableQRCode } from "../table-qr-code"
 import { TableUpdateDialog } from "../table-update-dialog"
 import { TableAddDialog } from "../table-add-dialog"
+import { TableSwapDialog } from "./table-swap-dialog"
+import { OrderCancelDialog } from "./order-cancel-dialog"
+import { showTableLToast } from "../table-toast-notifications"
+import { TableReserveDialog } from "./table-reserve-dialog"
+import { Reservation } from "@/types/reservation"
+import BookingService from "@/services/booking-service"
 
 interface TableListProps {
     tables: TableResponse[]
@@ -23,13 +29,17 @@ interface TableListProps {
 
 export function TableList({ tables, onTableUpdated }: TableListProps) {
     const [selectedTable, setSelectedTable] = useState<TableResponse | null>(null)
+    const [showReserveDialog, setShowReserveDialog] = useState(false)
     const [showDetailsDialog, setShowDetailsDialog] = useState(false)
     const [showQRCodeDialog, setShowQRCodeDialog] = useState(false)
     const [showAddDialog, setShowAddDialog] = useState(false)
     const [showUpdateDialog, setShowUpdateDialog] = useState(false)
     const [showLockDialog, setShowLockDialog] = useState(false)
+    const [showSwapDialog, setShowSwapDialog] = useState(false)
+    const [showCancelOrderDialog, setShowCancelOrderDialog] = useState(false)
     const [runningTimers, setRunningTimers] = useState<{ [key: string]: boolean }>({})
-    const [loadingTableIds, setLoadingTableIds] = useState<string[]>([]) // Track which tables are being updated
+    const [tableReservations, setTableReservations] = useState<{ [tableId: string]: Reservation }>({})
+    const [loadingTableIds, setLoadingTableIds] = useState<string[]>([])
     const { zones_ } = useZone()
 
     const handleTimeUp = (tableId: string) => {
@@ -37,14 +47,52 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
         toast.warning(`Hết thời gian đặt trước cho bàn ${tables.find((t) => t.id === tableId)?.code || tableId}`)
         console.log(`Hết thời gian cho bàn ${tableId}`)
     }
+    // Fetch reservations when component mounts or tables change
+    useEffect(() => {
+        fetchReservations()
+    }, [tables])
 
+    const fetchReservations = async () => {
+        try {
+            const bookingService = BookingService.getInstance()
+            const response = await bookingService.getAllReservations()
+
+            if (response.success && response.result) {
+                // Handle both array and single item responses
+                const items = Array.isArray(response.result.items) ? response.result.items : [response.result.items]
+
+                // Create a map of tableId -> reservation
+                const reservationsMap: { [tableId: string]: Reservation } = {}
+                items.forEach((reservation) => {
+                    if (reservation && reservation.tableId && reservation.tableId !== "") {
+                        reservationsMap[reservation.tableId] = reservation
+                    }
+                })
+
+                setTableReservations(reservationsMap)
+            } else {
+                // If the response is not successful, set an empty object
+                setTableReservations({})
+            }
+        } catch (error) {
+            console.error("Error fetching reservations:", error)
+            // In case of error, set an empty object
+            setTableReservations({})
+        }
+    }
     const handleOpenTable = async (tableId: string) => {
         setLoadingTableIds((prev) => [...prev, tableId]) // Set loading state for this table
         try {
             const tableSevice = TableService.getInstance()
             const res = await tableSevice.putOpenTable(tableId)
+
+
+            const table = tables.find(t => t.id === tableId)
+            const tableCode = table?.code || `ID: ${tableId}`
+
+
             if (res.success) {
-                toast.success("Bàn đã được mở")
+                showTableLToast({ tableCode, message: 'đã được mở' })
             } else {
                 toast.error(res.message)
             }
@@ -66,8 +114,12 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
         try {
             const tableSevice = TableService.getInstance()
             const res = await tableSevice.putCloseTable(tableId)
+
+            const table = tables.find(t => t.id === tableId)
+            const tableCode = table?.code || `ID: ${tableId}`
+
             if (res.success) {
-                toast.success("Bàn đã được đóng")
+                showTableLToast({ tableCode, message: 'đã được đóng' })
             } else {
                 toast.error(res.message)
             }
@@ -89,8 +141,11 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
         try {
             const tableService = TableService.getInstance()
             const res = await tableService.putLockTable(tableId, note)
+
+            const table = tables.find(t => t.id === tableId)
+            const tableCode = table?.code || `ID: ${tableId}`
             if (res.success) {
-                toast.success("Bàn đã được khóa để bảo trì")
+                showTableLToast({ tableCode, message: 'đã được khóa để bảo trì', note })
                 setShowLockDialog(false)
             } else {
                 toast.error(res.message)
@@ -127,7 +182,21 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
         setSelectedTable(table)
         setShowLockDialog(true)
     }
+    const handleOpenSwapDialog = (table: TableResponse) => {
+        console.log("Opening swap dialog for table:", table.code)
+        setSelectedTable(table)
+        setShowSwapDialog(true)
+    }
 
+    const handleOpenCancelOrderDialog = (table: TableResponse) => {
+        setSelectedTable(table)
+        setShowCancelOrderDialog(true)
+    }
+
+    const handleOpenReserveDialog = (table: TableResponse) => {
+        setSelectedTable(table)
+        setShowReserveDialog(true)
+    }
     // Group tables by zone
     const tablesByZone = tables.reduce<Record<string, TableResponse[]>>((acc, table) => {
         const zoneId = table.zoneId
@@ -171,6 +240,10 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                     onOpenQRCode={handleOpenQRCode}
                     onOpenUpdateDialog={handleOpenUpdateDialog}
                     onOpenLockDialog={handleOpenLockDialog}
+                    onOpenSwapDialog={handleOpenSwapDialog}
+                    onOpenCancelOrderDialog={handleOpenCancelOrderDialog}
+                    onOpenReserveDialog={handleOpenReserveDialog}
+                    tableReservations={tableReservations}
                 />
             ))}
 
@@ -191,6 +264,36 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                         onOpenChange={setShowLockDialog}
                         onLockTable={handleLockTable}
                         isLoading={loadingTableIds.includes(selectedTable.id)}
+                    />
+                    <TableSwapDialog
+                        table={selectedTable}
+                        open={showSwapDialog}
+                        onOpenChange={setShowSwapDialog}
+                        isLoading={loadingTableIds.includes(selectedTable.id)}
+                        onTableUpdated={onTableUpdated}
+                    />
+                    <OrderCancelDialog
+                        table={selectedTable}
+                        open={showCancelOrderDialog}
+                        onOpenChange={setShowCancelOrderDialog}
+                        isLoading={loadingTableIds.includes(selectedTable.id)}
+                        onTableUpdated={onTableUpdated}
+                    />
+                    <TableReserveDialog
+                        table={selectedTable}
+                        open={showReserveDialog}
+                        isLoading={loadingTableIds.includes(selectedTable.id)}
+                        onOpenChange={(open) => {
+                            setShowReserveDialog(open)
+                            if (!open) {
+                                // Refresh reservations when dialog closes
+                                fetchReservations()
+                                // Refresh tables
+                                if (onTableUpdated) {
+                                    onTableUpdated()
+                                }
+                            }
+                        }}
                     />
                 </>
             )}

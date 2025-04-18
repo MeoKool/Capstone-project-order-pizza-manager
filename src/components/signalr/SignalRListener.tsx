@@ -53,7 +53,7 @@ export default function EnhancedSignalRListener() {
 
     // Handle general notifications with appropriate styling based on type
     connection.on('ReceiveNotification', (data: Notification) => {
-      const toastType = getNotificationType(2)
+      const toastType = getNotificationType(3)
       showGeneralNotificationToast(data.title, data.message, toastType)
     })
 
@@ -68,7 +68,7 @@ export default function EnhancedSignalRListener() {
     })
 
     // Empty handler for OrderItemUpdatedStatus
-    connection.on('OrderItemUpdatedStatus', () => {})
+    connection.on('OrderItemUpdatedStatus', () => { })
 
     // Clean up event listeners on component unmount
     return () => {
