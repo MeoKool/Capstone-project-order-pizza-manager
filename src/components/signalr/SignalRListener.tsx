@@ -53,19 +53,17 @@ export default function EnhancedSignalRListener() {
 
     // Handle general notifications with appropriate styling based on type
     connection.on('ReceiveNotification', (data: Notification) => {
-      const toastType = getNotificationType(data.type)
+      const toastType = getNotificationType(2)
       showGeneralNotificationToast(data.title, data.message, toastType)
     })
 
     // Handle reservation created notifications with custom styling
     connection.on('ReservationCreated', (data: ReservationCreatedNotification) => {
-      console.log('Received ReservationCreated notification:', data)
       showReservationCreatedToast(data)
     })
 
     // Handle assign table notifications with custom styling
     connection.on('AssignTableForReservation', (data: ReservationCreatedNotification) => {
-      console.log('Received AssignTableForReservation notification:', data)
       showAssignTableToast(data)
     })
 
