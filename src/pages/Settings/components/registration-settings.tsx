@@ -1,9 +1,12 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Loader2, Save } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Info, Loader2, Save } from 'lucide-react'
 import { useSettings } from './settings-provider'
 import { toast } from 'sonner'
 
@@ -70,66 +73,107 @@ export function RegistrationSettings() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Cài đặt đăng ký</CardTitle>
-        <CardDescription>Quản lý các cài đặt liên quan đến đăng ký và thay đổi lịch làm việc</CardDescription>
-      </CardHeader>
-      <CardContent className='space-y-4'>
-        <div className='space-y-2'>
-          <Label htmlFor='registration-cutoff'>Thời hạn đăng ký (ngày)</Label>
-          <Input
-            id='registration-cutoff'
-            type='number'
-            value={registrationCutoff}
-            onChange={(e) => setRegistrationCutoff(e.target.value)}
-            min='0'
-            className='max-w-[120px]'
-          />
-          <p className='text-sm text-muted-foreground'>Số ngày trước khi hết hạn đăng ký.</p>
-        </div>
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle>Cài đặt đăng ký</CardTitle>
+          <CardDescription>Quản lý các cài đặt liên quan đến đăng ký và thay đổi lịch làm việc</CardDescription>
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <div className='space-y-2'>
+            <div className='flex items-center gap-2'>
+              <Label htmlFor='registration-cutoff'>Thời hạn đăng ký (ngày)</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className='h-4 w-4 text-muted-foreground cursor-help' />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className='max-w-xs'>
+                    Số ngày trước khi ca làm việc bắt đầu mà nhân viên có thể đăng ký. Sau thời hạn này, nhân viên sẽ
+                    không thể đăng ký ca làm việc.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input
+              id='registration-cutoff'
+              type='number'
+              value={registrationCutoff}
+              onChange={(e) => setRegistrationCutoff(e.target.value)}
+              min='0'
+              className='max-w-[120px]'
+            />
+            <p className='text-sm text-muted-foreground'>Số ngày trước khi hết hạn đăng ký.</p>
+          </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='swap-cutoff'>Thời hạn đổi ca (ngày)</Label>
-          <Input
-            id='swap-cutoff'
-            type='number'
-            value={swapCutoff}
-            onChange={(e) => setSwapCutoff(e.target.value)}
-            min='0'
-            className='max-w-[120px]'
-          />
-          <p className='text-sm text-muted-foreground'>Số ngày trước khi hết hạn đổi ca làm việc.</p>
-        </div>
+          <div className='space-y-2'>
+            <div className='flex items-center gap-2'>
+              <Label htmlFor='swap-cutoff'>Thời hạn đổi ca (ngày)</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className='h-4 w-4 text-muted-foreground cursor-help' />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className='max-w-xs'>
+                    Số ngày trước khi ca làm việc bắt đầu mà nhân viên có thể đổi ca. Sau thời hạn này, nhân viên sẽ
+                    không thể đổi ca làm việc đã đăng ký.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input
+              id='swap-cutoff'
+              type='number'
+              value={swapCutoff}
+              onChange={(e) => setSwapCutoff(e.target.value)}
+              min='0'
+              className='max-w-[120px]'
+            />
+            <p className='text-sm text-muted-foreground'>Số ngày trước khi hết hạn đổi ca làm việc.</p>
+          </div>
 
-        <div className='space-y-2'>
-          <Label htmlFor='week-limit'>Giới hạn đăng ký theo tuần</Label>
-          <Input
-            id='week-limit'
-            type='number'
-            value={weekLimit}
-            onChange={(e) => setWeekLimit(e.target.value)}
-            min='1'
-            className='max-w-[120px]'
-          />
-          <p className='text-sm text-muted-foreground'>Số tuần tối đa có thể đăng ký trước.</p>
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button onClick={handleSave} disabled={isSubmitting} className='ml-auto' variant='green'>
-          {isSubmitting ? (
-            <>
-              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-              Đang lưu...
-            </>
-          ) : (
-            <>
-              <Save className='mr-2 h-4 w-4' />
-              Lưu thay đổi
-            </>
-          )}
-        </Button>
-      </CardFooter>
-    </Card>
+          <div className='space-y-2'>
+            <div className='flex items-center gap-2'>
+              <Label htmlFor='week-limit'>Giới hạn đăng ký theo tuần</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className='h-4 w-4 text-muted-foreground cursor-help' />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className='max-w-xs'>
+                    Số tuần tối đa mà nhân viên có thể đăng ký trước. Ví dụ: nếu giá trị là 2, nhân viên có thể đăng ký
+                    ca làm việc trong 2 tuần tới.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Input
+              id='week-limit'
+              type='number'
+              value={weekLimit}
+              onChange={(e) => setWeekLimit(e.target.value)}
+              min='1'
+              className='max-w-[120px]'
+            />
+            <p className='text-sm text-muted-foreground'>Số tuần tối đa có thể đăng ký trước.</p>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSave} disabled={isSubmitting} className='ml-auto' variant='green'>
+            {isSubmitting ? (
+              <>
+                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                Đang lưu...
+              </>
+            ) : (
+              <>
+                <Save className='mr-2 h-4 w-4' />
+                Lưu thay đổi
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+    </TooltipProvider>
   )
 }
