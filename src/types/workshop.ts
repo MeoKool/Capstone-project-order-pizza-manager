@@ -49,7 +49,6 @@ export interface WorkshopCreate {
   maxParticipantPerRegister: number
   productIds: string[]
   zoneId: string
-  totalRegisteredParticipant: number
 }
 
 export enum WorkshopStatus {
