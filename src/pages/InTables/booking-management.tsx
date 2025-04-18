@@ -1,5 +1,9 @@
+'use client'
+
+import type React from 'react'
+
 import { useState, useEffect, useMemo } from 'react'
-import { RefreshCw, ArrowUpDown, X, Filter } from 'lucide-react'
+import { RefreshCw, ArrowUpDown, X, Filter, CalendarIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,6 +16,8 @@ import type { Reservation } from '@/types/reservation'
 import { ViewBookingDialog } from './components/Booking/ViewBookingDialog'
 import { AssignTableDialog } from './components/Booking/AssignTableDialog'
 import { BookingTable } from './components/Booking/BookingTable'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 // Define types for sorting and filtering
 type SortOption =
@@ -91,7 +97,7 @@ function BookingPage() {
   const [sortOption, setSortOption] = useState<SortOption>('newest')
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
-  const [dateFilter, setDateFilter] = useState<string>('')
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(new Date())
 
   const bookingService = BookingService.getInstance()
 
@@ -155,13 +161,12 @@ function BookingPage() {
 
     // Apply date filter
     if (dateFilter) {
-      const filterDate = new Date(dateFilter)
       result = result.filter((reservation) => {
         const bookingDate = new Date(reservation.bookingTime)
         return (
-          bookingDate.getFullYear() === filterDate.getFullYear() &&
-          bookingDate.getMonth() === filterDate.getMonth() &&
-          bookingDate.getDate() === filterDate.getDate()
+          bookingDate.getFullYear() === dateFilter.getFullYear() &&
+          bookingDate.getMonth() === dateFilter.getMonth() &&
+          bookingDate.getDate() === dateFilter.getDate()
         )
       })
     }
@@ -253,7 +258,7 @@ function BookingPage() {
   const clearFilters = () => {
     setSearchTerm('')
     setStatusFilter('all')
-    setDateFilter('')
+    setDateFilter(undefined)
     setSortOption('newest')
   }
 
@@ -318,22 +323,17 @@ function BookingPage() {
                 </SelectContent>
               </Select>
 
-              <div className='relative'>
-                <Input
-                  type='date'
-                  className='w-[180px]'
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                />
-                {dateFilter && (
-                  <button
-                    className='absolute right-3 top-1/2 transform -translate-y-1/2'
-                    onClick={() => setDateFilter('')}
-                  >
-                    <X className='h-4 w-4 text-gray-500' />
-                  </button>
-                )}
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant='outline' className='w-[180px] justify-start text-left font-normal'>
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {dateFilter ? formatDateString(dateFilter.toISOString()) : 'Chọn ngày'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0'>
+                  <Calendar mode='single' selected={dateFilter} onSelect={setDateFilter} initialFocus />
+                </PopoverContent>
+              </Popover>
 
               <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
                 <SelectTrigger className='w-[180px]'>
@@ -389,8 +389,13 @@ function BookingPage() {
 
               {dateFilter && (
                 <Badge variant='secondary' className='flex items-center gap-1'>
-                  Ngày: {formatDateString(dateFilter)}
-                  <Button variant='ghost' size='sm' className='h-4 w-4 p-0 ml-1' onClick={() => setDateFilter('')}>
+                  Ngày: {formatDateString(dateFilter.toISOString())}
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='h-4 w-4 p-0 ml-1'
+                    onClick={() => setDateFilter(undefined)}
+                  >
                     <X className='h-3 w-3' />
                     <span className='sr-only'>Xóa bộ lọc</span>
                   </Button>
