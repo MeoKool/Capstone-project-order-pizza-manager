@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX, Trash2, } from "lucide-react"
+import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX, Trash2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,7 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
   const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null)
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [isCancelingCheckout, setIsCancelingCheckout] = useState(false)
+  const [currentTable, setCurrentTable] = useState<TableResponse>(table)
 
   // Voucher related states
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false)
@@ -55,7 +56,10 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
 
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
 
-
+  // Update currentTable when table prop changes
+  useEffect(() => {
+    setCurrentTable(table)
+  }, [table])
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -65,14 +69,14 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
   // Fetch order items when the dialog opens and currentOrderId exists
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      if (!table.currentOrderId || !open) return
+      if (!currentTable.currentOrderId || !open) return
 
       setIsLoading(true)
       setError(null)
 
       try {
         const orderService = OrderService.getInstance()
-        const response = await orderService.getOrderById(table.currentOrderId)
+        const response = await orderService.getOrderById(currentTable.currentOrderId)
 
         if (response.success && response.result) {
           setOrderDetail(response.result)
@@ -90,7 +94,28 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
     }
 
     fetchOrderDetails()
-  }, [table.currentOrderId, open])
+  }, [currentTable.currentOrderId, open])
+
+  // Function to refresh table data
+  const refreshTableData = async () => {
+    if (!currentTable.id) return
+
+    try {
+      const tableService = await import("@/services/table-service").then((module) => module.default.getInstance())
+      const response = await tableService.getTableById(currentTable.id)
+
+      if (response.success && response.result) {
+        setCurrentTable(response.result)
+
+        // If the table no longer has an order, clear the order detail
+        if (!response.result.currentOrderId) {
+          setOrderDetail(null)
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing table data:", error)
+    }
+  }
 
   // Function to check voucher
   const handleApplyVoucher = async (code: string) => {
@@ -118,7 +143,7 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
 
             // Refresh order details to show updated prices and vouchers
             const orderService = OrderService.getInstance()
-            const updatedResponse = await orderService.getOrderById(table.currentOrderId)
+            const updatedResponse = await orderService.getOrderById(currentTable.currentOrderId)
             if (updatedResponse.success && updatedResponse.result) {
               setOrderDetail(updatedResponse.result)
             }
@@ -149,9 +174,9 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
         toast.success("Đã xóa mã giảm giá")
 
         // Refresh order details to show updated prices and vouchers
-        if (orderDetail && table.currentOrderId) {
+        if (orderDetail && currentTable.currentOrderId) {
           const orderService = OrderService.getInstance()
-          const updatedResponse = await orderService.getOrderById(table.currentOrderId)
+          const updatedResponse = await orderService.getOrderById(currentTable.currentOrderId)
           if (updatedResponse.success && updatedResponse.result) {
             setOrderDetail(updatedResponse.result)
           }
@@ -181,18 +206,18 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
 
   // cancel check out
   const handleCancelCheckout = async () => {
-    if (!orderDetail || !table.currentOrderId) return
+    if (!orderDetail || !currentTable.currentOrderId) return
 
     setIsCancelingCheckout(true)
     try {
       const orderService = OrderService.getInstance()
-      const response = await orderService.cancelCheckOutOrder(table.currentOrderId)
+      const response = await orderService.cancelCheckOutOrder(currentTable.currentOrderId)
 
       if (response.success) {
         toast.success("Đã hủy checkout đơn hàng thành công")
 
         // Refresh order details to show updated status
-        const updatedResponse = await orderService.getOrderById(table.currentOrderId)
+        const updatedResponse = await orderService.getOrderById(currentTable.currentOrderId)
         if (updatedResponse.success && updatedResponse.result) {
           setOrderDetail(updatedResponse.result)
         }
@@ -209,18 +234,18 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
 
   // Function to handle order checkout
   const handleCheckOut = async () => {
-    if (!orderDetail || !table.currentOrderId) return
+    if (!orderDetail || !currentTable.currentOrderId) return
 
     setIsCheckingOut(true)
     try {
       const orderService = OrderService.getInstance()
-      const response = await orderService.checkOutOrder(table.currentOrderId)
+      const response = await orderService.checkOutOrder(currentTable.currentOrderId)
 
       if (response.success) {
         toast.success("Đã checkout đơn hàng thành công")
 
         // Refresh order details to show updated status
-        const updatedResponse = await orderService.getOrderById(table.currentOrderId)
+        const updatedResponse = await orderService.getOrderById(currentTable.currentOrderId)
         if (updatedResponse.success && updatedResponse.result) {
           setOrderDetail(updatedResponse.result)
         }
@@ -237,8 +262,9 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
 
   const handleTimeUp = () => {
     setIsTimerRunning(false)
-    console.log(`Hết thời gian cho bàn ${table.id}`)
+    console.log(`Hết thời gian cho bàn ${currentTable.id}`)
   }
+
   // Function to open payment dialog and close details dialog
   const handleOpenPayment = () => {
     if (!orderDetail) return
@@ -248,10 +274,10 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
 
   // Function to refresh order details after payment
   const handlePaymentComplete = () => {
-    if (table.currentOrderId) {
+    if (currentTable.currentOrderId) {
       const orderService = OrderService.getInstance()
       orderService
-        .getOrderById(table.currentOrderId)
+        .getOrderById(currentTable.currentOrderId)
         .then((response) => {
           if (response.success && response.result) {
             setOrderDetail(response.result)
@@ -265,11 +291,19 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
     }
   }
 
+  // Handle order cancellation - keep dialog open and refresh data
+  const handleOrderCancelled = async () => {
+    // Refresh the table data to get the updated state
+    await refreshTableData()
+
+    // If there's a callback for table updates, call it
+    if (onTableUpdated) {
+      onTableUpdated()
+    }
+  }
 
   return (
-
     <>
-
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw]">
           <DialogHeader className="-mx-4 sm:-mx-6 mt-3 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100 sticky top-0 bg-white z-10">
@@ -278,19 +312,19 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                 <div className="bg-amber-600 p-1 sm:p-1.5 rounded-md">
                   <Utensils className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                 </div>
-                <div className="text-base sm:text-xl text-amber-800">{table.code}</div>
+                <div className="text-base sm:text-xl text-amber-800">{currentTable.code}</div>
               </div>
-              <div className="ml-auto">{getStatusBadge(table.status)}</div>
+              <div className="ml-auto">{getStatusBadge(currentTable.status)}</div>
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">Chi tiết thông tin bàn ăn</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2 sm:space-y-2">
-            <TableInfoCard table={table} zones={zones_} />
-            <TableStatusCard table={table} isTimerRunning={isTimerRunning} onTimeUp={handleTimeUp} />
+            <TableInfoCard table={currentTable} zones={zones_} />
+            <TableStatusCard table={currentTable} isTimerRunning={isTimerRunning} onTimeUp={handleTimeUp} />
 
             {/* Order Details Section */}
-            {table.currentOrderId && (
+            {currentTable.currentOrderId ? (
               <Card className="border-amber-100 max-h-[50vh] overflow-y-auto scrollbar-hide py-2">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between gap-1 mb-3 pr-2">
@@ -302,9 +336,7 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                   </div>
 
                   {isLoading ? (
-
                     <OrderProgress />
-
                   ) : error ? (
                     <div className="text-center py-3">
                       <p className="text-xs sm:text-sm text-red-500">{error}</p>
@@ -315,7 +347,6 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                     </div>
                   ) : (
                     <div className="">
-
                       {/* Order Info */}
                       <OrderInfoSection orderDetail={orderDetail} formatCurrency={formatCurrency} />
 
@@ -339,14 +370,12 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                               orderStatus={orderDetail.status}
                             />
 
-
                             {/* Additional Fees */}
                             <AdditionalFees fees={orderDetail.additionalFees} formatCurrency={formatCurrency} />
 
                             {/* Voucher section - Only show for Unpaid orders */}
                             {orderDetail.status === "Unpaid" && (
                               <>
-
                                 <VoucherSection
                                   orderVouchers={orderDetail.orderVouchers}
                                   onApplyVoucher={handleApplyVoucher}
@@ -355,13 +384,11 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                                   isApplyingVoucher={isApplyingVoucher}
                                   voucherError={voucherError}
                                 />
-
                               </>
                             )}
 
                             {/* Total */}
-
-                            {orderDetail.status === 'CheckedOut' && (
+                            {orderDetail.status === "CheckedOut" && (
                               <div className="flex justify-between items-center border-t border-amber-100 pt-2 mt-3">
                                 <div className="flex items-center gap-1">
                                   <p className="font-medium text-amber-900 text-xs sm:text-sm">Tổng cộng</p>
@@ -378,18 +405,18 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                   )}
                 </CardContent>
               </Card>
+            ) : (
+              <div className="text-center py-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-600">Bàn này hiện không có đơn hàng nào</p>
+              </div>
             )}
           </div>
 
           <DialogFooter className="flex justify-end">
-
-            {table.status === "Opening" && (
+            {currentTable.status === "Opening" && (
               <>
-
                 {orderDetail && (
                   <div className="flex flex-col-reverse sm:flex-row gap-2 mt-2 sm:mt-0 sm:justify-end">
-
-
                     <Button
                       onClick={() => setIsCancelDialogOpen(true)}
                       className="w-[160px] sm:w-auto bg-red-500 hover:bg-red-600 gap-1 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
@@ -400,24 +427,18 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                       </div>
                     </Button>
 
-
-
                     {orderDetail.status === "Unpaid" && (
-
                       <>
-
                         <Button
                           onClick={handleCheckOut}
                           disabled={isCheckingOut}
                           className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
                         >
                           {isCheckingOut ? (
-
                             <div className="flex items-center">
                               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
                               Đang xử lý...
                             </div>
-
                           ) : (
                             <div className="flex items-center">
                               <CheckCircle className="mr-1 h-4 w-4" />
@@ -431,7 +452,6 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                     {/* Payment and Cancel checkout buttons only for CheckedOut state */}
                     {orderDetail.status === "CheckedOut" && (
                       <>
-
                         <Button
                           onClick={handleOpenPayment}
                           className="w-[170px] sm:w-auto bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
@@ -468,27 +488,28 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                     >
                       Đóng
                     </Button>
-
                   </div>
                 )}
-              </>)}
+              </>
+            )}
 
-            {table.status !== "Opening" && (<>
-              <Button
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
-              >
-                Đóng
-              </Button>
-            </>)}
-
+            {currentTable.status !== "Opening" && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
+                >
+                  Đóng
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       {orderDetail && (
         <>
-
           <PaymentDialog
             orderId={orderDetail.id}
             totalAmount={orderDetail.totalPrice}
@@ -500,17 +521,16 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
               onOpenChange(true)
             }}
           />
-
         </>
       )}
 
-      {table && (
+      {currentTable && (
         <OrderCancelDialog
-          table={table}
+          table={currentTable}
           open={isCancelDialogOpen}
           onOpenChange={setIsCancelDialogOpen}
           onTableUpdated={onTableUpdated}
-
+          onOrderCancelled={handleOrderCancelled}
         />
       )}
     </>
