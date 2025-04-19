@@ -13,11 +13,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 
 import BookingService from '@/services/booking-service'
 import type { Reservation } from '@/types/reservation'
-import { ViewBookingDialog } from './components/booking/ViewBookingDialog'
-import { AssignTableDialog } from './components/booking/AssignTableDialog'
-import { BookingTable } from './components/booking/BookingTable'
+
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { BookingTable } from './components/booking/BookingTable'
+import { ViewBookingDialog } from './components/booking/ViewBookingDialog'
+import { AssignTableDialog } from './components/booking/AssignTableDialog'
 
 // Define types for sorting and filtering
 type SortOption =
