@@ -4,7 +4,7 @@ import TableDataModels, { TableResult } from '@/types/tables'
 
 export default class TableService {
   private static instance: TableService
-  private constructor() {}
+  private constructor() { }
   public static getInstance(): TableService {
     if (!TableService.instance) {
       TableService.instance = new TableService()
@@ -15,7 +15,7 @@ export default class TableService {
   //done
   public async getAllTables(): Promise<ApiResponse<TableResult>> {
     try {
-      return await get<TableResult>(`/tables?TakeCount=1000&SortBy=code`)
+      return await get<TableResult>(`/tables?TakeCount=1000&SortBy=code&IncludeProperties=CurrentReservation.TableAssignReservations`)
     } catch (error) {
       console.error('Error fetching all tables:', error)
       throw error

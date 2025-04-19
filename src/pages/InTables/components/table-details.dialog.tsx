@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX, } from "lucide-react"
+import { Utensils, ShoppingBag, Receipt, Loader2, CheckCircle, CreditCard, CircleX, Trash2, } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -30,14 +30,16 @@ import { Button } from "@/components/ui/button"
 import { PaymentDialog } from "./tables-details/payment-dialog"
 import OrderProgress from "./tables-details/OrderLoadingBar/OrderLoadingBar"
 import { OrderStatusBadge } from "@/components/order-status-badge"
+import { OrderCancelDialog } from "./tables/order-cancel-dialog"
 
 interface TableDetailsDialogProps {
   table: TableResponse
   open: boolean
   onOpenChange: (open: boolean) => void
+  onTableUpdated?: () => void
 }
 
-export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDialogProps) {
+export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }: TableDetailsDialogProps) {
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,6 +52,10 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
   const [isApplyingVoucher, setIsApplyingVoucher] = useState(false)
   const [voucherError, setVoucherError] = useState<string | null>(null)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
+
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+
+
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -258,6 +264,8 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
         })
     }
   }
+
+
   return (
 
     <>
@@ -285,8 +293,8 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
             {table.currentOrderId && (
               <Card className="border-amber-100 max-h-[50vh] overflow-y-auto scrollbar-hide py-2">
                 <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-center justify-between gap-2 mb-3 pr-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-1 mb-3 pr-2">
+                    <div className="flex items-center gap-1">
                       <Receipt className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
                       <h3 className="font-medium text-amber-900 text-xs sm:text-sm">Thông tin đơn hàng</h3>
                     </div>
@@ -375,53 +383,75 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
 
           <DialogFooter className="flex justify-end">
             {orderDetail && (
-              <div className="flex flex-col-reverse sm:flex-row gap-1 sm:gap-2 mt-2 sm:mt-0 sm:justify-end">
-                {/* Checkout button only for Unpaid state */}
+              <div className="flex flex-col-reverse sm:flex-row gap-2 mt-2 sm:mt-0 sm:justify-end">
+
+
+                <Button
+                  onClick={() => setIsCancelDialogOpen(true)}
+                  className="w-[160px] sm:w-auto bg-red-500 hover:bg-red-600 gap-1 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                >
+                  <div className="flex items-center">
+                    <Trash2 className="mr-1 h-4 w-4" />
+                    <span>Hủy đơn hàng</span>
+                  </div>
+                </Button>
+
+
+
                 {orderDetail.status === "Unpaid" && (
-                  <Button
-                    onClick={handleCheckOut}
-                    disabled={isCheckingOut}
-                    className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
-                  >
-                    {isCheckingOut ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Checkout đơn hàng
-                      </>
-                    )}
-                  </Button>
+
+                  <>
+
+                    <Button
+                      onClick={handleCheckOut}
+                      disabled={isCheckingOut}
+                      className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                    >
+                      {isCheckingOut ? (
+
+                        <div className="flex items-center">
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                          Đang xử lý...
+                        </div>
+
+                      ) : (
+                        <div className="flex items-center">
+                          <CheckCircle className="mr-1 h-4 w-4" />
+                          Checkout đơn hàng
+                        </div>
+                      )}
+                    </Button>
+                  </>
                 )}
 
                 {/* Payment and Cancel checkout buttons only for CheckedOut state */}
                 {orderDetail.status === "CheckedOut" && (
                   <>
+
                     <Button
                       onClick={handleOpenPayment}
-                      className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
+                      className="w-[170px] sm:w-auto bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
                     >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Thanh toán
+                      <div className="flex items-center">
+                        <CreditCard className="mr-1 h-4 w-4" />
+                        <span>Thanh toán</span>
+                      </div>
                     </Button>
                     <Button
                       onClick={handleCancelCheckout}
                       disabled={isCancelingCheckout}
-                      className="w-full sm:w-auto bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm py-1 h-7 sm:h-9"
+                      className="w-[180px] sm:w-auto bg-neutral-600 hover:bg-neutral-600 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
                     >
                       {isCancelingCheckout ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Đang xử lý...
-                        </>
+                        <div className="flex items-center">
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                          Đang xử lý
+                        </div>
                       ) : (
-                        <>
-                          <CircleX className="mr-2 h-4 w-4" />
+                        <div className="flex items-center">
+                          <CircleX className="mr-1 h-4 w-4" />
                           Hủy Checkout
-                        </>
+                        </div>
                       )}
                     </Button>
                   </>
@@ -441,16 +471,30 @@ export function TableDetailsDialog({ table, open, onOpenChange }: TableDetailsDi
         </DialogContent>
       </Dialog>
       {orderDetail && (
-        <PaymentDialog
-          orderId={orderDetail.id}
-          totalAmount={orderDetail.totalPrice}
-          open={isPaymentDialogOpen}
-          onOpenChange={setIsPaymentDialogOpen}
-          onPaymentComplete={handlePaymentComplete}
-          onBackToDetails={() => {
-            setIsPaymentDialogOpen(false)
-            onOpenChange(true)
-          }}
+        <>
+
+          <PaymentDialog
+            orderId={orderDetail.id}
+            totalAmount={orderDetail.totalPrice}
+            open={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            onPaymentComplete={handlePaymentComplete}
+            onBackToDetails={() => {
+              setIsPaymentDialogOpen(false)
+              onOpenChange(true)
+            }}
+          />
+
+        </>
+      )}
+
+      {table && (
+        <OrderCancelDialog
+          table={table}
+          open={isCancelDialogOpen}
+          onOpenChange={setIsCancelDialogOpen}
+          onTableUpdated={onTableUpdated}
+
         />
       )}
     </>

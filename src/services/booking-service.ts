@@ -31,7 +31,7 @@ export default class BookingService {
             console.log(`Calling getAllReservations API`)
 
             // Add pagination parameters to the API call
-            const response = await get<ReservationsResult>(`/reservations`)
+            const response = await get<ReservationsResult>(`/reservations?IncludeProperties=TableAssignReservations`)
 
             console.log(`API response for reservations `, response)
             return response
@@ -94,20 +94,38 @@ export default class BookingService {
         }
     }
     /**
- * Assign a table to a reservation
- * @param reservationId The ID of the reservation
- * @param tableId The ID of the table
- * @returns Promise with the assignment result
- */
-    public async assignTableToReservation(reservationId: string, tableId: string): Promise<ApiResponse<void>> {
+     * Assign one or more tables to a reservation
+     * @param reservationId The ID of the reservation
+     * @param tableId A single table ID or an array of table IDs
+     * @returns Promise with the assignment result
+     */
+    public async assignTableToReservation(reservationId: string, tableId: string | string[]): Promise<ApiResponse<void>> {
         try {
+            // Convert single tableId to array if needed
+            const tableIdArray = Array.isArray(tableId) ? tableId : [tableId]
+
             const data = {
                 reservationId,
-                tableId,
+                tableId: tableIdArray,
             }
             return await post<void>(`/reservations/assign-table-reservation`, data)
         } catch (error) {
-            console.error(`Error assigning table ${tableId} to reservation ${reservationId}:`, error)
+            console.error(`Error assigning tables to reservation ${reservationId}:`, error)
+            throw error
+        }
+    }
+    public async cancelAssignTableToReservation(reservationId: string, tableId: string | string[]): Promise<ApiResponse<void>> {
+        try {
+            // Convert single tableId to array if needed
+            const tableIdArray = Array.isArray(tableId) ? tableId : [tableId]
+
+            const data = {
+                reservationId,
+                tableId: tableIdArray,
+            }
+            return await post<void>(`/reservations/unassign-table-reservation`, data)
+        } catch (error) {
+            console.error(`Error assigning tables to reservation ${reservationId}:`, error)
             throw error
         }
     }

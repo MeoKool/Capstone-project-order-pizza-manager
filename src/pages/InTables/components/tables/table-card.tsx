@@ -1,6 +1,20 @@
 "use client"
 
-import { Users, MoreVertical, QrCode, Edit, History, Eye, Clock, Lock, Utensils, CircleX, ArrowRightLeft, XCircle, Phone } from "lucide-react"
+import {
+    Users,
+    MoreVertical,
+    QrCode,
+    Edit,
+    History,
+    Eye,
+    Clock,
+    Lock,
+    Utensils,
+    CircleX,
+    ArrowRightLeft,
+    XCircle,
+    Phone,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -9,13 +23,11 @@ import { Badge } from "@/components/ui/badge"
 import { getStatusBadge } from "@/utils/table-utils"
 import type TableResponse from "@/types/tables"
 import { TableTimer } from "../table-timer"
-import { Reservation } from "@/types/reservation"
 
 interface TableCardProps {
     table: TableResponse
     isLoading: boolean
     isTimerRunning: boolean
-    reservation?: Reservation
     onTimeUp: () => void
     onOpenTable: (tableId: string) => Promise<void>
     onCloseTable: (tableId: string) => Promise<void>
@@ -26,12 +38,12 @@ interface TableCardProps {
     onOpenSwapDialog: (table: TableResponse) => void
     onOpenCancelOrderDialog: (table: TableResponse) => void
     onOpenReserveDialog: (table: TableResponse) => void
+    handleCancelReservation: (table: TableResponse) => Promise<void>
 }
 
 export function TableCard({
     table,
     isLoading,
-    reservation,
     isTimerRunning,
     onTimeUp,
     onOpenTable,
@@ -42,7 +54,8 @@ export function TableCard({
     onOpenLockDialog,
     onOpenSwapDialog,
     onOpenCancelOrderDialog,
-    onOpenReserveDialog
+    onOpenReserveDialog,
+    handleCancelReservation,
 }: TableCardProps) {
     // Function to get status color
     const getStatusColor = (status: string) => {
@@ -127,25 +140,19 @@ export function TableCard({
                 )
             case "Reserved":
                 return (
-                    <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">
-                        <Button
-                            onClick={() => onCloseTable(table.id)}
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-50"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Đang xử lý..." : "Đóng bàn"}
-                        </Button>
-                        <Button
-                            onClick={() => onOpenLockDialog(table)}
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-amber-200 text-amber-700 hover:bg-amber-50"
-                            disabled={isLoading}
-                        >
-                            Bảo trì
-                        </Button>
+                    <div className="flex w-full justify-center mt-2 sm:mt-4">
+
+                        {table.currentReservation && (
+                            <Button
+                                onClick={() => handleCancelReservation(table)}
+                                variant="outline"
+                                size="sm"
+                                className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-50"
+                                disabled={isLoading}
+                            >
+                                Hủy đặt bàn
+                            </Button>
+                        )}
                     </div>
                 )
             case "Locked":
@@ -179,6 +186,7 @@ export function TableCard({
         if (!phone) return ""
         return phone.replace(/(\d{4})(\d{3})(\d{3})/, "$1 $2 $3")
     }
+
     return (
         <Card
             className={`overflow-hidden transition-all border-l-4 truncate ${table.status === "Opening"
@@ -271,7 +279,7 @@ export function TableCard({
                                     Hủy đơn hàng
                                 </DropdownMenuItem>
                             )}
-                            {(table.status === "Closing") && (
+                            {table.status === "Closing" && (
                                 <DropdownMenuItem
                                     onClick={() => onOpenReserveDialog(table)}
                                     className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
@@ -295,17 +303,18 @@ export function TableCard({
                     </div>
 
                     {table.status === "Reserved" && (
-
                         <>
-                            {reservation ? (
+                            {table.currentReservation ? (
                                 <>
                                     <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
                                         <Users className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                                        <span className="text-blue-700 font-medium truncate">{reservation.customerName}</span>
+                                        <span className="text-blue-700 font-medium truncate">{table.currentReservation.customerName}</span>
                                     </div>
                                     <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
                                         <Phone className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                                        <span className="text-blue-700 font-medium">{formatPhoneNumber(reservation.phoneNumber)}</span>
+                                        <span className="text-blue-700 font-medium">
+                                            {formatPhoneNumber(table.currentReservation.phoneNumber)}
+                                        </span>
                                     </div>
                                     <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
                                         <div className="flex items-center">
@@ -316,7 +325,7 @@ export function TableCard({
                                             <TableTimer
                                                 tableId={table.id}
                                                 status={table.status}
-                                                bookingTime={reservation.bookingTime}
+                                                bookingTime={table.currentReservation.bookingTime}
                                                 isRunning={isTimerRunning}
                                                 onTimeUp={onTimeUp}
                                             />

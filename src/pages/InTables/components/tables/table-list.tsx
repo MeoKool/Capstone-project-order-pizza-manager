@@ -1,9 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Coffee, Plus } from "lucide-react"
+import { useState } from "react"
+import { Coffee, Plus, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 import { TableZoneGroup } from "./table-zone-group"
 import { TableLockDialog } from "./table-lock-dialog"
@@ -19,7 +29,6 @@ import { TableSwapDialog } from "./table-swap-dialog"
 import { OrderCancelDialog } from "./order-cancel-dialog"
 import { showTableLToast } from "../table-toast-notifications"
 import { TableReserveDialog } from "./table-reserve-dialog"
-import { Reservation } from "@/types/reservation"
 import BookingService from "@/services/booking-service"
 
 interface TableListProps {
@@ -37,8 +46,9 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
     const [showLockDialog, setShowLockDialog] = useState(false)
     const [showSwapDialog, setShowSwapDialog] = useState(false)
     const [showCancelOrderDialog, setShowCancelOrderDialog] = useState(false)
+    const [showCancelReservationDialog, setShowCancelReservationDialog] = useState(false)
+    const [cancelReservationTable, setCancelReservationTable] = useState<TableResponse | null>(null)
     const [runningTimers, setRunningTimers] = useState<{ [key: string]: boolean }>({})
-    const [tableReservations, setTableReservations] = useState<{ [tableId: string]: Reservation }>({})
     const [loadingTableIds, setLoadingTableIds] = useState<string[]>([])
     const { zones_ } = useZone()
 
@@ -47,52 +57,18 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
         toast.warning(`Hết thời gian đặt trước cho bàn ${tables.find((t) => t.id === tableId)?.code || tableId}`)
         console.log(`Hết thời gian cho bàn ${tableId}`)
     }
-    // Fetch reservations when component mounts or tables change
-    useEffect(() => {
-        fetchReservations()
-    }, [tables])
 
-    const fetchReservations = async () => {
-        try {
-            const bookingService = BookingService.getInstance()
-            const response = await bookingService.getAllReservations()
-
-            if (response.success && response.result) {
-                // Handle both array and single item responses
-                const items = Array.isArray(response.result.items) ? response.result.items : [response.result.items]
-
-                // Create a map of tableId -> reservation
-                const reservationsMap: { [tableId: string]: Reservation } = {}
-                items.forEach((reservation) => {
-                    if (reservation && reservation.tableId && reservation.tableId !== "") {
-                        reservationsMap[reservation.tableId] = reservation
-                    }
-                })
-
-                setTableReservations(reservationsMap)
-            } else {
-                // If the response is not successful, set an empty object
-                setTableReservations({})
-            }
-        } catch (error) {
-            console.error("Error fetching reservations:", error)
-            // In case of error, set an empty object
-            setTableReservations({})
-        }
-    }
     const handleOpenTable = async (tableId: string) => {
         setLoadingTableIds((prev) => [...prev, tableId]) // Set loading state for this table
         try {
             const tableSevice = TableService.getInstance()
             const res = await tableSevice.putOpenTable(tableId)
 
-
-            const table = tables.find(t => t.id === tableId)
+            const table = tables.find((t) => t.id === tableId)
             const tableCode = table?.code || `ID: ${tableId}`
 
-
             if (res.success) {
-                showTableLToast({ tableCode, message: 'đã được mở' })
+                showTableLToast({ tableCode, message: "đã được mở" })
             } else {
                 toast.error(res.message)
             }
@@ -115,13 +91,13 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
             const tableSevice = TableService.getInstance()
             const res = await tableSevice.putCloseTable(tableId)
 
-            const table = tables.find(t => t.id === tableId)
+            const table = tables.find((t) => t.id === tableId)
             const tableCode = table?.code || `ID: ${tableId}`
 
             if (res.success) {
-                showTableLToast({ tableCode, message: 'đã được đóng' })
+                showTableLToast({ tableCode, message: "đã được đóng" })
             } else {
-                toast.error(res.message)
+                toast.error("Bàn" + tableCode + " " + res.message)
             }
 
             // Call the callback to refresh table data
@@ -142,10 +118,10 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
             const tableService = TableService.getInstance()
             const res = await tableService.putLockTable(tableId, note)
 
-            const table = tables.find(t => t.id === tableId)
+            const table = tables.find((t) => t.id === tableId)
             const tableCode = table?.code || `ID: ${tableId}`
             if (res.success) {
-                showTableLToast({ tableCode, message: 'đã được khóa để bảo trì', note })
+                showTableLToast({ tableCode, message: "đã được khóa để bảo trì", note })
                 setShowLockDialog(false)
             } else {
                 toast.error(res.message)
@@ -197,6 +173,55 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
         setSelectedTable(table)
         setShowReserveDialog(true)
     }
+
+    // Step 1: Show the confirmation dialog
+    const handleCancelReservation = async (table: TableResponse) => {
+        if (!table.currentReservation || !table.currentReservationId) {
+            toast.error("Không tìm thấy thông tin đặt bàn")
+            return Promise.resolve()
+        }
+
+        // Set the table to be canceled and show the dialog
+        setCancelReservationTable(table)
+        setShowCancelReservationDialog(true)
+
+        // Return a resolved promise since we're handling the actual cancellation in a separate function
+        return Promise.resolve()
+    }
+
+    // Step 2: Execute the cancellation when confirmed
+    const executeCancelReservation = async () => {
+        if (!cancelReservationTable || !cancelReservationTable.currentReservation) {
+            return
+        }
+
+        const table = cancelReservationTable
+        setLoadingTableIds((prev) => [...prev, table.id])
+
+        try {
+            const bookingService = BookingService.getInstance()
+            const response = await bookingService.cancelAssignTableToReservation(table.currentReservation.id, [table.id])
+
+            if (response.success) {
+                toast.success(`Đã hủy đặt bàn cho ${table.code} thành công`)
+                // Refresh the table data
+                if (onTableUpdated) {
+                    onTableUpdated()
+                }
+            } else {
+                toast.error(response.message || "Không thể hủy đặt bàn")
+            }
+        } catch (error) {
+            console.error("Error canceling reservation:", error)
+            toast.error("Có lỗi xảy ra khi hủy đặt bàn")
+        } finally {
+            setLoadingTableIds((prev) => prev.filter((id) => id !== table.id))
+            // Close the dialog
+            setShowCancelReservationDialog(false)
+            setCancelReservationTable(null)
+        }
+    }
+
     // Group tables by zone
     const tablesByZone = tables.reduce<Record<string, TableResponse[]>>((acc, table) => {
         const zoneId = table.zoneId
@@ -243,14 +268,19 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                     onOpenSwapDialog={handleOpenSwapDialog}
                     onOpenCancelOrderDialog={handleOpenCancelOrderDialog}
                     onOpenReserveDialog={handleOpenReserveDialog}
-                    tableReservations={tableReservations}
+                    handleCancelReservation={handleCancelReservation}
                 />
             ))}
 
             {/* Dialogs */}
             {selectedTable && (
                 <>
-                    <TableDetailsDialog table={selectedTable} open={showDetailsDialog} onOpenChange={setShowDetailsDialog} />
+                    <TableDetailsDialog
+                        table={selectedTable}
+                        open={showDetailsDialog}
+                        onOpenChange={setShowDetailsDialog}
+                        onTableUpdated={onTableUpdated}
+                    />
                     <TableQRCode table={selectedTable} open={showQRCodeDialog} onOpenChange={setShowQRCodeDialog} />
                     <TableUpdateDialog
                         table={selectedTable}
@@ -285,18 +315,59 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                         isLoading={loadingTableIds.includes(selectedTable.id)}
                         onOpenChange={(open) => {
                             setShowReserveDialog(open)
-                            if (!open) {
-                                // Refresh reservations when dialog closes
-                                fetchReservations()
-                                // Refresh tables
-                                if (onTableUpdated) {
-                                    onTableUpdated()
-                                }
+                            if (!open && onTableUpdated) {
+                                onTableUpdated()
                             }
                         }}
                     />
                 </>
             )}
+
+            {/* Cancel Reservation Confirmation Dialog */}
+            <AlertDialog open={showCancelReservationDialog} onOpenChange={setShowCancelReservationDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-red-500" />
+                            <span>Xác nhận hủy đặt bàn</span>
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {cancelReservationTable && (
+                                <>
+                                    Bạn có chắc chắn muốn hủy đặt bàn cho <strong>{cancelReservationTable.code}</strong>?
+                                    {cancelReservationTable.currentReservation && (
+                                        <div className="mt-2 p-3 bg-blue-50 rounded-md text-blue-800 text-sm">
+                                            <p>
+                                                <strong>Khách hàng:</strong> {cancelReservationTable.currentReservation.customerName}
+                                            </p>
+                                            <p>
+                                                <strong>Số điện thoại:</strong> {cancelReservationTable.currentReservation.phoneNumber}
+                                            </p>
+                                            <p>
+                                                <strong>Số người:</strong> {cancelReservationTable.currentReservation.numberOfPeople}
+                                            </p>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel >
+                            Hủy
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={executeCancelReservation}
+
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            {cancelReservationTable && loadingTableIds.includes(cancelReservationTable.id)
+                                ? "Đang xử lý..."
+                                : "Xác nhận hủy đặt bàn"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <TableAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} onTableAdded={onTableUpdated} />
         </>
