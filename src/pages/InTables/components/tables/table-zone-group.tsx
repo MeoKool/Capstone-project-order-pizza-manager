@@ -43,7 +43,7 @@ export function TableZoneGroup({
         <div className="mb-6 last:mb-0">
             <div className="flex items-center mb-3 bg-amber-50 p-2 rounded-md border border-amber-100">
                 <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mr-2" />
-                <h3 className="font-medium text-amber-800 text-sm sm:text-base">{zoneName}</h3>
+                <h3 className="font-medium text-amber-800 text-sm sm:text-base">Khu Vực {zoneName}</h3>
                 <Badge variant="outline" className="ml-auto bg-white text-amber-700 border-amber-200 text-xs">
                     {tables.length} bàn
                 </Badge>

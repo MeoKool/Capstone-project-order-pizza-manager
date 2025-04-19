@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { BookingTable } from './components/Booking/BookingTable'
 import { ViewBookingDialog } from './components/Booking/ViewBookingDialog'
 import { AssignTableDialog } from './components/Booking/AssignTableDialog'
+import { formatDateString, getPrioritySortValue, getStatusColor, getStatusLabel, getStatusSortValue } from '@/utils/table-utils'
 
 // Define types for sorting and filtering
 type SortOption =
@@ -34,53 +35,9 @@ type SortOption =
 
 type StatusFilter = 'all' | 'Created' | 'Confirmed' | 'Checkedin' | 'Cancelled'
 
-// Helper functions for status display
-export const getStatusLabel = (status: string): string => {
-  switch (status) {
-    case 'Created':
-      return 'Đã tạo'
-    case 'Confirmed':
-      return 'Đã xác nhận'
-    case 'Checkedin':
-      return 'Đã check-in'
-    case 'Cancelled':
-      return 'Đã hủy'
-    default:
-      return status
-  }
-}
 
-export const getStatusColor = (status: string): string => {
-  switch (status) {
-    case 'Created':
-      return 'bg-gray-50 text-gray-700 border-gray-200 p-1'
-    case 'Confirmed':
-      return 'bg-blue-50 text-blue-700 border-blue-200 p-1'
-    case 'Checkedin':
-      return 'bg-green-50 text-green-700 border-green-200 p-1'
-    case 'Cancelled':
-      return 'bg-red-50 text-red-700 border-red-200 p-1'
-    default:
-      return 'bg-gray-50 text-gray-700 border-gray-200 p-1'
-  }
-}
 
-// Helper function to format date strings
-export const formatDateString = (dateStr: string): string => {
-  try {
-    const date = new Date(dateStr)
-    if (isNaN(date.getTime())) return 'N/A'
 
-    const day = date.getDate().toString().padStart(2, '0')
-    const month = (date.getMonth() + 1).toString().padStart(2, '0')
-    const year = date.getFullYear()
-
-    return `${day}/${month}/${year}`
-  } catch (error) {
-    console.error('Error formatting date string:', error, 'for input:', dateStr)
-    return 'N/A'
-  }
-}
 
 function BookingPage() {
   // State for reservations data
@@ -125,31 +82,6 @@ function BookingPage() {
   }
 
   // Helper functions for sorting
-  const getStatusSortValue = (status: string): number => {
-    switch (status) {
-      case 'Created':
-        return 1
-      case 'Confirmed':
-        return 2
-      case 'Checkedin':
-        return 3
-      case 'Cancelled':
-        return 4
-      default:
-        return 99
-    }
-  }
-
-  const getPrioritySortValue = (status: string): number => {
-    switch (status) {
-      case 'Priority':
-        return 1
-      case 'NonPriority':
-        return 2
-      default:
-        return 99
-    }
-  }
 
   // Apply filters and sorting to get filtered reservations
   const filteredReservations = useMemo(() => {

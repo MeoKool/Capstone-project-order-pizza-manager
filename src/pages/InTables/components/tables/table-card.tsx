@@ -250,7 +250,7 @@ export function TableCard({
                                 Mã QR
                             </DropdownMenuItem>
                             {/* Add Lock table option to dropdown menu */}
-                            {table.status !== "Locked" && (
+                            {table.status !== "Locked" && table.status !== "Reserved" && (
                                 <DropdownMenuItem
                                     onClick={() => onOpenLockDialog(table)}
                                     className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
@@ -279,15 +279,7 @@ export function TableCard({
                                     Hủy đơn hàng
                                 </DropdownMenuItem>
                             )}
-                            {table.status === "Closing" && (
-                                <DropdownMenuItem
-                                    onClick={() => onOpenReserveDialog(table)}
-                                    className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
-                                >
-                                    <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                                    Đặt trước
-                                </DropdownMenuItem>
-                            )}
+
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

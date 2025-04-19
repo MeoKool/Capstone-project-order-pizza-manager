@@ -31,7 +31,7 @@ export default class BookingService {
             console.log(`Calling getAllReservations API`)
 
             // Add pagination parameters to the API call
-            const response = await get<ReservationsResult>(`/reservations?IncludeProperties=TableAssignReservations`)
+            const response = await get<ReservationsResult>(`/reservations?TakeCount=1000&IncludeProperties=TableAssignReservations`)
 
             console.log(`API response for reservations `, response)
             return response

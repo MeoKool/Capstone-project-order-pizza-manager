@@ -1,14 +1,13 @@
 import { toast } from "sonner"
 
-interface TableLockToastProps {
-    tableCode: string
+interface BookingSuccessToastProps {
+    tableCode?: string
     message: string
-    note?: string
+    name: string
     duration?: number
-    targetTableCode?: string
 }
 
-export const showTableLToast = ({ tableCode, message, note, targetTableCode, duration = 5000 }: TableLockToastProps) => {
+export const BookingSuccessToast = ({ message, name, tableCode, duration = 5000 }: BookingSuccessToastProps) => {
     return toast.custom(
         () => (
             <div className="flex items-start gap-3 bg-[#ECFDF3] text-[#008A2E] border border-green-200 py-4 px-3 rounded-md shadow-sm w-[356px] max-w-sm">
@@ -28,19 +27,11 @@ export const showTableLToast = ({ tableCode, message, note, targetTableCode, dur
                         />
                     </svg>
                     <div className="text-[13px] font-medium ml-1">
-                        Bàn <strong>{tableCode}</strong> {message}
-                        {note && (
-                            <>
-                                <br />
-                                <span className="text-xs text-green-600">Lý do: "{note}"</span>
-                            </>
-                        )}
-                        {targetTableCode && (
-                            <>
-
-                                <strong>{targetTableCode}</strong> thành công!
-                            </>
-                        )}
+                        {message}
+                        {tableCode && (
+                            <>{' '}
+                                <strong>{tableCode}</strong> cho khách hàng
+                            </>)}{' '} <strong>{name}</strong> thành công!
                     </div>
                 </div>
 

@@ -6,6 +6,7 @@ export default interface TableResponse {
   capacity: number
   status: TableStatus
   zoneId: string
+  note: string
   currentOrderId: string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   currentOrder: any | null

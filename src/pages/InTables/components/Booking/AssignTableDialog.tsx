@@ -21,6 +21,7 @@ import type { Reservation } from "@/types/reservation"
 import BookingService from "@/services/booking-service"
 import useTable from "@/hooks/useTable"
 import { Badge } from "@/components/ui/badge"
+import { BookingSuccessToast } from "./toast-booking"
 
 interface AssignTableDialogProps {
     reservation: Reservation | null
@@ -111,7 +112,6 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
             // Step 1: If there are existing tables, cancel all of them first
             if (hasExistingTables) {
                 const cancelResponse = await bookingService.cancelAssignTableToReservation(reservation.id, initialTableIds)
-
                 if (!cancelResponse.success) {
                     toast.error(cancelResponse.message || "Không thể hủy bàn đã đặt trước đó")
                     setIsSubmitting(false)
@@ -122,8 +122,21 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
             // Step 2: Assign the newly selected tables
             const assignResponse = await bookingService.assignTableToReservation(reservation.id, selectedTableIds)
 
+
+            const cusNameDisplay = reservation.customerName || "Khách hàng không xác định"
+            const tableNameDisplay = selectedTableIds.length > 0 ? tables
+                .filter((table) => selectedTableIds.includes(table.id))
+                .map((table) => table.code)
+                .join(", ")
+                : "Không có bàn nào"
+
+
             if (assignResponse.success) {
-                toast.success(hasExistingTables ? "Đã cập nhật bàn thành công!" : "Đã xếp bàn thành công!")
+                BookingSuccessToast({
+                    message: hasExistingTables ? "Cập nhật bàn" : "Xếp bàn",
+                    name: cusNameDisplay,
+                    tableCode: tableNameDisplay
+                });
                 onClose()
             } else {
                 toast.error(assignResponse.message || "Không thể xếp bàn")

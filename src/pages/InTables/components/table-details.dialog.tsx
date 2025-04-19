@@ -382,91 +382,107 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
           </div>
 
           <DialogFooter className="flex justify-end">
-            {orderDetail && (
-              <div className="flex flex-col-reverse sm:flex-row gap-2 mt-2 sm:mt-0 sm:justify-end">
 
+            {table.status === "Opening" && (
+              <>
 
-                <Button
-                  onClick={() => setIsCancelDialogOpen(true)}
-                  className="w-[160px] sm:w-auto bg-red-500 hover:bg-red-600 gap-1 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
-                >
-                  <div className="flex items-center">
-                    <Trash2 className="mr-1 h-4 w-4" />
-                    <span>Hủy đơn hàng</span>
-                  </div>
-                </Button>
+                {orderDetail && (
+                  <div className="flex flex-col-reverse sm:flex-row gap-2 mt-2 sm:mt-0 sm:justify-end">
 
-
-
-                {orderDetail.status === "Unpaid" && (
-
-                  <>
 
                     <Button
-                      onClick={handleCheckOut}
-                      disabled={isCheckingOut}
-                      className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
-                    >
-                      {isCheckingOut ? (
-
-                        <div className="flex items-center">
-                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                          Đang xử lý...
-                        </div>
-
-                      ) : (
-                        <div className="flex items-center">
-                          <CheckCircle className="mr-1 h-4 w-4" />
-                          Checkout đơn hàng
-                        </div>
-                      )}
-                    </Button>
-                  </>
-                )}
-
-                {/* Payment and Cancel checkout buttons only for CheckedOut state */}
-                {orderDetail.status === "CheckedOut" && (
-                  <>
-
-                    <Button
-                      onClick={handleOpenPayment}
-                      className="w-[170px] sm:w-auto bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                      onClick={() => setIsCancelDialogOpen(true)}
+                      className="w-[160px] sm:w-auto bg-red-500 hover:bg-red-600 gap-1 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
                     >
                       <div className="flex items-center">
-                        <CreditCard className="mr-1 h-4 w-4" />
-                        <span>Thanh toán</span>
+                        <Trash2 className="mr-1 h-4 w-4" />
+                        <span>Hủy đơn hàng</span>
                       </div>
                     </Button>
-                    <Button
-                      onClick={handleCancelCheckout}
-                      disabled={isCancelingCheckout}
-                      className="w-[180px] sm:w-auto bg-neutral-600 hover:bg-neutral-600 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
-                    >
-                      {isCancelingCheckout ? (
-                        <div className="flex items-center">
-                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                          Đang xử lý
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <CircleX className="mr-1 h-4 w-4" />
-                          Hủy Checkout
-                        </div>
-                      )}
-                    </Button>
-                  </>
-                )}
 
-                {/* Close button for all states */}
-                <Button
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
-                >
-                  Đóng
-                </Button>
-              </div>
-            )}
+
+
+                    {orderDetail.status === "Unpaid" && (
+
+                      <>
+
+                        <Button
+                          onClick={handleCheckOut}
+                          disabled={isCheckingOut}
+                          className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                        >
+                          {isCheckingOut ? (
+
+                            <div className="flex items-center">
+                              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                              Đang xử lý...
+                            </div>
+
+                          ) : (
+                            <div className="flex items-center">
+                              <CheckCircle className="mr-1 h-4 w-4" />
+                              Checkout đơn hàng
+                            </div>
+                          )}
+                        </Button>
+                      </>
+                    )}
+
+                    {/* Payment and Cancel checkout buttons only for CheckedOut state */}
+                    {orderDetail.status === "CheckedOut" && (
+                      <>
+
+                        <Button
+                          onClick={handleOpenPayment}
+                          className="w-[170px] sm:w-auto bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                        >
+                          <div className="flex items-center">
+                            <CreditCard className="mr-1 h-4 w-4" />
+                            <span>Thanh toán</span>
+                          </div>
+                        </Button>
+                        <Button
+                          onClick={handleCancelCheckout}
+                          disabled={isCancelingCheckout}
+                          className="w-[180px] sm:w-auto bg-neutral-600 hover:bg-neutral-600 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                        >
+                          {isCancelingCheckout ? (
+                            <div className="flex items-center">
+                              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                              Đang xử lý
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <CircleX className="mr-1 h-4 w-4" />
+                              Hủy Checkout
+                            </div>
+                          )}
+                        </Button>
+                      </>
+                    )}
+                    {/* Close button for all states */}
+                    <Button
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                      className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
+                    >
+                      Đóng
+                    </Button>
+
+                  </div>
+                )}
+              </>)}
+
+            {table.status !== "Opening" && (<>
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
+              >
+                Đóng
+              </Button>
+            </>)}
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
