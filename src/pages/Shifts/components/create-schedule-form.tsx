@@ -304,7 +304,7 @@ export default function CreateScheduleForm() {
 
                 <div className='space-y-2'>
                   <Label htmlFor='capacity' className='text-gray-700'>
-                    Số lượng nhân viên
+                    Số lượng nhân viên bán thời gian
                   </Label>
                   <Input
                     id='capacity'

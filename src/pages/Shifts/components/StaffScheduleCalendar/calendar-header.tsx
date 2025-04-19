@@ -139,7 +139,7 @@ export function CalendarHeader({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Tự động duyệt đăng ký cho tuần hiện tại</p>
+                <p>Tự động phân khu vực với các nhân viên toàn thời gian và các đơn đăng ký bán thời gian</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
