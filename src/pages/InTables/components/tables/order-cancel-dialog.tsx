@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import type TableResponse from "@/types/tables"
 import OrderService from "@/services/order-service"
-import { showTableLToast } from "../table-toast-notifications"
 
 interface OrderCancelDialogProps {
     table: TableResponse
@@ -24,6 +23,7 @@ interface OrderCancelDialogProps {
     onOpenChange: (open: boolean) => void
     isLoading?: boolean
     onTableUpdated?: () => void
+    onOrderCancelled?: () => void
 }
 
 export function OrderCancelDialog({
@@ -32,6 +32,7 @@ export function OrderCancelDialog({
     onOpenChange,
     isLoading = false,
     onTableUpdated,
+    onOrderCancelled,
 }: OrderCancelDialogProps) {
     const [reason, setReason] = useState("")
     const [loading, setLoading] = useState(false)
@@ -64,11 +65,19 @@ export function OrderCancelDialog({
             const tableCode = table.code
             const resasonCancel = reason
             if (res.success) {
+                // Call the callback to refresh table data
                 if (onTableUpdated) {
                     onTableUpdated()
                 }
-                showTableLToast({ tableCode, message: 'đã được hủy đơn hàng', note: resasonCancel })
-                // Reset the form
+
+                // Notify parent component that order was cancelled
+                if (onOrderCancelled) {
+                    onOrderCancelled()
+                }
+
+                toast.success(`Bàn ${tableCode} đã được hủy đơn hàng: ${resasonCancel}`)
+
+                // Reset the form and close this dialog
                 setReason("")
                 onOpenChange(false)
             } else {
