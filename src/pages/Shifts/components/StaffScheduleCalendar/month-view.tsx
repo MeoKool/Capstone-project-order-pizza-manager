@@ -185,7 +185,7 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
                           <div className='space-y-1.5'>
                             {slots > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-red-100 text-red-800 border-red-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
+                                <Badge className='bg-red-100 text-red-800 border-red-200 h-5 px-1.5 text-xs flex items-center gap-0.5 hover:bg-red-100'>
                                   <Users className='h-3 w-3' />
                                   <span>{daySchedules.length}</span>
                                 </Badge>
@@ -194,7 +194,7 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
 
                             {pendingRegistrations.length > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-orange-100 text-orange-800 border-orange-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
+                                <Badge className='bg-orange-100 text-orange-800 border-orange-200 h-5 px-1.5 text-xs flex items-center gap-0.5 *:hover:bg-orange-100'>
                                   <Clock className='h-3 w-3' />
                                   <span>{pendingRegistrations.length}</span>
                                 </Badge>
@@ -204,7 +204,7 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
 
                             {pendingSwaps.length > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-blue-100 text-blue-800 border-blue-200 h-5 px-1.5 text-xs flex items-center gap-0.5'>
+                                <Badge className='bg-blue-100 text-blue-800 border-blue-200 h-5 px-1.5 text-xs flex items-center gap-0.5 *:hover:bg-blue-100'>
                                   <ArrowRightLeft className='h-3 w-3' />
                                   <span>{pendingSwaps.length}</span>
                                 </Badge>

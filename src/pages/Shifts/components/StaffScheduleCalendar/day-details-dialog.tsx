@@ -74,7 +74,9 @@ export function DayDetailsDialog({
               >
                 <AlertCircle className='h-4 w-4' />
                 <span>Yêu cầu đăng ký</span>
-                <Badge className='ml-1 bg-orange-200 text-red-800'>{pendingRegistrationsCount}</Badge>
+                <Badge className='ml-1 bg-orange-200 text-red-800 hover:bg-orange-100'>
+                  {pendingRegistrationsCount}
+                </Badge>
               </TabsTrigger>
               <TabsTrigger
                 value='swaps'
@@ -82,7 +84,7 @@ export function DayDetailsDialog({
               >
                 <ArrowRightLeft className='h-4 w-4' />
                 <span>Yêu cầu đổi ca</span>
-                <Badge className='ml-1 bg-orange-200 text-red-800'>{swapRequests.length}</Badge>
+                <Badge className='ml-1 bg-orange-200 text-red-800 hover:bg-orange-100'>{swapRequests.length}</Badge>
               </TabsTrigger>
             </TabsList>
 
