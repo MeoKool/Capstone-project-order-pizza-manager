@@ -7,6 +7,7 @@ import { GeneralSettings } from './components/general-settings'
 import { TaxSettings } from './components/tax-settings'
 import { RegistrationSettings } from './components/registration-settings'
 import { ReservationSlotSettings } from './components/reservation-slot-settings'
+import { BookingNotificationSettings } from './components/booking-notification-settings'
 
 function SettingsContent() {
   const { loading, error } = useSettings()
@@ -46,8 +47,9 @@ function SettingsContent() {
         <TabsList>
           <TabsTrigger value='general'>Cài đặt chung</TabsTrigger>
           <TabsTrigger value='registration'>Đăng ký</TabsTrigger>
-          <TabsTrigger value='tax'>Thuế & Phí</TabsTrigger>
           <TabsTrigger value='reservation'>Khung giờ đặt bàn</TabsTrigger>
+          <TabsTrigger value='booking-notification'>Sắp xếp đặt bàn</TabsTrigger>
+          <TabsTrigger value='tax'>Thuế & Phí</TabsTrigger>
         </TabsList>
 
         <TabsContent value='general' className='space-y-4'>
@@ -64,6 +66,9 @@ function SettingsContent() {
 
         <TabsContent value='reservation' className='space-y-4'>
           <ReservationSlotSettings />
+        </TabsContent>
+        <TabsContent value='booking-notification' className='space-y-4'>
+          <BookingNotificationSettings />
         </TabsContent>
       </Tabs>
     </div>
