@@ -8,6 +8,8 @@ export function getStaffTypeLabel(staffType: string) {
       return 'Quản lý'
     case 'Staff':
       return 'Nhân viên'
+    case 'Cheff':
+      return 'Đầu bếp'
     default:
       return staffType
   }
@@ -31,6 +33,8 @@ export function getStaffTypeColor(staffType: string) {
     case 'Manager':
       return 'bg-green-100 text-green-800 border-green-300'
     case 'Staff':
+      return 'bg-green-100 text-green-800 border-green-300'
+    case 'Cheff':
       return 'bg-green-100 text-green-800 border-green-300'
     default:
       return 'bg-gray-100 text-gray-800 border-gray-300'

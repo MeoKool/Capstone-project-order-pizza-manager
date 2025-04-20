@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Clock, MapPin, Phone } from 'lucide-react'
 import type { StaffSchedule, Zone } from '@/types/staff-schedule'
+import { getStaffTypeLabel } from '@/utils/status-utils'
 
 interface SchedulesListProps {
   schedules: StaffSchedule[]
@@ -59,18 +60,6 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
       .substring(0, 2)
   }
 
-  // Get staff type label
-  const getStaffTypeLabel = (staffType: string) => {
-    switch (staffType) {
-      case 'Manager':
-        return 'Quản lý'
-      case 'Staff':
-        return 'Nhân viên'
-      default:
-        return staffType
-    }
-  }
-
   // Get staff status label
   const getStaffStatusLabel = (status: string) => {
     switch (status) {
@@ -78,6 +67,8 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
         return 'Toàn thời gian'
       case 'PartTime':
         return 'Bán thời gian'
+      case 'Cheff':
+        return 'Đầu bếp'
       default:
         return status
     }
@@ -90,6 +81,8 @@ export function SchedulesList({ schedules, zones }: SchedulesListProps) {
         return 'bg-red-100 text-red-800 border-red-300'
       case 'Staff':
         return 'bg-red-100 text-red-800 border-red-300'
+      case 'Cheff':
+        return 'bg-amber-100 text-amber-800 border-amber-300'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-300'
     }

@@ -308,7 +308,7 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
                               <Briefcase className='h-4 w-4 text-red-600' />
                               <span>Nhân viên toàn thời gian</span>
                             </div>
-                            <Badge className='bg-red-100 text-red-800 border-red-300 flex items-center gap-1'>
+                            <Badge className='bg-red-100 text-red-800 border-red-300 flex items-center gap-1 hover:bg-red-200'>
                               <Users className='h-3 w-3' />
                               <span>{fullTimeSchedules.length}</span>
                             </Badge>
@@ -394,10 +394,10 @@ export function WeekView({ currentDate, onDateClick }: WeekViewProps) {
                                   <Badge
                                     className={`${
                                       totalStaffCount >= slot.capacity
-                                        ? 'bg-red-100 text-red-800 border-red-300'
+                                        ? 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200'
                                         : totalStaffCount > 0
-                                          ? 'bg-orange-100 text-orange-800 border-orange-300'
-                                          : 'bg-gray-100 text-gray-800 border-gray-300'
+                                          ? 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200'
+                                          : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200'
                                     } flex items-center gap-1`}
                                   >
                                     <Users className='h-3 w-3' />
