@@ -1,5 +1,3 @@
-"use client"
-
 import {
     Users,
     MoreVertical,
@@ -14,15 +12,21 @@ import {
     ArrowRightLeft,
     XCircle,
     Phone,
+    User,
+    Calendar,
+    Star,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { getStatusBadge } from "@/utils/table-utils"
 import type TableResponse from "@/types/tables"
 import { TableTimer } from "../table-timer"
+import { useState } from "react"
+import { format } from "date-fns"
+import { vi } from "date-fns/locale"
 
 interface TableCardProps {
     table: TableResponse
@@ -57,6 +61,20 @@ export function TableCard({
     onOpenReserveDialog,
     handleCancelReservation,
 }: TableCardProps) {
+
+    const [isTimerExpired, setIsTimerExpired] = useState(false)
+
+    // Handler function to update the timer expired status
+    const handleTimerStatusChange = (expired: boolean) => {
+        setIsTimerExpired(expired)
+    }
+    const handleTimeUp = () => {
+
+        // Call the parent's onTimeUp handler
+        onTimeUp()
+    }
+
+
     // Function to get status color
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -88,7 +106,17 @@ export function TableCard({
                 return null
         }
     }
+    // Format date for display
+    const formatDate = (dateString: string) => {
+        if (!dateString) return ""
+        try {
+            return format(new Date(dateString), "HH:mm - dd/MM/yyyy", { locale: vi })
+        } catch (error) {
+            console.log("Error formatting date:", error);
 
+            return dateString
+        }
+    }
     // Function to get action buttons based on table status
     const getActionButtons = () => {
         switch (table.status) {
@@ -147,10 +175,10 @@ export function TableCard({
                                 onClick={() => handleCancelReservation(table)}
                                 variant="outline"
                                 size="sm"
-                                className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-50"
+                                className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-100"
                                 disabled={isLoading}
                             >
-                                Hủy đặt bàn
+                                Hủy xếp bàn
                             </Button>
                         )}
                     </div>
@@ -299,19 +327,58 @@ export function TableCard({
                             {table.currentReservation ? (
                                 <>
                                     <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
-                                        <Users className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                                        <span className="text-blue-700 font-medium truncate">{table.currentReservation.customerName}</span>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="flex items-center flex-1 cursor-help">
+                                                        <Users className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                                                        <span className="text-blue-700 font-medium truncate">
+                                                            {table.currentReservation.customerName || "N/A"}
+                                                        </span>
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent side="top" className="max-w-xs bg-white border border-l-4 border-l-blue-500 border-blue-200 p-3 shadow-md">
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center">
+                                                            <User className="h-4 w-4 text-blue-500 mr-2" />
+                                                            <span className="font-medium text-blue-800">
+                                                                Tên khách hàng: {table.currentReservation.customerName || "Không có tên"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Phone className="h-4 w-4 text-blue-500 mr-2" />
+                                                            <span className="text-blue-700">
+                                                                Số điện thoại: {formatPhoneNumber(table.currentReservation.phoneNumber) || "Không có SĐT"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Calendar className="h-4 w-4 text-blue-500 mr-2" />
+                                                            <span className="text-blue-700">Giờ đặt bàn: {formatDate(table.currentReservation.bookingTime)}</span>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Users className="h-4 w-4 text-blue-500 mr-2" />
+                                                            <span className="text-blue-700">Số lượng khách: {table.currentReservation.numberOfPeople || 0} người</span>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <Star className="h-4 w-4 text-blue-500 mr-2" />
+                                                            <span className="text-blue-700">
+                                                                Mức độ ưu tiên: {table.currentReservation.reservationPriorityStatus === "Priority"
+                                                                    ? "Ưu tiên"
+                                                                    : "Không ưu tiên"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </div>
-                                    <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
-                                        <Phone className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                                        <span className="text-blue-700 font-medium">
-                                            {formatPhoneNumber(table.currentReservation.phoneNumber)}
-                                        </span>
-                                    </div>
+
                                     <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
                                         <div className="flex items-center">
                                             <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                                            <span className="text-blue-700 font-medium">Thời gian:</span>
+                                            <span className={`${isTimerExpired ? "text-red-700" : "text-blue-700"} font-medium`}>
+                                                {isTimerExpired ? "Đã quá hạn:" : "Nhận bàn:"}
+                                            </span>
                                         </div>
                                         <div className="font-medium text-blue-700">
                                             <TableTimer
@@ -319,7 +386,10 @@ export function TableCard({
                                                 status={table.status}
                                                 bookingTime={table.currentReservation.bookingTime}
                                                 isRunning={isTimerRunning}
-                                                onTimeUp={onTimeUp}
+                                                onTimeUp={handleTimeUp}
+                                                onStatusChange={handleTimerStatusChange}
+                                                tableName={table.code}
+                                                customerNameInTables={table.currentReservation.customerName || "Null"}
                                             />
                                         </div>
                                     </div>
@@ -335,7 +405,8 @@ export function TableCard({
                                             tableId={table.id}
                                             status={table.status}
                                             isRunning={isTimerRunning}
-                                            onTimeUp={onTimeUp}
+                                            onTimeUp={handleTimeUp}
+                                            tableName={table.code}
                                         />
                                     </div>
                                 </div>

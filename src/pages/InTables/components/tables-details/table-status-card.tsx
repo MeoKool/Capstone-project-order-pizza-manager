@@ -84,6 +84,12 @@ export function TableStatusCard({ table, isTimerRunning, onTimeUp }: TableStatus
         if (tableId === table.id) return table.code
         return tableCodesMap[tableId] || `Bàn ${tableId.slice(-4)}`
     }
+    const [isTimerExpired, setIsTimerExpired] = useState(false)
+
+    // Handler function to update the timer expired status
+    const handleTimerStatusChange = (expired: boolean) => {
+        setIsTimerExpired(expired)
+    }
 
     const getStatusInfo = () => {
         switch (table.status) {
@@ -213,7 +219,9 @@ export function TableStatusCard({ table, isTimerRunning, onTimeUp }: TableStatus
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
                                                 <Clock className="h-4 w-4 text-amber-600" />
-                                                <span className="text-sm font-medium text-amber-800">Thời gian còn lại:</span>
+                                                <span className={`${isTimerExpired ? "text-red-700" : "text-blue-700"} font-medium`}>
+                                                    {isTimerExpired ? "Thời gian khách đến đã quá hạn:" : "Thời gian khách đến nhận bàn:"}
+                                                </span>
                                             </div>
                                             <div className="font-medium text-amber-800 text-sm bg-white px-3 py-1 rounded-md border border-amber-200">
                                                 <TableTimer
@@ -222,6 +230,7 @@ export function TableStatusCard({ table, isTimerRunning, onTimeUp }: TableStatus
                                                     bookingTime={reservationData.bookingTime}
                                                     isRunning={isTimerRunning}
                                                     onTimeUp={onTimeUp}
+                                                    onStatusChange={handleTimerStatusChange}
                                                 />
                                             </div>
                                         </div>
@@ -284,7 +293,7 @@ export function TableStatusCard({ table, isTimerRunning, onTimeUp }: TableStatus
                     <h3 className="font-medium text-amber-900 text-sm">{statusInfo.title}</h3>
                 </div>
             </div>
-            <CardContent className="p-3 sm:p-4">{statusInfo.content}</CardContent>
+            <CardContent className="p-3 sm:p-4 max-h-[38vh] py-2 overflow-y-auto">{statusInfo.content}</CardContent>
         </Card>
     )
 }

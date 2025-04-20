@@ -97,7 +97,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
             if (res.success) {
                 showTableLToast({ tableCode, message: "đã được đóng" })
             } else {
-                toast.error("Bàn" + tableCode + " " + res.message)
+                toast.error("Bàn " + tableCode + " " + res.message)
             }
 
             // Call the callback to refresh table data
@@ -138,7 +138,17 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
             setLoadingTableIds((prev) => prev.filter((id) => id !== tableId)) // Remove loading state
         }
     }
-
+    const formatDateTime = (dateTimeString: string) => {
+        if (!dateTimeString) return ""
+        const date = new Date(dateTimeString)
+        return new Intl.DateTimeFormat("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        }).format(date)
+    }
     const handleOpenDetails = (table: TableResponse) => {
         setSelectedTable(table)
         setShowDetailsDialog(true)
@@ -336,7 +346,7 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                                 <>
                                     Bạn có chắc chắn muốn hủy đặt bàn cho <strong>{cancelReservationTable.code}</strong>?
                                     {cancelReservationTable.currentReservation && (
-                                        <div className="mt-2 p-3 bg-blue-50 rounded-md text-blue-800 text-sm">
+                                        <div className="mt-2 p-3 bg-blue-50 rounded-md text-blue-800 text-base">
                                             <p>
                                                 <strong>Khách hàng:</strong> {cancelReservationTable.currentReservation.customerName}
                                             </p>
@@ -345,6 +355,9 @@ export function TableList({ tables, onTableUpdated }: TableListProps) {
                                             </p>
                                             <p>
                                                 <strong>Số người:</strong> {cancelReservationTable.currentReservation.numberOfPeople}
+                                            </p>
+                                            <p>
+                                                <strong>Thời gian:</strong> {formatDateTime(cancelReservationTable.currentReservation.bookingTime)}
                                             </p>
                                         </div>
                                     )}

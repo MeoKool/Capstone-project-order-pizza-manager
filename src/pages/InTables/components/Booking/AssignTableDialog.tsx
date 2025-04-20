@@ -204,36 +204,34 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[550px]">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>{hasExistingTables ? "Cập nhật bàn cho đặt chỗ" : "Xếp bàn cho đặt chỗ"}</DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-sm text-muted-foreground italic">
                             {hasExistingTables
                                 ? "Chọn bàn để cập nhật cho lịch đặt chỗ này. Các bàn đã chọn trước đó sẽ bị hủy."
                                 : "Chọn một hoặc nhiều bàn phù hợp cho lịch đặt chỗ này."}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col">
+                        <div className="flex flex-col">
                             <div>
-                                <Label className="text-sm font-medium text-muted-foreground">Khách hàng</Label>
-                                <p className="font-medium">{reservation.customerName}</p>
+                                <Label className="text-base font-medium ">Tên khách hàng: <span className="font-medium text-base">{reservation.customerName}</span></Label>
                             </div>
                             <div>
-                                <Label className="text-sm font-medium text-muted-foreground">Số người</Label>
-                                <p className="font-medium">{reservation.numberOfPeople} người</p>
+                                <Label className="text-base font-medium ">Số luợng khách: <span className="font-medium ">{reservation.numberOfPeople} người</span></Label>
+                            </div>
+                            <div>
+                                <Label className="text-base font-medium ">Thời gian đặt bàn: <span className="font-medium">{formatDateTime(reservation.bookingTime)}</span></Label>
                             </div>
                         </div>
 
-                        <div>
-                            <Label className="text-sm font-medium text-muted-foreground">Thời gian</Label>
-                            <p className="font-medium">{formatDateTime(reservation.bookingTime)}</p>
-                        </div>
+
 
                         {/* Selected tables summary */}
                         {selectedTableIds.length > 0 && (
-                            <div className="bg-muted p-3 rounded-md">
+                            <div className="bg-muted p-3 rounded-md mt-2">
                                 <div className="flex justify-between items-center mb-2">
                                     <Label className="text-sm font-medium">Bàn đã chọn ({selectedTableIds.length})</Label>
                                     <Badge variant={hasEnoughCapacity ? "secondary" : "destructive"} className="text-xs">
@@ -260,7 +258,7 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
 
                         {/* Display currently assigned tables if any */}
                         {hasExistingTables && (
-                            <div className="bg-blue-50 p-3 rounded-md">
+                            <div className="bg-blue-50 p-3 rounded-md mt-2">
                                 <Label className="text-sm font-medium text-blue-700">Bàn hiện tại</Label>
                                 <div className="flex flex-wrap gap-2 mt-2">
                                     {initialTableIds.map((tableId) => {
@@ -278,7 +276,7 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
                             </div>
                         )}
 
-                        <div className="grid gap-2">
+                        <div className="grid gap-2 mt-2">
                             <Label>
                                 Chọn bàn <span className="text-red-500">*</span>
                             </Label>
@@ -324,11 +322,11 @@ export function AssignTableDialog({ reservation, open, onClose }: AssignTableDia
                             {tableError && <p className="text-sm text-red-500">{tableError}</p>}
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="flex justify-between items-center mt-2">
                         <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting || selectedTableIds.length === 0}>
+                        <Button type="submit" variant="yellow" disabled={isSubmitting || selectedTableIds.length === 0}>
                             {isSubmitting ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

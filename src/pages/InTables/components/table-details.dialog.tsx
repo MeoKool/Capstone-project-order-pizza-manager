@@ -323,9 +323,11 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
             <TableInfoCard table={currentTable} zones={zones_} />
             <TableStatusCard table={currentTable} isTimerRunning={isTimerRunning} onTimeUp={handleTimeUp} />
 
+
+
             {/* Order Details Section */}
             {currentTable.currentOrderId ? (
-              <Card className="border-amber-100 max-h-[50vh] overflow-y-auto scrollbar-hide py-2">
+              <Card className="border-amber-100  overflow-y-auto scrollbar-hide max-h-[50vh] py-2">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between gap-1 mb-3 pr-2">
                     <div className="flex items-center gap-1">
@@ -413,9 +415,10 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
           </div>
 
           <DialogFooter className="flex justify-end">
+
             {currentTable.status === "Opening" && (
               <>
-                {orderDetail && (
+                {orderDetail && currentTable.status === "Opening" && (
                   <div className="flex flex-col-reverse sm:flex-row gap-2 mt-2 sm:mt-0 sm:justify-end">
                     <Button
                       onClick={() => setIsCancelDialogOpen(true)}
@@ -480,16 +483,17 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                         </Button>
                       </>
                     )}
-                    {/* Close button for all states */}
-                    <Button
-                      variant="outline"
-                      onClick={() => onOpenChange(false)}
-                      className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
-                    >
-                      Đóng
-                    </Button>
+
                   </div>
                 )}
+                {/* Close button for all states */}
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50 text-xs sm:text-sm py-1 h-7 sm:h-9"
+                >
+                  Đóng
+                </Button>
               </>
             )}
 

@@ -154,15 +154,12 @@ export function ViewBookingDialog({ reservation, open, onOpenChange }: ViewBooki
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">Số người</p>
+                <p className="text-sm font-medium">Số lượng khách</p>
                 <p className="text-sm">{reservation.numberOfPeople} người</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5 text-muted-foreground" />
 
-            </div>
 
             {/* Table information section */}
             <div className="flex items-start gap-2">
@@ -205,9 +202,7 @@ export function ViewBookingDialog({ reservation, open, onOpenChange }: ViewBooki
             </div>
           </div>
 
-          <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground">Mã đặt bàn: {reservation.id}</p>
-          </div>
+
         </div>
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)}>Đóng</Button>

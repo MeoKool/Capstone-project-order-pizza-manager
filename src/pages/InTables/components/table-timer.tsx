@@ -1,16 +1,18 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { formatDistanceToNow, isPast, parseISO, differenceInSeconds } from 'date-fns'
-import { vi } from 'date-fns/locale'
+import { useState, useEffect, useRef } from "react"
+import { parseISO, differenceInSeconds, differenceInMinutes } from "date-fns"
+import { toast } from "sonner"
 
 interface TableTimerProps {
   tableId: string
   status: string
-  bookingTime?: string // ISO string format for booking time
+  bookingTime?: string // ISO string format for reservation time (when customer should arrive)
   isRunning?: boolean
   onTimeUp: () => void
-  duration?: number // Duration in minutes for the timer (default: 30)
+  onStatusChange?: (expired: boolean) => void
+  tableName?: string // Table name/code for toast messages
+  customerNameInTables?: string // Customer name for toast messages
 }
 
 export function TableTimer({
@@ -19,52 +21,113 @@ export function TableTimer({
   bookingTime,
   isRunning = false,
   onTimeUp,
-  duration = 30
+  onStatusChange,
+  tableName = "",
+  customerNameInTables = "",
 }: TableTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<string>('')
+  const [timeLeft, setTimeLeft] = useState<string>("")
   const [expired, setExpired] = useState<boolean>(false)
-  const [timerStarted, setTimerStarted] = useState<boolean>(false)
+  const lastToastTimeRef = useRef<number>(0)
+  const minutesOverdueRef = useRef<number>(0)
+
+  // Add an effect to notify the parent component when expired status changes
+  useEffect(() => {
+    if (onStatusChange) {
+      onStatusChange(expired)
+    }
+  }, [expired, onStatusChange])
 
   useEffect(() => {
-    // If no booking time is provided, use the current time + duration
-    const targetTime = bookingTime ? parseISO(bookingTime) : new Date(Date.now() + duration * 60 * 1000)
+    // Parse the reservation time if provided, otherwise use current time + 30 minutes
+    const reservationTime = bookingTime ? parseISO(bookingTime) : new Date(Date.now() + 30 * 60 * 1000)
     let intervalId: NodeJS.Timeout | null = null
 
     // Function to update the timer
     const updateTimer = () => {
       const now = new Date()
 
-      // If the booking time is in the past, start the countdown
-      if (isPast(targetTime)) {
-        // If the timer hasn't started yet, set it as started
-        if (!timerStarted) {
-          setTimerStarted(true)
-        }
+      // Check if the reservation time is in the future or past
+      if (reservationTime > now) {
+        // Reservation time is in the future - show countdown until reservation time
+        const secondsUntilReservation = differenceInSeconds(reservationTime, now)
+        setTimeLeft(formatTimeLeft(secondsUntilReservation))
+        setExpired(false)
 
-        // Calculate seconds difference
-        const diffInSeconds = differenceInSeconds(targetTime, now)
-
-        // If the time is up
-        if (diffInSeconds <= -duration * 60) {
-          setTimeLeft('Hết hạn')
-          setExpired(true)
-
-          // Call the onTimeUp callback
-          if (isRunning && !expired) {
-            onTimeUp()
-          }
-
-          // Clear the interval
-          if (intervalId) {
-            clearInterval(intervalId)
-          }
-        } else {
-          // Format the time left
-          setTimeLeft(formatTimeLeft(-diffInSeconds))
-        }
+        // Reset the overdue minutes when we're not expired
+        minutesOverdueRef.current = 0
       } else {
-        // If the booking time is in the future, show how much time until it starts
-        setTimeLeft(`Còn ${formatDistanceToNow(targetTime, { locale: vi, addSuffix: false })}`)
+        // Reservation time has passed - customer should have arrived
+        setExpired(true)
+
+        // Calculate how long it's been since the reservation time
+        const minutesSinceReservation = differenceInMinutes(now, reservationTime)
+        minutesOverdueRef.current = minutesSinceReservation
+
+        // Check if we need to show a toast notification (every minute)
+        checkAndShowToast(
+          minutesSinceReservation,
+          now.getTime(),
+          tableName || `Bàn ${tableId}`,
+          customerNameInTables || "",
+        )
+
+        // Format the overdue message
+        if (minutesSinceReservation < 60) {
+          setTimeLeft(`${minutesSinceReservation} phút`)
+        } else {
+          const hours = Math.floor(minutesSinceReservation / 60)
+          const minutes = minutesSinceReservation % 60
+          if (minutes === 0) {
+            setTimeLeft(`${hours} giờ`)
+          } else {
+            setTimeLeft(`${hours} giờ ${minutes} phút`)
+          }
+        }
+
+        // Call the onTimeUp callback once when we first expire
+        if (isRunning && !expired) {
+          onTimeUp()
+        }
+      }
+    }
+
+    // Function to check if we should show a toast and show it if needed
+    const checkAndShowToast = (
+      minutesOverdue: number,
+      currentTime: number,
+      tableIdentifier: string,
+      customerName: string,
+    ) => {
+      // Show toast every minute for Reserved tables
+      if (status === "Reserved" && currentTime - lastToastTimeRef.current >= 60 * 1000) {
+        const toastId = `reservation-overdue-${tableId}-${minutesOverdue}`
+
+        toast.warning(
+          <div className="flex flex-col space-y-2">
+            <div className="font-medium">{customerName ? `Khách ${customerName} đã quá hạn` : "Khách đã quá hạn"}</div>
+            <div>
+              {tableIdentifier} đã quá hạn {minutesOverdue} phút.
+            </div>
+            <div className="flex justify-center mt-2">
+              <button
+                className="px-4 py-1.5 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 font-medium w-full"
+                onClick={() => {
+                  // Dismiss this specific toast
+                  toast.dismiss(toastId)
+                }}
+              >
+                Xác Nhận
+              </button>
+            </div>
+          </div>,
+          {
+            duration: 10000, // 10 seconds
+            id: toastId, // Unique ID to prevent duplicates
+          },
+        )
+
+        // Update the last toast time
+        lastToastTimeRef.current = currentTime
       }
     }
 
@@ -80,12 +143,12 @@ export function TableTimer({
         clearInterval(intervalId)
       }
     }
-  }, [tableId, status, bookingTime, isRunning, onTimeUp, duration, timerStarted, expired])
+  }, [tableId, status, bookingTime, isRunning, onTimeUp, expired, tableName, customerNameInTables])
 
   // Format seconds to MM:SS or HH:MM:SS
   const formatTimeLeft = (seconds: number): string => {
     if (seconds <= 0) {
-      return '00:00'
+      return "00:00"
     }
 
     const hours = Math.floor(seconds / 3600)
@@ -101,17 +164,15 @@ export function TableTimer({
 
   // Add leading zero if needed
   const padZero = (num: number): string => {
-    return num.toString().padStart(2, '0')
+    return num.toString().padStart(2, "0")
   }
 
   // Determine the color based on time left
   const getTimerColor = (): string => {
     if (expired) {
-      return 'text-red-600 font-bold'
-    } else if (timerStarted) {
-      return 'text-blue-600'
+      return "text-red-600 font-bold"
     } else {
-      return 'text-gray-600'
+      return "text-blue-600"
     }
   }
 
