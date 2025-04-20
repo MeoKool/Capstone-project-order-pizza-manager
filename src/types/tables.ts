@@ -12,10 +12,16 @@ export default interface TableResponse {
   currentOrder: any | null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   zone: any | null
+  tableMergeId: string | null,
+  tableMergeName: string | null,
+  tableMerge: TableMerge,
   currentReservationId: string
   currentReservation: CurrentReservation
 }
-
+export interface TableMerge {
+  id: string,
+  name: string
+}
 export interface CurrentReservation {
   id: string
   bookingTime: string

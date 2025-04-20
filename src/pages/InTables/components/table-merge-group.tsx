@@ -1,11 +1,11 @@
-import { MapPin } from "lucide-react"
+import { Layers } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
-import { TableCard } from "./table-card"
-import type TableResponse from "@/types/tables"
 
-interface TableZoneGroupProps {
-    zoneId: string
-    zoneName: string
+import type TableResponse from "@/types/tables"
+import { TableCard } from './tables/table-card'
+
+interface TableMergeGroupProps {
+    tableMergeName: string
     tables: TableResponse[]
     loadingTableIds: string[]
     runningTimers: { [key: string]: boolean }
@@ -23,8 +23,8 @@ interface TableZoneGroupProps {
     onTableUpdated?: () => void
 }
 
-export function TableZoneGroup({
-    zoneName,
+export function TableMergeGroup({
+    tableMergeName,
     tables,
     loadingTableIds,
     runningTimers,
@@ -40,15 +40,23 @@ export function TableZoneGroup({
     onOpenCancelOrderDialog,
     handleCancelReservation,
     onTableUpdated
-}: TableZoneGroupProps) {
+}: TableMergeGroupProps) {
+    // Calculate total capacity of all tables in this merge group
+    const totalCapacity = tables.reduce((sum, table) => sum + table.capacity, 0)
+
     return (
         <div className="mb-6 last:mb-0">
-            <div className="flex items-center mb-3 bg-amber-50 p-2 rounded-md border border-amber-100">
-                <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mr-2" />
-                <h3 className="font-medium text-amber-800 text-sm sm:text-base">Khu Vực {zoneName}</h3>
-                <Badge variant="outline" className="ml-auto bg-white text-amber-700 border-amber-200 text-xs">
-                    {tables.length} bàn
-                </Badge>
+            <div className="flex items-center mb-3 bg-purple-50 p-2 rounded-md border border-purple-100">
+                <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 mr-2" />
+                <h3 className="font-medium text-purple-800 text-sm sm:text-base">Nhóm ghép bàn: {tableMergeName || "Nhóm ghép bàn"}</h3>
+                <div className="ml-auto flex items-center gap-2">
+                    <Badge variant="outline" className="bg-white text-purple-700 border-purple-200 text-xs">
+                        {tables.length} bàn
+                    </Badge>
+                    <Badge variant="outline" className="bg-white text-purple-700 border-purple-200 text-xs">
+                        Tổng: {totalCapacity} người
+                    </Badge>
+                </div>
             </div>
 
             <div className="grid gap-3 sm:gap-4 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
