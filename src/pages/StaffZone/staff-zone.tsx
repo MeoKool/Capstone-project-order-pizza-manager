@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { DndContext, PointerSensor, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
+import axios from 'axios'
 import StaffZoneService, { type StaffZone, type Zone } from '@/services/staff-zone-service'
 import { StaffZoneHeader } from './components/staff-zone/staff-zone-header'
 import { StaffZoneStats } from './components/staff-zone/staff-zone-stats'
@@ -61,11 +62,10 @@ export default function StaffZoneManagement() {
     })
   )
 
-  // Add a function to check the current working slot status when the component mounts
   const checkCurrentWorkingSlot = async () => {
     try {
-      const response = await fetch('https://vietsac.id.vn/api/working-slots/current')
-      const data = await response.json()
+      const response = await axios.get('https://vietsac.id.vn/api/working-slots/current')
+      const data = response.data
 
       if (!data.success || data.result.id === '00000000-0000-0000-0000-000000000000') {
         setHasCurrentWorkingSlot(false)
@@ -78,40 +78,33 @@ export default function StaffZoneManagement() {
     }
   }
 
-  // Modify the handleViewSchedule function to update the hasCurrentWorkingSlot state
   const handleViewSchedule = async () => {
     try {
       setIsSyncingSchedule(true)
       setSyncError(null)
 
-      // Fetch current working slot
-      const response = await fetch('https://vietsac.id.vn/api/working-slots/current')
-      const data = await response.json()
+      // Fetch current working slot using axios
+      const response = await axios.get('https://vietsac.id.vn/api/working-slots/current')
+      const data = response.data
 
       if (!data.success) {
         throw new Error(data.error?.message || 'Failed to fetch current working slot')
       }
 
-      // Check if result is null
-      if (data.result.id === '00000000-0000-0000-0000-000000000000') {
-        toast.info('Không có ca làm việc vào khung giờ này')
-        setHasCurrentWorkingSlot(false)
-        return
-      }
-
-      setHasCurrentWorkingSlot(true)
+      // Get the working slot ID (even if it's all zeros)
       const workingSlotId = data.result.id
 
-      // Call sync API with the working slot ID
-      const syncResponse = await fetch('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ workingSlotId })
-      })
+      if (workingSlotId === '00000000-0000-0000-0000-000000000000') {
+        toast.info('Không có ca làm việc vào khung giờ này')
+        setHasCurrentWorkingSlot(false)
+        // Continue with sync API call even with the all-zeros ID
+      } else {
+        setHasCurrentWorkingSlot(true)
+      }
 
-      const syncData = await syncResponse.json()
+      // Always call sync API with the working slot ID
+      const syncResponse = await axios.post('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', { workingSlotId })
+      const syncData = syncResponse.data
 
       if (!syncData.success) {
         throw new Error(syncData.message || 'Failed to sync staff zone')
@@ -121,7 +114,7 @@ export default function StaffZoneManagement() {
       await fetchZonesAndStaff()
 
       toast.success(`Đã đồng bộ lịch phân công`)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error syncing schedule:', err)
       setSyncError(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
       toast.error('Đã xảy ra lỗi khi đồng bộ lịch phân công')
@@ -130,10 +123,34 @@ export default function StaffZoneManagement() {
     }
   }
 
-  // Add the checkCurrentWorkingSlot call to the useEffect
+  // Add a function to automatically sync staff zone
+  const syncStaffZone = async () => {
+    try {
+      // Fetch current working slot using axios
+      const response = await axios.get('https://vietsac.id.vn/api/working-slots/current')
+      const data = response.data
+
+      // Get the working slot ID (even if it's all zeros)
+      const workingSlotId = data.result.id
+
+      // Always call sync API with the working slot ID
+      await axios.post('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', { workingSlotId })
+
+      // Refresh data after successful sync
+      await fetchZonesAndStaff()
+
+      console.log('Auto-synced staff zone successfully')
+    } catch (err) {
+      console.error('Error auto-syncing staff zone:', err)
+    }
+  }
+
   useEffect(() => {
     fetchZonesAndStaff()
-    checkCurrentWorkingSlot()
+    checkCurrentWorkingSlot().then(() => {
+      // Automatically sync staff zone after checking current working slot
+      syncStaffZone()
+    })
 
     // Update current time every minute
     const timer = setInterval(() => {
