@@ -12,9 +12,11 @@ import {
     ArrowRightLeft,
     XCircle,
     Phone,
+    Layers,
     User,
     Calendar,
     Star,
+
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -24,6 +26,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { getStatusBadge } from "@/utils/table-utils"
 import type TableResponse from "@/types/tables"
 import { TableTimer } from "../table-timer"
+import { TableMergeBadge } from "../table-merge-badge"
+import { TableUnmergeDialog } from "../table-unmerge-dialog"
 import { useState } from "react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
@@ -43,6 +47,7 @@ interface TableCardProps {
     onOpenCancelOrderDialog: (table: TableResponse) => void
     onOpenReserveDialog: (table: TableResponse) => void
     handleCancelReservation: (table: TableResponse) => Promise<void>
+    onTableUpdated?: () => void
 }
 
 export function TableCard({
@@ -60,7 +65,9 @@ export function TableCard({
     onOpenCancelOrderDialog,
     onOpenReserveDialog,
     handleCancelReservation,
+    onTableUpdated
 }: TableCardProps) {
+    const [showUnmergeDialog, setShowUnmergeDialog] = useState(false)
 
     const [isTimerExpired, setIsTimerExpired] = useState(false)
 
@@ -277,7 +284,7 @@ export function TableCard({
                                 <QrCode className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
                                 Mã QR
                             </DropdownMenuItem>
-                            {/* Add Lock table option to dropdown menu */}
+                            {/* Add Lock table option to dropdown menu when table is not Locked and not Reserved */}
                             {table.status !== "Locked" && table.status !== "Reserved" && (
                                 <DropdownMenuItem
                                     onClick={() => onOpenLockDialog(table)}
@@ -307,7 +314,25 @@ export function TableCard({
                                     Hủy đơn hàng
                                 </DropdownMenuItem>
                             )}
-
+                            {table.status === "Closing" && (
+                                <DropdownMenuItem
+                                    onClick={() => onOpenReserveDialog(table)}
+                                    className="flex items-center cursor-pointer hover:bg-amber-50 text-xs sm:text-sm py-1.5"
+                                >
+                                    <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                                    Đặt trước
+                                </DropdownMenuItem>
+                            )}
+                            {/* Add Unmerge option if table is part of a merge group */}
+                            {table.tableMergeId && (
+                                <DropdownMenuItem
+                                    onClick={() => setShowUnmergeDialog(true)}
+                                    className="flex items-center cursor-pointer hover:bg-purple-50 text-xs sm:text-sm py-1.5"
+                                >
+                                    <Layers className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
+                                    Hủy ghép bàn
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -321,6 +346,9 @@ export function TableCard({
                             {table.capacity} người
                         </Badge>
                     </div>
+                    {table.tableMergeId && (
+                        <TableMergeBadge tableMergeName={table.tableMergeName} tableMergeId={table.tableMergeId} />
+                    )}
 
                     {table.status === "Reserved" && (
                         <>
@@ -446,6 +474,19 @@ export function TableCard({
 
                 {getActionButtons()}
             </CardContent>
+
+            {/* Unmerge Dialog */}
+            <TableUnmergeDialog
+                table={table}
+                open={showUnmergeDialog}
+                onOpenChange={setShowUnmergeDialog}
+                onTableUpdated={() => {
+                    // Create a callback that refreshes the data
+                    if (onTableUpdated) {
+                        onTableUpdated()
+                    }
+                }}
+            />
         </Card>
     )
 }
