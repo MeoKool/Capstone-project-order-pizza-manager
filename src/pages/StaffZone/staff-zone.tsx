@@ -46,6 +46,9 @@ export default function StaffZoneManagement() {
   const [isSyncingSchedule, setIsSyncingSchedule] = useState(false)
   const [, setSyncError] = useState<string | null>(null)
 
+  // Add a new state to track if there's a current working slot
+  const [hasCurrentWorkingSlot, setHasCurrentWorkingSlot] = useState(true)
+
   // Configure DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -58,8 +61,79 @@ export default function StaffZoneManagement() {
     })
   )
 
+  // Add a function to check the current working slot status when the component mounts
+  const checkCurrentWorkingSlot = async () => {
+    try {
+      const response = await fetch('https://vietsac.id.vn/api/working-slots/current')
+      const data = await response.json()
+
+      if (!data.success || data.result.id === '00000000-0000-0000-0000-000000000000') {
+        setHasCurrentWorkingSlot(false)
+      } else {
+        setHasCurrentWorkingSlot(true)
+      }
+    } catch (err) {
+      console.error('Error checking current working slot:', err)
+      setHasCurrentWorkingSlot(false)
+    }
+  }
+
+  // Modify the handleViewSchedule function to update the hasCurrentWorkingSlot state
+  const handleViewSchedule = async () => {
+    try {
+      setIsSyncingSchedule(true)
+      setSyncError(null)
+
+      // Fetch current working slot
+      const response = await fetch('https://vietsac.id.vn/api/working-slots/current')
+      const data = await response.json()
+
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Failed to fetch current working slot')
+      }
+
+      // Check if result is null
+      if (data.result.id === '00000000-0000-0000-0000-000000000000') {
+        toast.info('Không có ca làm việc vào khung giờ này')
+        setHasCurrentWorkingSlot(false)
+        return
+      }
+
+      setHasCurrentWorkingSlot(true)
+      const workingSlotId = data.result.id
+
+      // Call sync API with the working slot ID
+      const syncResponse = await fetch('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ workingSlotId })
+      })
+
+      const syncData = await syncResponse.json()
+
+      if (!syncData.success) {
+        throw new Error(syncData.message || 'Failed to sync staff zone')
+      }
+
+      // Refresh data after successful sync
+      await fetchZonesAndStaff()
+
+      toast.success(`Đã đồng bộ lịch phân công`)
+    } catch (err: any) {
+      console.error('Error syncing schedule:', err)
+      setSyncError(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
+      toast.error('Đã xảy ra lỗi khi đồng bộ lịch phân công')
+    } finally {
+      setIsSyncingSchedule(false)
+    }
+  }
+
+  // Add the checkCurrentWorkingSlot call to the useEffect
   useEffect(() => {
     fetchZonesAndStaff()
+    checkCurrentWorkingSlot()
 
     // Update current time every minute
     const timer = setInterval(() => {
@@ -299,49 +373,6 @@ export default function StaffZoneManagement() {
     setFilterZoneType('all')
   }
 
-  const handleViewSchedule = async () => {
-    try {
-      setIsSyncingSchedule(true)
-      setSyncError(null)
-
-      // Fetch current working slot
-      const response = await fetch('https://vietsac.id.vn/api/working-slots/current')
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error.message || 'Failed to fetch current working slot')
-      }
-
-      const workingSlotId = data.result.id
-
-      // Call sync API with the working slot ID
-      const syncResponse = await fetch('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ workingSlotId })
-      })
-
-      const syncData = await syncResponse.json()
-
-      if (!syncData.success) {
-        throw new Error(syncData.message || 'Failed to sync staff zone')
-      }
-
-      // Refresh data after successful sync
-      await fetchZonesAndStaff()
-
-      toast.success(`Đã đồng bộ lịch phân công: ${data.result.dayName} - ${data.result.shiftName}`)
-    } catch (err: any) {
-      console.error('Error syncing schedule:', err)
-      setSyncError(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
-      toast.error(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
-    } finally {
-      setIsSyncingSchedule(false)
-    }
-  }
-
   if (loading) {
     return (
       <div className='container mx-auto py-6 space-y-6'>
@@ -409,7 +440,7 @@ export default function StaffZoneManagement() {
             <CalendarClock className='h-4 w-4' />
             {isSyncingSchedule ? 'Đang đồng bộ...' : 'Xem lịch phân công'}
           </Button>
-          <AddStaffDialog zones={zones} onAddStaff={handleAddStaff} />
+          <AddStaffDialog zones={zones} onAddStaff={handleAddStaff} disabled={!hasCurrentWorkingSlot} />
         </div>
       </div>
 

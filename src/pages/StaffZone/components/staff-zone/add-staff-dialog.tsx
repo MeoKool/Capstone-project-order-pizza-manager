@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -10,12 +12,15 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from 'sonner'
 import type { Staff, Zone } from '@/services/staff-zone-service'
 
+// Update the interface to include the disabled prop
 interface AddStaffDialogProps {
   zones: Zone[]
   onAddStaff: (staffId: string, zoneId: string) => Promise<boolean>
+  disabled?: boolean
 }
 
-export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
+// Update the function to destructure the disabled prop with a default value of false
+export function AddStaffDialog({ zones, onAddStaff, disabled = false }: AddStaffDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [staff, setStaff] = useState<Staff[]>([])
   const [loading, setLoading] = useState(false)
@@ -109,7 +114,7 @@ export function AddStaffDialog({ zones, onAddStaff }: AddStaffDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant='green' className='gap-2'>
+        <Button variant='green' className='gap-2' disabled={disabled}>
           <UserPlus className='h-4 w-4' />
           Thêm nhân viên vào khu vực
         </Button>
