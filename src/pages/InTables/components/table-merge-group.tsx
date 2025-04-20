@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 
 import type TableResponse from "@/types/tables"
 import { TableCard } from './tables/table-card'
+import { Button } from '@/components/ui/button'
 
 interface TableMergeGroupProps {
     tableMergeName: string
@@ -21,6 +22,9 @@ interface TableMergeGroupProps {
     onOpenReserveDialog: (table: TableResponse) => void
     handleCancelReservation: (table: TableResponse) => Promise<void>
     onTableUpdated?: () => void
+    handleCancelMerge: (table: TableResponse) => void
+
+
 }
 
 export function TableMergeGroup({
@@ -39,7 +43,8 @@ export function TableMergeGroup({
     onOpenSwapDialog,
     onOpenCancelOrderDialog,
     handleCancelReservation,
-    onTableUpdated
+    onTableUpdated,
+    handleCancelMerge
 }: TableMergeGroupProps) {
     // Calculate total capacity of all tables in this merge group
     const totalCapacity = tables.reduce((sum, table) => sum + table.capacity, 0)
@@ -56,6 +61,27 @@ export function TableMergeGroup({
                     <Badge variant="outline" className="bg-white text-purple-700 border-purple-200 text-xs">
                         Tổng: {totalCapacity} người
                     </Badge>
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        className="h-7 text-xs hover:bg-red-600"
+                        onClick={() => {
+                            // Lấy ID của bàn đầu tiên trong nhóm để hủy ghép
+                            if (tables.length > 0) {
+                                const firstTable = tables[0]
+                                if (firstTable.tableMergeId) {
+                                    if (onTableUpdated) {
+                                        onTableUpdated();
+                                    }
+                                    // Mở dialog hủy ghép bàn cho bàn đầu tiên trong nhóm
+                                    handleCancelMerge(firstTable)
+                                }
+                            }
+                        }}
+                    >
+                        <Layers className="mr-1 h-3 w-3" />
+                        Hủy ghép bàn
+                    </Button>
                 </div>
             </div>
 
