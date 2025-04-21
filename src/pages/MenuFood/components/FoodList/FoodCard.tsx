@@ -41,8 +41,6 @@ const FoodCard: React.FC<FoodCardProps> = ({
     const getProductImageUrl = (product: ProductModel) => {
         if (product.imageUrl) {
             return product.imageUrl
-        } else if (product.image && product.image.startsWith("data:image")) {
-            return product.image
         } else {
             return "/placeholder.svg?height=256&width=256"
         }
@@ -160,8 +158,8 @@ const FoodCard: React.FC<FoodCardProps> = ({
                 </CardContent>
                 <CardFooter className="p-4 pt-0 flex justify-between items-center">
                     <span className="font-semibold text-primary text-lg">{food.price.toLocaleString("vi-VN")} ₫</span>
-                    {food.productSizes && food.productSizes.length > 0 && (
-                        <Badge variant="secondary">{food.productSizes.length} kích cỡ</Badge>
+                    {food.productOptions && food.productOptions.length > 0 && (
+                        <Badge variant="secondary">{food.productOptions.length} kích cỡ</Badge>
                     )}
                 </CardFooter>
             </Card>
