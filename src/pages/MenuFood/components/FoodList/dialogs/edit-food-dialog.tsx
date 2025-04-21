@@ -163,12 +163,12 @@ export function EditFoodDialog({ food, open, onOpenChange, onSave }: EditFoodDia
 
   // Update the transformOptionsToProductOptionModels function to include SelectMany
   const transformOptionsToProductOptionModels = () => {
-    if (!food.options || food.options.length === 0) return []
+    if (!food.productOptions || food.productOptions.length === 0) return []
 
-    return food.options.map((option) => ({
+    return food.productOptions.map((option) => ({
       name: option.option.name,
       description: option.option.description || "",
-      SelectMany: option.option.SelectMany || false, // Include SelectMany with default false
+      SelectMany: option.option.selectMany || false, // Include SelectMany with default false
       productOptionItemModels: option.option.optionItems.map((item) => ({
         name: item.name,
         additionalPrice: item.additionalPrice,
