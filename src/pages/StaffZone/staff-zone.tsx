@@ -116,7 +116,6 @@ export default function StaffZoneManagement() {
       toast.success(`Đã đồng bộ lịch phân công`)
     } catch (err) {
       console.error('Error syncing schedule:', err)
-      setSyncError(err.message || 'Đã xảy ra lỗi khi đồng bộ lịch phân công')
       toast.error('Đã xảy ra lỗi khi đồng bộ lịch phân công')
     } finally {
       setIsSyncingSchedule(false)
@@ -145,6 +144,27 @@ export default function StaffZoneManagement() {
     }
   }
 
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const slotRes = await axios.get('https://vietsac.id.vn/api/working-slots/current')
+        const workingSlotId: string = slotRes.data?.result?.id ?? '00000000-0000-0000-0000-000000000000'
+
+        await axios.post('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', { workingSlotId })
+
+        await fetchZonesAndStaff()
+
+        await checkCurrentWorkingSlot()
+      } catch (err) {
+        console.error('Init error:', err)
+        toast.error('Không thể đồng bộ lịch phân công khi tải trang')
+      }
+    }
+
+    init()
+    const timer = setInterval(() => setCurrentTime(new Date()), 60_000)
+    return () => clearInterval(timer)
+  }, [])
   useEffect(() => {
     fetchZonesAndStaff()
     checkCurrentWorkingSlot().then(() => {
