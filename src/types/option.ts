@@ -1,4 +1,10 @@
 
+export interface OptionResult {
+    items: Option[];
+    totalCount: number;
+}
+
+
 export interface Option {
     id: string;
     name: string;

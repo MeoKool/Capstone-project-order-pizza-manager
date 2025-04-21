@@ -1,197 +1,128 @@
-import { useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import useCategories from "@/hooks/useCategories"
+"use client"
+
+import { useEffect, useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Loader2, Plus, Trash2, PlusCircle, X, Check } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Form } from "@/components/ui/form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle } from "lucide-react"
-import FileUpload from "@/components/uploadImage"
 import { toast } from "sonner"
-import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
+import type { Option } from "@/types/option"
+import useCategories from "@/hooks/useCategories"
+import { useOptions } from "@/hooks/use-options"
+
+// Import our new components
+import { ProductBasicInfo } from "./product-basic-info"
+import { ProductImageUpload } from "./product-image-upload"
+import { ProductCategorySelection } from "./product-category-selection"
+import { ProductSizeItems } from "./product-size-items"
+import { ProductOptionsSelection } from "./product-options-selection"
+import { FormFooter } from "./form-footer"
 
 interface AddFoodDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-// Define the form schema with nested option groups
-const formSchema = z.object({
-  Name: z.string().min(1, "Tên món ăn không được để trống"),
-  Price: z.number().min(1, "Giá phải lớn hơn 0"),
-  Description: z.string().optional(),
-  CategoryId: z.string().min(1, "Vui lòng chọn danh mục"),
-  ProductType: z.enum(["HotKitchen", "ColdKitchen"]).default("HotKitchen"),
-  productOptionModels: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Tên nhóm tùy chọn không được để trống"),
-        description: z.string().optional(),
-        SelectMany: z.boolean().default(false), // Add the SelectMany field
-        productOptionItemModels: z
-          .array(
-            z.object({
-              name: z.string().min(1, "Tên lựa chọn không được để trống"),
-              additionalPrice: z.number().min(0, "Giá phụ thu không được âm"),
-            }),
-          )
-          .min(1, "Phải có ít nhất một lựa chọn"),
-      }),
-    )
-    .optional(),
+// Define the size item schema
+const sizeItemSchema = z.object({
+  name: z.string().min(1, "Tên kích cỡ không được để trống"),
+  price: z.number().gte(0, "Giá không được âm"),
 })
 
-// Separate component for option items to avoid hook rules violations
-function OptionItemFields({
-  control,
-  nestIndex,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  control: any
-  nestIndex: number
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  register: any
-}) {
-  const { fields, remove, append } = useFieldArray({
-    control,
-    name: `productOptionModels.${nestIndex}.productOptionItemModels`,
-  })
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium">Các lựa chọn</h4>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => append({ name: "", additionalPrice: 0 })}
-          className="h-7 text-xs"
-        >
-          <Plus className="h-3 w-3 mr-1" />
-          Thêm lựa chọn
-        </Button>
-      </div>
-
-      {fields.length === 0 ? (
-        <div className="text-center py-2 border border-dashed ">
-          <p className="text-xs text-muted-foreground">Chưa có lựa chọn nào</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {fields.map((field, index) => {
-            return (
-              <div key={field.id} className="flex items-center gap-2">
-                <FormField
-                  control={control}
-                  name={`productOptionModels.${nestIndex}.productOptionItemModels.${index}.name`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input placeholder="Tên lựa chọn" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name={`productOptionModels.${nestIndex}.productOptionItemModels.${index}.additionalPrice`}
-                  render={({ field }) => (
-                    <FormItem className="w-32">
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="Giá thêm"
-                          value={field.value === 0 ? "" : field.value.toLocaleString("vi-VN")}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, "")
-                            field.onChange(value ? Number(value) : 0)
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => remove(index)}
-                  className="text-destructive h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Xóa lựa chọn</span>
-                </Button>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
+// Define the form schema to match ProductFormData with updated sizes field
+const formSchema = z.object({
+  name: z.string().min(1, "Tên món ăn không được để trống"),
+  price: z.number().min(1, "Giá phải lớn hơn 0"),
+  // Remove image from form schema as it will be handled separately
+  description: z.string().optional(),
+  categoryId: z.string().min(1, "Vui lòng chọn danh mục"),
+  productType: z.string().min(1, "Vui lòng chọn loại sản phẩm"),
+  optionIds: z.array(z.string()).optional(), // Array of strings
+  sizes: z.string().optional(), // Will store JSON string of size items
+  sizeItems: z.array(sizeItemSchema).optional(), // For form handling
+})
 
 export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedOptions, setSelectedOptions] = useState<Option[]>([])
   const { foodCategory } = useCategories()
 
-  // Update the form default values
+  // Use our custom hook for options
+  const { options, totalCount, isLoading: isLoadingOptions, fetchOptions } = useOptions()
+
+  // Initialize the form with default values
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      Name: "",
-      Price: 0,
-      Description: "",
-      CategoryId: "",
-      ProductType: "HotKitchen",
-      productOptionModels: [],
+      name: "",
+      price: 0,
+      description: "",
+      categoryId: "",
+      productType: "HotKitchen",
+      optionIds: [],
+      sizes: "",
+      sizeItems: [{ name: "", price: 0 }], // Start with one empty size item
     },
   })
 
-  // Update the useFieldArray to use the new structure for option groups
-  const {
-    fields: optionFields,
-    append: appendOption,
-    remove: removeOption,
-  } = useFieldArray({
+  // Setup field array for dynamic size items
+  const sizeFieldArray = useFieldArray({
     control: form.control,
-    name: "productOptionModels",
+    name: "sizeItems",
   })
 
-  // Update the addNewOption function to add a new option group
-  const addNewOption = () => {
-    appendOption({
-      name: "",
-      description: "",
-      SelectMany: false, // Default value for SelectMany
-      productOptionItemModels: [{ name: "", additionalPrice: 0 }],
-    })
-  }
+  // Fetch options when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchOptions()
+    }
+  }, [open, fetchOptions])
+
+  // Update form value when selectedOptions changes - now storing array of IDs
+  useEffect(() => {
+    if (selectedOptions.length > 0) {
+      // Store array of option IDs
+      const optionIdsArray = selectedOptions.map((option) => option.id)
+      form.setValue("optionIds", optionIdsArray)
+    } else {
+      form.setValue("optionIds", [])
+    }
+  }, [selectedOptions, form])
+
+  // Update sizes JSON string when sizeItems change
+  useEffect(() => {
+    const sizeItems = form.watch("sizeItems")
+    if (sizeItems && sizeItems.length > 0) {
+      // Include all items, even if name is empty - we'll validate on submit
+      form.setValue("sizes", JSON.stringify(sizeItems))
+
+      // Log for debugging
+      console.log("Size items updated:", sizeItems)
+      console.log("JSON string:", JSON.stringify(sizeItems))
+    } else {
+      form.setValue("sizes", "")
+    }
+  }, [form.watch("sizeItems"), form])
 
   const resetForm = () => {
-    form.reset()
+    form.reset({
+      name: "",
+      price: 0,
+      description: "",
+      categoryId: "",
+      productType: "HotKitchen",
+      optionIds: [],
+      sizes: "",
+      sizeItems: [{ name: "", price: 0 }], // Reset to one empty size item
+    })
     setSelectedFile(null)
+    setSelectedOptions([])
     setError(null)
     setSuccess(false)
   }
@@ -201,52 +132,63 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     onOpenChange(false)
   }
 
-  // Update the onSubmit function to match the new structure
+  // Handle selecting an option
+  const handleSelectOption = (option: Option) => {
+    setSelectedOptions((prev) => {
+      // Check if option is already selected
+      const isSelected = prev.some((item) => item.id === option.id)
+
+      if (isSelected) {
+        // Remove option if already selected
+        return prev.filter((item) => item.id !== option.id)
+      } else {
+        // Add option if not selected
+        return [...prev, option]
+      }
+    })
+  }
+
+  // Handle removing an option
+  const handleRemoveOption = (optionId: string) => {
+    setSelectedOptions((prev) => prev.filter((option) => option.id !== optionId))
+  }
+
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsSubmitting(true)
     setError(null)
     setSuccess(false)
 
     try {
-      // Convert productOptionModels to JSON string
-      const productOptionModelsJson = JSON.stringify(
-        data.productOptionModels && data.productOptionModels.length > 0 ? data.productOptionModels : null,
-      )
-      console.log(productOptionModelsJson)
+      // Ensure all size items are included
+      const allSizeItems = data.sizeItems || []
+      const sizeItemsJson = JSON.stringify(allSizeItems)
+      console.log("Submitting size items:", allSizeItems)
+      console.log("Size items JSON:", sizeItemsJson)
 
       // Create FormData object
       const formData = new FormData()
 
       // Add all product fields individually to FormData
-      formData.append("Name", data.Name)
-      formData.append("Price", data.Price.toString())
-      formData.append("Description", data.Description || "")
-      formData.append("CategoryId", data.CategoryId)
-      formData.append("ProductType", data.ProductType)
+      formData.append("name", data.name)
+      formData.append("price", data.price.toString())
+      formData.append("description", data.description || "")
+      formData.append("categoryId", data.categoryId)
+      formData.append("productType", data.productType)
 
-      // Add ProductOptionModels as a JSON string
-      // Always send "[]" as the value for ProductOptionModels if there are no options
-      formData.append("ProductOptionModels", "")
-
-      // If there are options, then override with the actual options
-      if (data.productOptionModels && data.productOptionModels.length > 0) {
-        // Make sure all required fields are filled
-        const validOptions = data.productOptionModels.filter(
-          (option) =>
-            option.name &&
-            option.productOptionItemModels &&
-            option.productOptionItemModels.length > 0 &&
-            option.productOptionItemModels.every((item) => item.name),
-        )
-
-        if (validOptions.length > 0) {
-          formData.set("ProductOptionModels", JSON.stringify(validOptions))
-        }
+      // Add each option ID separately with the same field name
+      if (data.optionIds && data.optionIds.length > 0) {
+        data.optionIds.forEach((id) => {
+          formData.append("OptionIds", id)
+        })
       }
-      // Add the file if one is selected
+
+      formData.append("sizes", sizeItemsJson)
+
+      // Add the file if one is selected - use "file" as the field name
       if (selectedFile) {
         formData.append("file", selectedFile)
       }
+
       // Log the form data for debugging
       console.log("Form data being sent:")
       for (const pair of formData.entries()) {
@@ -258,10 +200,10 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
         method: "POST",
         body: formData,
       })
-      toast.success("Thêm món ăn thành công!")
+
       if (!response.ok) {
         const errorData = await response.json()
-        toast.error("Thêm món ăn thất bạn!")
+        toast.error("Thêm món ăn thất bại!")
         throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
       }
 
@@ -271,6 +213,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
         throw new Error(result.message || "Không thể tạo sản phẩm")
       }
 
+      toast.success("Thêm món ăn thành công!")
       setSuccess(true)
 
       // Close dialog after success
@@ -287,7 +230,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto scrollbar-hide ">
+      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle>Thêm món ăn mới</DialogTitle>
           <DialogDescription>Vui lòng điền thông tin chi tiết về món ăn mới.</DialogDescription>
@@ -311,252 +254,32 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="Name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên món ăn</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nhập tên món ăn" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* Basic product information */}
+            <ProductBasicInfo control={form.control} />
 
-              <FormField
-                control={form.control}
-                name="Price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Giá (VNĐ)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        value={field.value === 0 ? "" : field.value.toLocaleString("vi-VN")}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, "")
-                          field.onChange(value ? Number(value) : 0)
-                        }}
-                        placeholder="Nhập giá"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* Image upload */}
+            <ProductImageUpload selectedFile={selectedFile} onFileChange={(file) => setSelectedFile(file)} />
 
-            <FormField
+            {/* Category and product type selection */}
+            <ProductCategorySelection control={form.control} foodCategory={foodCategory} />
+
+            {/* Size items */}
+            <ProductSizeItems control={form.control} fieldArray={sizeFieldArray} />
+
+            {/* Options selection */}
+            <ProductOptionsSelection
               control={form.control}
-              name="Description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mô tả</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Nhập mô tả món ăn" rows={3} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              options={options}
+              selectedOptions={selectedOptions}
+              totalCount={totalCount}
+              isLoadingOptions={isLoadingOptions}
+              fetchOptions={fetchOptions}
+              onSelectOption={handleSelectOption}
+              onRemoveOption={handleRemoveOption}
             />
 
-            {/* Add file upload component */}
-            <div className="space-y-2">
-              <FormLabel>Hình ảnh sản phẩm</FormLabel>
-
-              <FileUpload
-                onFileChange={(file) => setSelectedFile(file)}
-                value={selectedFile ? URL.createObjectURL(selectedFile) : undefined}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="CategoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Danh mục</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn danh mục" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {foodCategory.map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="ProductType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loại sản phẩm</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Chọn loại sản phẩm" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="HotKitchen">Bếp nóng</SelectItem>
-                        <SelectItem value="ColdKitchen">Bếp lạnh</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Product Options Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium">Tùy chọn sản phẩm</h3>
-                <Button
-                  type="button"
-                  onClick={addNewOption}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  Thêm nhóm tùy chọn
-                </Button>
-              </div>
-
-              {optionFields.length === 0 && (
-                <div className="text-center py-4 border border-dashed rounded-md">
-                  <p className="text-muted-foreground">
-                    Chưa có nhóm tùy chọn nào. Nhấn "Thêm nhóm tùy chọn" để bắt đầu.
-                  </p>
-                </div>
-              )}
-
-              <Accordion type="multiple" className="space-y-4">
-                {optionFields.map((optionField, optionIndex) => (
-                  <AccordionItem key={optionField.id} value={`option-${optionIndex}`} className=" overflow-hidden">
-                    <Card>
-                      <CardHeader className="p-4 ">
-                        <div className="flex items-center justify-between">
-                          <AccordionTrigger className="hover:no-underline py-0">
-                            <div className="flex items-center gap-2">
-                              <CardTitle className="text-base">
-                                {form.watch(`productOptionModels.${optionIndex}.name`) || `Tùy chọn ${optionIndex + 1}`}
-                              </CardTitle>
-                              {form.watch(`productOptionModels.${optionIndex}.SelectMany`) && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs bg-green-50 text-green-700 border-green-200"
-                                >
-                                  <Check className="h-3 w-3 mr-1" />
-                                  Chọn nhiều
-                                </Badge>
-                              )}
-                            </div>
-                          </AccordionTrigger>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeOption(optionIndex)}
-                            className="text-destructive h-8 w-8 p-0"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Xóa nhóm tùy chọn</span>
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <AccordionContent>
-                        <CardContent className="p-4 ">
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <FormField
-                                control={form.control}
-                                name={`productOptionModels.${optionIndex}.name`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Tên nhóm tùy chọn</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Ví dụ: Kích cỡ, Đường, Đá..." {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`productOptionModels.${optionIndex}.description`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Mô tả (tùy chọn)</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="Mô tả nhóm tùy chọn" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-
-                            {/* Improved SelectMany UI */}
-                            <FormField
-                              control={form.control}
-                              name={`productOptionModels.${optionIndex}.SelectMany`}
-                              render={({ field }) => (
-                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
-                                  <div className="space-y-0.5">
-                                    <FormLabel className="text-base">Cho phép chọn nhiều</FormLabel>
-                                    <div className="text-sm text-muted-foreground">
-                                      Khi bật, khách hàng có thể chọn nhiều tùy chọn cùng lúc trong nhóm này
-                                    </div>
-                                  </div>
-                                  <FormControl>
-                                    <Switch checked={field.value} onCheckedChange={field.onChange} aria-readonly />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-
-                            {/* Use the separate component for option items */}
-                            <OptionItemFields control={form.control} nestIndex={optionIndex} register={form.register} />
-                          </div>
-                        </CardContent>
-                      </AccordionContent>
-                    </Card>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-                Hủy
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang lưu...
-                  </>
-                ) : (
-                  "Lưu"
-                )}
-              </Button>
-            </DialogFooter>
+            {/* Form footer */}
+            <FormFooter isSubmitting={isSubmitting} onCancel={handleClose} />
           </form>
         </Form>
       </DialogContent>

@@ -25,10 +25,22 @@ export interface ProductsResult {
 export interface ProductFormData {
   name: string
   price: number
+  image: File | null
   description: string
   categoryId: string
-  productType?: string
-  image?: string
+  productType: string
+  optionIds: string
+  sizes: string
+}
+
+export interface ComboProductFormData {
+  name: string
+  price: number
+  image: string
+  description: string
+  categoryId: string
+  productType: string
+  comboProducts: string
 }
 
 export interface ProductResponse {
