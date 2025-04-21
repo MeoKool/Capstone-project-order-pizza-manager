@@ -121,9 +121,10 @@ export function TableUnmergeDialog({ table, open, onOpenChange, onTableUpdated }
                         Hủy
                     </Button>
                     <Button
+                        variant="green"
                         type="button"
                         onClick={handleUnmerge}
-                        className="bg-purple-600 hover:bg-purple-700"
+                        className=""
                         disabled={submitting}
                     >
                         {submitting ? (

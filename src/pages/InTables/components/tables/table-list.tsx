@@ -31,6 +31,7 @@ import { showTableLToast } from "../table-toast-notifications"
 import { TableReserveDialog } from "./table-reserve-dialog"
 import BookingService from "@/services/booking-service"
 import { TableMergeGroup } from "../table-merge-group"
+import { TableUnmergeDialog } from "../table-unmerge-dialog"
 
 interface TableListProps {
     tables: TableResponse[]
@@ -52,6 +53,8 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
     const [cancelReservationTable, setCancelReservationTable] = useState<TableResponse | null>(null)
     const [runningTimers, setRunningTimers] = useState<{ [key: string]: boolean }>({})
     const [loadingTableIds, setLoadingTableIds] = useState<string[]>([])
+    const [showUnmergeDialog, setShowUnmergeDialog] = useState(false)
+
     const { zones_ } = useZone()
 
     const handleTimeUp = (tableId: string) => {
@@ -185,7 +188,10 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
         setSelectedTable(table)
         setShowReserveDialog(true)
     }
-
+    const handleCancelMerge = (table: TableResponse) => {
+        setSelectedTable(table)
+        setShowUnmergeDialog(true)
+    }
     // Step 1: Show the confirmation dialog
     const handleCancelReservation = async (table: TableResponse) => {
         if (!table.currentReservation || !table.currentReservationId) {
@@ -288,6 +294,7 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
                             onOpenReserveDialog={handleOpenReserveDialog}
                             handleCancelReservation={handleCancelReservation}
                             onTableUpdated={onTableUpdated}
+                            handleCancelMerge={handleCancelMerge}
                         />
                     )
                 })}
@@ -361,6 +368,12 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
                     open={showCancelOrderDialog}
                     onOpenChange={setShowCancelOrderDialog}
                     isLoading={loadingTableIds.includes(selectedTable.id)}
+                    onTableUpdated={onTableUpdated}
+                />
+                <TableUnmergeDialog
+                    table={selectedTable}
+                    open={showUnmergeDialog}
+                    onOpenChange={setShowUnmergeDialog}
                     onTableUpdated={onTableUpdated}
                 />
                 <TableReserveDialog
