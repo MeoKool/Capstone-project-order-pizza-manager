@@ -19,7 +19,7 @@ import {
 
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -129,7 +129,7 @@ export function TableCard({
         switch (table.status) {
             case "Closing":
                 return (
-                    <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">
+                    <div className="flex w-full gap-1 sm:gap-2">
                         <Button
                             onClick={() => onOpenTable(table.id)}
                             variant="outline"
@@ -152,7 +152,7 @@ export function TableCard({
                 )
             case "Opening":
                 return (
-                    <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">
+                    <div className="flex w-full gap-1 sm:gap-2">
                         <Button
                             onClick={() => onCloseTable(table.id)}
                             variant="outline"
@@ -175,7 +175,7 @@ export function TableCard({
                 )
             case "Reserved":
                 return (
-                    <div className="flex w-full justify-center mt-2 sm:mt-4">
+                    <div className="flex w-full gap-1 sm:gap-2">
 
                         {table.currentReservation && (
                             <Button
@@ -192,7 +192,7 @@ export function TableCard({
                 )
             case "Locked":
                 return (
-                    <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-4">
+                    <div className="flex w-full gap-1 sm:gap-2">
                         <Button
                             onClick={() => onOpenTable(table.id)}
                             variant="outline"
@@ -224,16 +224,18 @@ export function TableCard({
 
     return (
         <Card
-            className={`overflow-hidden transition-all border-l-4 truncate ${table.status === "Opening"
-                ? "border-l-emerald-500"
-                : table.status === "Reserved"
-                    ? "border-l-blue-500"
-                    : table.status === "Closing"
-                        ? "border-l-red-500"
-                        : table.status === "Locked"
-                            ? "border-l-amber-500"
-                            : "border-l-gray-300"
-                } hover:scale-[1.02] transition-transform duration-200`}
+            className={`overflow-hidden transition-all border-l-8 truncate ${table.tableMergeId && table.status === "Opening"
+                ? "border-l-purple-500 border-purple-500"
+                : table.status === "Opening"
+                    ? "border-l-emerald-500 border-emerald-500"
+                    : table.status === "Reserved"
+                        ? "border-l-blue-500 border-blue-500"
+                        : table.status === "Closing"
+                            ? "border-l-red-500 border-red-500"
+                            : table.status === "Locked"
+                                ? "border-l-amber-500 border-amber-500"
+                                : "border-l-gray-300"
+                } hover:scale-[1.03] transition-transform duration-200`}
         >
             <CardHeader
                 className={`flex flex-row items-center justify-between p-2 sm:p-4 ${getStatusColor(table.status)} border-b`}
@@ -339,22 +341,20 @@ export function TableCard({
             </CardHeader>
             <CardContent className="p-2 sm:p-4">
                 <div className="space-y-2 sm:space-y-3 min-h-[80px] sm:min-h-[100px]">
-                    <div className="flex items-center text-xs sm:text-sm bg-amber-50/50 p-1.5 sm:p-2.5 rounded-md">
+                    <div className="flex items-center text-xs sm:text-sm bg-amber-50 p-1.5 sm:p-2.5 rounded-md border border-amber-200">
                         <Users className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-amber-600" />
-                        <span className="text-amber-800">Sức chứa:</span>
-                        <Badge variant="outline" className="ml-auto font-medium text-xs bg-white border-amber-200 text-amber-700">
+                        <span className="text-amber-800 font-medium">Sức chứa:</span>
+                        <Badge variant="outline" className="ml-auto font-medium text-xs py-0 bg-white border-amber-200 text-amber-700">
                             {table.capacity} người
                         </Badge>
                     </div>
-                    {table.tableMergeId && (
-                        <TableMergeBadge tableMergeName={table.tableMergeName} tableMergeId={table.tableMergeId} />
-                    )}
+
 
                     {table.status === "Reserved" && (
                         <>
                             {table.currentReservation ? (
                                 <>
-                                    <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
+                                    <div className="flex items-center text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md border border-blue-200">
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -401,7 +401,7 @@ export function TableCard({
                                         </TooltipProvider>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md">
+                                    <div className="flex items-center justify-between text-xs sm:text-sm bg-blue-50 p-1.5 sm:p-2.5 rounded-md border border-blue-200">
                                         <div className="flex items-center">
                                             <Clock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
                                             <span className={`${isTimerExpired ? "text-red-700" : "text-blue-700"} font-medium`}>
@@ -443,38 +443,76 @@ export function TableCard({
                     )}
 
                     {table.status === "Closing" && (
-                        <div className="flex items-center text-xs sm:text-sm bg-red-50 p-1.5 sm:p-2.5 rounded-md">
-                            <CircleX className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-                            <span className="text-red-700 font-medium">Bàn đang đóng</span>
-                        </div>
+                        <>
+                            <div className="flex items-center text-xs sm:text-sm bg-red-50 p-1.5 sm:p-2.5 rounded-md  border border-red-200">
+                                <CircleX className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                                <span className="text-red-700 font-medium">Bàn đang đóng</span>
+                            </div>
+                            <div className="flex items-center  p-1.5 sm:p-2.5 rounded-md mt-3 border border-white">
+                                <div className="h-4 sm:h-5 " />
+                            </div>
+                        </>
                     )}
 
                     {table.status === "Locked" && (
-                        <div className="flex items-center text-xs sm:text-sm bg-amber-50 p-1.5 sm:p-2.5 rounded-md">
-                            <Lock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
-                            <span className="text-amber-700 font-medium">Bàn đang khóa</span>
+                        <div>
+                            <div className="flex items-center text-xs sm:text-sm bg-orange-50 p-1.5 sm:p-2.5 rounded-md   border border-orange-200">
+                                <Lock className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />
+                                <span className="text-amber-700 font-medium">Bàn đang khóa</span>
+                            </div>
+                            <div className="flex items-center  p-1.5 sm:p-2.5 rounded-md mt-3 border border-white">
+                                <div className="h-4 sm:h-5 " />
+                            </div>
+
                         </div>
                     )}
 
-                    {table.currentOrderId && (
-                        <div
-                            onClick={() => onOpenDetails(table)}
-                            className="flex items-center justify-between text-xs sm:text-sm bg-emerald-50 p-1.5 sm:p-2.5 rounded-md cursor-pointer hover:bg-emerald-100 transition-colors"
-                        >
-                            <div className="flex items-center">
-                                <Utensils className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-emerald-500" />
-                                <span className="text-emerald-700 font-medium">Đơn hàng:</span>
+                    {table.status === "Opening" && (
+                        <>
+                            {/* Đang mở bàn - hiển thị đơn hàng */}
+                            <div
+                                onClick={() => onOpenDetails(table)}
+                                className="flex items-center justify-between text-xs sm:text-sm bg-emerald-50 p-1.5 sm:p-2.5 rounded-md cursor-pointer hover:bg-emerald-100 transition-colors border border-emerald-200"
+                            >
+                                <div className="flex items-center">
+                                    <Utensils className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-emerald-500" />
+                                    <span className="text-emerald-700 font-medium">Đơn hàng:</span>
+                                </div>
+                                {table.currentOrderId ? (
+                                    <Badge
+                                        variant="outline"
+                                        className="font-medium text-xs bg-white border-emerald-200 text-emerald-700 py-0"
+                                    >
+                                        Đang phục vụ
+                                    </Badge>
+                                ) : (
+                                    <Badge
+                                        variant="outline"
+                                        className="font-medium text-xs bg-white border-emerald-200 text-emerald-700 py-0"
+                                    >
+                                        Chưa có đơn hàng
+                                    </Badge>
+                                )}
                             </div>
-                            <Badge variant="outline" className="font-medium text-xs bg-white border-emerald-200 text-emerald-700">
-                                Đang phục vụ
-                            </Badge>
-                        </div>
+
+                            {/*Nếu không có bàn gộp, hiển thị thẻ trắng */}
+                            {!table.tableMergeId && (
+                                <div className="flex items-center  p-1.5 sm:p-2.5 rounded-md mt-3 border border-white">
+                                    <div className="h-4 sm:h-5 " />
+                                </div>
+                            )}
+                        </>
+                    )}
+                    {table.tableMergeId && (
+                        <TableMergeBadge tableMergeName={table.tableMergeName} tableMergeId={table.tableMergeId} />
                     )}
                 </div>
 
-                {getActionButtons()}
-            </CardContent>
 
+            </CardContent>
+            <CardFooter className="flex px-4 py-2 items-center justify-between  border-t">
+                {getActionButtons()}
+            </CardFooter>
             {/* Unmerge Dialog */}
             <TableUnmergeDialog
                 table={table}

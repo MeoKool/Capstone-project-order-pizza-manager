@@ -170,11 +170,11 @@ export function TableTimer({
   // Determine the color based on time left
   const getTimerColor = (): string => {
     if (expired) {
-      return "text-red-600 font-bold"
+      return "text-red-600 "
     } else {
       return "text-blue-600"
     }
   }
 
-  return <span className={`font-mono ${getTimerColor()}`}>{timeLeft}</span>
+  return <span className={`font-sans ${getTimerColor()}`}>{timeLeft}</span>
 }
