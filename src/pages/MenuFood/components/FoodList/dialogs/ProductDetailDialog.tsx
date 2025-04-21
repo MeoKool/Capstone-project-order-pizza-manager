@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Info, Package, ListFilter, Tag, Check, FileText, DollarSign, Utensils, LayoutGrid } from "lucide-react"
-import type { ProductDetail, ProductDetailOption } from "@/types/product-detail"
+import { Info, Package, ListFilter, Tag, Check, FileText, DollarSign, Utensils, LayoutGrid, Link, CookingPot, CheckCheckIcon } from "lucide-react"
+import type { ProductModel } from "@/types/product"
+import type { ProductOption } from "@/types/product-option"
 import useCategories from "@/hooks/useCategories"
 import ProductService from "@/services/product-service"
 
@@ -21,7 +22,7 @@ interface ProductDetailDialogProps {
 }
 
 export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDetailDialogProps) {
-    const [product, setProduct] = useState<ProductDetail | null>(null)
+    const [product, setProduct] = useState<ProductModel | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const { foodCategory } = useCategories()
@@ -37,6 +38,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
             try {
                 // Use the service method instead of direct fetch
                 const response = await productService.getProductById(productId)
+                console.log(response);
 
                 if (response.success && response.result) {
                     setProduct(response.result)
@@ -55,11 +57,9 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
     }, [productId, open, productService])
 
     // Function to get product image URL or placeholder
-    const getProductImageUrl = (product: ProductDetail) => {
+    const getProductImageUrl = (product: ProductModel) => {
         if (product.imageUrl) {
             return product.imageUrl
-        } else if (product.image && product.image.startsWith("data:image")) {
-            return product.image
         } else {
             return "/placeholder.svg?height=256&width=256"
         }
@@ -79,13 +79,21 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
     // Function to get category name
     const getCategoryName = (categoryId: string) => {
+        if (product?.category) {
+            return product.category.name
+        }
         const category = foodCategory.find((cat) => cat.id === categoryId)
         return category ? category.name : "Không xác định"
     }
 
-    // Function to render option groups
-    const renderOptionGroups = () => {
-        if (!product || !product.options || !Array.isArray(product.options) || product.options.length === 0) {
+    // Function to render product options
+    const renderProductOptions = () => {
+        if (
+            !product ||
+            !product.productOptions ||
+            !Array.isArray(product.productOptions) ||
+            product.productOptions.length === 0
+        ) {
             return (
                 <div className="text-center py-6 min-h-[200px] flex items-center justify-center">
                     <p className="text-muted-foreground">Sản phẩm này không có tùy chọn nào</p>
@@ -95,28 +103,32 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
         return (
             <div className="space-y-4">
-                {product.options.map((option: ProductDetailOption) => (
-                    <Card key={option.id}>
+                {product.productOptions.map((productOption: ProductOption) => (
+                    <Card key={productOption.id}>
                         <CardHeader className="p-4 pb-2">
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-2">
-                                    <CardTitle className="text-base mb-1">{option.name}</CardTitle>
-                                    {option.SelectMany && (
+                                    <CardTitle className="text-base mb-1">{productOption.option.name}</CardTitle>
+                                    {productOption.option.selectMany && (
                                         <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                                             <Check className="h-3 w-3 mr-1" />
                                             Chọn nhiều
                                         </Badge>
                                     )}
                                 </div>
-                                <Badge variant="outline">{option.optionItems?.length || 0} lựa chọn</Badge>
+                                <Badge variant="outline">{productOption.option.optionItems?.length || 0} lựa chọn</Badge>
                             </div>
-                            {option.description && <CardDescription>{option.description}</CardDescription>}
-                            {option.SelectMany && !option.description && (
+                            {productOption.option.description && (
+                                <CardDescription>{productOption.option.description}</CardDescription>
+                            )}
+                            {productOption.option.selectMany && !productOption.option.description && (
                                 <CardDescription>Khách hàng có thể chọn nhiều tùy chọn cùng lúc trong nhóm này</CardDescription>
                             )}
                         </CardHeader>
                         <CardContent className="p-4 pt-0">
-                            {option.optionItems && Array.isArray(option.optionItems) && option.optionItems.length > 0 ? (
+                            {productOption.option.optionItems &&
+                                Array.isArray(productOption.option.optionItems) &&
+                                productOption.option.optionItems.length > 0 ? (
                                 <div className="space-y-4">
                                     <Table>
                                         <TableHeader>
@@ -126,14 +138,14 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {option.optionItems.map((item) => (
+                                            {productOption.option.optionItems.map((item) => (
                                                 <TableRow key={item.id}>
                                                     <TableCell>{item.name}</TableCell>
                                                     <TableCell className="text-right font-medium">
                                                         {item.additionalPrice > 0 ? (
                                                             <span className="text-primary">+{item.additionalPrice.toLocaleString("vi-VN")} ₫</span>
                                                         ) : (
-                                                            <span className="text-muted-foreground">Miễn phí</span>
+                                                            <span className="font-medium">+0 đ</span>
                                                         )}
                                                     </TableCell>
                                                 </TableRow>
@@ -147,6 +159,52 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                         </CardContent>
                     </Card>
                 ))}
+            </div>
+        )
+    }
+
+    // Function to render child products
+    const renderChildProducts = () => {
+        if (
+            !product ||
+            !product.childProducts ||
+            !Array.isArray(product.childProducts) ||
+            product.childProducts.length === 0
+        ) {
+            return (
+                <div className="text-center py-6 min-h-[300px] flex items-center justify-center">
+                    <p className="text-muted-foreground">Sản phẩm này không có sản phẩm con nào</p>
+                </div>
+            )
+        }
+
+        return (
+            <div className="space-y-4">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Tên sản phẩm</TableHead>
+                            <TableHead className="text-right">Giá</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {product.childProducts.map((childProduct) => (
+                            <TableRow key={childProduct.id}>
+                                <TableCell>{childProduct.name}</TableCell>
+                                <TableCell className="text-right font-medium">
+
+                                    {childProduct.price > 0 ? (
+                                        <span className="text-primary">+{childProduct.price.toLocaleString("vi-VN")} ₫</span>
+                                    ) : (
+                                        <span className="font-medium">+0 đ</span>
+                                    )}
+
+
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
         )
     }
@@ -203,13 +261,16 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                             <div className="w-full md:w-2/3 space-y-4">
                                 <div className="flex justify-between items-start">
                                     <h2 className="text-2xl font-bold">{product.name}</h2>
-                                    <Badge variant="secondary" className="text-sm">
-                                        {formatProductType(product.productType)}
-                                    </Badge>
+                                    <div className="flex gap-2">
+                                        <Badge variant="secondary" className="text-sm">
+                                            {formatProductType(product.productType)}
+                                        </Badge>
+
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <Badge variant="outline" className="flex items-center gap-1 h-7">
+                                    <Badge variant="secondary" className="flex items-center gap-1 h-7">
                                         <ListFilter className="h-3 w-3" />
                                         {getCategoryName(product.categoryId)}
                                     </Badge>
@@ -217,6 +278,12 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                     <Badge variant="secondary" className="text-primary font-semibold h-7">
                                         {formatCurrencyVND(product.price)}
                                     </Badge>
+                                    {product.productRole && (
+                                        <Badge variant={product.productRole === "Master" ? "secondary" : "outline"} className="flex items-center gap-1 h-7">
+                                            <CheckCheckIcon className="h-3 w-3 mr-1" />
+                                            {product.productRole === "Master" ? "Sản phẩm chính" : "Sản phẩm con"}
+                                        </Badge>
+                                    )}
                                 </div>
 
                                 <Separator />
@@ -238,79 +305,36 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                         <Info className="h-4 w-4" />
                                         Thông tin sản phẩm
                                     </TabsTrigger>
-                                    <TabsTrigger value="sizes" className="flex items-center gap-2">
-                                        <Package className="h-4 w-4" />
-                                        Kích cỡ & Công thức
-                                    </TabsTrigger>
                                     <TabsTrigger value="options" className="flex items-center gap-2">
                                         <Tag className="h-4 w-4" />
                                         Tùy chọn
                                     </TabsTrigger>
+                                    {product.productRole === "Master" && (
+                                        <TabsTrigger value="childProducts" className="flex items-center gap-2">
+                                            <Package className="h-4 w-4" />
+                                            Sản phẩm con
+                                        </TabsTrigger>
+                                    )}
                                 </TabsList>
 
                                 {/* Scrollable Content Area */}
                                 <div className="flex-1 overflow-hidden">
                                     <div className="h-full max-h-[calc(90vh-350px)] min-h-[300px] overflow-y-auto scrollbar-hide">
-                                        {/* Product Sizes & Recipes Tab */}
-                                        <TabsContent value="sizes" className="mt-4 max-h-[327px] pb-2">
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle>Kích cỡ & Công thức</CardTitle>
-                                                    <CardDescription className="pb-1">Các kích cỡ và công thức của sản phẩm</CardDescription>
-                                                    <Separator />
-                                                </CardHeader>
-                                                <CardContent>
-                                                    {product.productSizes &&
-                                                        Array.isArray(product.productSizes) &&
-                                                        product.productSizes.length > 0 ? (
-                                                        <div className="space-y-4">
-                                                            {product.productSizes.map((size) => (
-                                                                <Card key={size.id} className="overflow-hidden">
-                                                                    <CardHeader className="p-4 pb-2">
-                                                                        <div className="flex justify-between items-center">
-                                                                            <CardTitle className="text-base">{size.name}</CardTitle>
-                                                                            <Badge variant="outline">{size.diameter} cm</Badge>
-                                                                        </div>
-                                                                        <CardDescription>{size.description || "Không có mô tả"}</CardDescription>
-                                                                    </CardHeader>
-                                                                    <CardContent className="p-4 pt-0">
-                                                                        <h4 className="text-sm font-medium mb-2">Công thức:</h4>
-                                                                        {size.recipes && size.recipes.length > 0 ? (
-                                                                            <div className="max-h-[200px] overflow-auto">
-                                                                                <Table>
-                                                                                    <TableHeader>
-                                                                                        <TableRow>
-                                                                                            <TableHead>Nguyên liệu</TableHead>
-                                                                                            <TableHead className="w-[100px] text-center">Số lượng</TableHead>
-                                                                                            <TableHead className="w-[120px] text-center">Đơn vị</TableHead>
-                                                                                        </TableRow>
-                                                                                    </TableHeader>
-                                                                                    <TableBody>
-                                                                                        {size.recipes.map((recipe) => (
-                                                                                            <TableRow key={recipe.id}>
-                                                                                                <TableCell>{recipe.ingredientName}</TableCell>
-                                                                                                <TableCell className="text-center">{recipe.quantity}</TableCell>
-                                                                                                <TableCell className="text-center">{recipe.unit}</TableCell>
-                                                                                            </TableRow>
-                                                                                        ))}
-                                                                                    </TableBody>
-                                                                                </Table>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <p className="text-sm text-muted-foreground">Không có công thức nào</p>
-                                                                        )}
-                                                                    </CardContent>
-                                                                </Card>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-center py-6 min-h-[200px] flex items-center justify-center">
-                                                            <p className="text-muted-foreground">Sản phẩm này không có kích cỡ nào</p>
-                                                        </div>
-                                                    )}
-                                                </CardContent>
-                                            </Card>
-                                        </TabsContent>
+                                        {/* Child Products Tab */}
+                                        {product.productRole === "Master" && (
+                                            <TabsContent value="childProducts" className="mt-4 max-h-[327px] pb-2">
+                                                <Card>
+                                                    <CardHeader>
+                                                        <CardTitle>Sản phẩm con</CardTitle>
+                                                        <CardDescription className="pb-1">
+                                                            Các sản phẩm con thuộc sản phẩm chính này
+                                                        </CardDescription>
+                                                        <Separator />
+                                                    </CardHeader>
+                                                    <CardContent className="pb-9">{renderChildProducts()}</CardContent>
+                                                </Card>
+                                            </TabsContent>
+                                        )}
 
                                         {/* Options Tab */}
                                         <TabsContent value="options" className="mt-4 max-h-[327px] pb-2">
@@ -320,9 +344,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                                     <CardDescription className="pb-1">Các tùy chọn có thể thêm vào sản phẩm</CardDescription>
                                                     <Separator />
                                                 </CardHeader>
-                                                <CardContent>
-                                                    {renderOptionGroups()}
-                                                </CardContent>
+                                                <CardContent>{renderProductOptions()}</CardContent>
                                             </Card>
                                         </TabsContent>
 
@@ -359,7 +381,9 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                                                     </div>
                                                                     <div>
                                                                         <p className="text-xs text-muted-foreground">Giá bán</p>
-                                                                        <p className="font-medium text-primary">{formatCurrencyVND(product.price)}</p>
+                                                                        <p className="font-medium text-primary">
+
+                                                                            {formatCurrencyVND(product.price)}</p>
                                                                     </div>
                                                                 </div>
 
@@ -382,6 +406,18 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                                                         <p className="font-medium">{getCategoryName(product.categoryId)}</p>
                                                                     </div>
                                                                 </div>
+
+                                                                <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                        <Link className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-xs text-muted-foreground">Vai trò sản phẩm</p>
+                                                                        <p className="font-medium">
+                                                                            {product.productRole === "Master" ? "Sản phẩm chính" : "Sản phẩm con"}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -393,30 +429,30 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                                             </h3>
 
                                                             <div className="grid grid-cols-3 gap-4">
-                                                                <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
-                                                                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                                                                        <Package className="h-5 w-5" />
+                                                                {product.productRole === "Master" && (
+                                                                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
+                                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                                                                            <Package className="h-5 w-5" />
+                                                                        </div>
+                                                                        <p className="text-xs text-muted-foreground mb-1">Sản phẩm con</p>
+                                                                        <p className="text-xl font-bold">{product.childProducts?.length || 0}</p>
                                                                     </div>
-                                                                    <p className="text-xs text-muted-foreground mb-1">Kích cỡ</p>
-                                                                    <p className="text-xl font-bold">{product.productSizes?.length || 0}</p>
-                                                                </div>
+                                                                )}
 
                                                                 <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
                                                                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
                                                                         <Tag className="h-5 w-5" />
                                                                     </div>
                                                                     <p className="text-xs text-muted-foreground mb-1">Tùy chọn</p>
-                                                                    <p className="text-xl font-bold">{product.options?.length || 0}</p>
+                                                                    <p className="text-xl font-bold">{product.productOptions?.length || 0}</p>
                                                                 </div>
 
                                                                 <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
                                                                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                                                                        <Check className="h-5 w-5" />
+                                                                        <CookingPot className="h-5 w-5" />
                                                                     </div>
-                                                                    <p className="text-xs text-muted-foreground mb-1">Chọn nhiều</p>
-                                                                    <p className="text-xl font-bold">
-                                                                        {product.options?.filter((opt) => opt.SelectMany).length || 0}
-                                                                    </p>
+                                                                    <p className="text-xs text-muted-foreground mb-1">Khu vực bếp</p>
+                                                                    <p className="text-sm font-medium truncate w-full">{formatProductType(product.productType)}</p>
                                                                 </div>
                                                             </div>
                                                         </div>

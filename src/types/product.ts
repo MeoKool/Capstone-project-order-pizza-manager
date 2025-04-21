@@ -1,22 +1,26 @@
 import type { CategoryModel } from "./category"
 import type { ProductOption } from "./product-option"
-import { ProductSize } from "./product-sizes"
 
 export interface ProductModel {
   id: string
   name: string
   price: number
-  image: string
   imageUrl: string | null
   imagePublicId: string | null
   description: string
   categoryId: string
   productType: string
   category: CategoryModel | null
-  productSizes: ProductSize[]
-  options: ProductOption[]
+  productOptions: ProductOption[]
+  productRole: 'Child' | 'Master'
+  childProducts: ChildProducts[]
 }
+export interface ChildProducts {
+  id: string
+  name: string
+  price: number
 
+}
 export interface ProductsResult {
   items: ProductModel[]
   totalCount: number

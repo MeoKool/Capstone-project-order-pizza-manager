@@ -23,13 +23,17 @@ export function useProducts() {
         try {
             const productService = ProductService.getInstance()
 
-            // Fetch all products at once with a large limit
             const response = await productService.getAllProductsAtOnce(1000, sortBy)
 
             if (response.success && response.result) {
-                // Check if items is an array, if not convert it to an array
+
                 const productsData = Array.isArray(response.result.items) ? response.result.items : [response.result.items]
-                setAllProducts(productsData)
+                const masterProducts = productsData.filter(
+                    (product) => product.productRole === 'Master'
+                )
+
+
+                setAllProducts(masterProducts)
                 setTotalCount(response.result.totalCount)
                 console.log(`Fetched ${productsData.length} products out of ${response.result.totalCount}`)
             } else {

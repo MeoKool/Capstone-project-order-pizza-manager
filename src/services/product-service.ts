@@ -1,6 +1,5 @@
 import ApiResponse, { del, get, } from '@/apis/apiUtils'
-import { ProductResponse, ProductsResult } from '@/types/product'
-import { ProductDetail } from '@/types/product-detail'
+import { ProductModel, ProductResponse, ProductsResult } from '@/types/product'
 
 class ProductService {
   private static instance: ProductService
@@ -65,9 +64,9 @@ class ProductService {
       throw error;
     }
   }
-  public async getProductById(id: string): Promise<ApiResponse<ProductDetail>> {
+  public async getProductById(id: string): Promise<ApiResponse<ProductModel>> {
     try {
-      return await get<ProductDetail>(`products/${id}?includeProperties=ProductSizes.Recipes%2COptions.OptionItems`)
+      return await get<ProductModel>(`products/${id}?includeProperties=Category%2CProductOptions.Option.OptionItems%2CChildProducts`)
     } catch (error) {
       console.error(`Error fetching product with id ${id}:`, error)
       throw error

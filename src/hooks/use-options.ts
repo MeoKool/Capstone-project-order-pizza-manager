@@ -20,8 +20,7 @@ export function useOptions() {
             const response = await optionService.getAllOptions()
 
             if (response.success && response.result) {
-                console.log("Options loaded successfully:", response.result)
-                // Extract items and totalCount from the response
+
                 const { items, totalCount } = response.result
 
                 if (Array.isArray(items)) {

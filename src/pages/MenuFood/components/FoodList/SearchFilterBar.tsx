@@ -41,7 +41,6 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
     changePageSize,
     sortBy,
     handleSortChange,
-
     setIsAddDialogOpen,
     foodCategory,
     categoryId,
