@@ -46,17 +46,7 @@ export function ProductSizeItems({ control, fieldArray }: ProductSizeItemsProps)
                         </Tooltip>
                     </TooltipProvider>
                 </div>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addSizeItem}
-                    className="flex items-center gap-1"
-                    data-testid="add-size-button"
-                >
-                    <Plus className="h-4 w-4" />
-                    Thêm kích cỡ
-                </Button>
+
             </div>
 
             <Card className="border border-input">

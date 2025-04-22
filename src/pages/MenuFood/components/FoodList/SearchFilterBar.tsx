@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Filter, ArrowUpDown, X, PlusCircle, Search, Check } from "lucide-react"
+import { Filter, ArrowUpDown, X, PlusCircle, Search, Check, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -23,6 +23,7 @@ interface SearchFilterBarProps {
     refreshProducts: () => void
     loading: boolean
     setIsAddDialogOpen: (open: boolean) => void
+    setIsAddComboDialogOpen: (open: boolean) => void
     foodCategory: CategoryModel[]
     categoryId: string
     handleCategorySelect: (categoryId: string) => void
@@ -30,6 +31,7 @@ interface SearchFilterBarProps {
     isFilterOpen: boolean
     setIsFilterOpen: (open: boolean) => void
     getSortLabel: (option: string) => string
+
 }
 
 const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
@@ -49,6 +51,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
     isFilterOpen,
     setIsFilterOpen,
     getSortLabel,
+    setIsAddComboDialogOpen
 }) => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value)
@@ -160,6 +163,13 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
                 <Button onClick={() => setIsAddDialogOpen(true)} variant="green" >
                     <PlusCircle className="h-4 w-4" />
                     Thêm món ăn
+                </Button>
+
+
+
+                <Button onClick={() => setIsAddComboDialogOpen(true)} variant="green" >
+                    <Plus className="h-4 w-4" />
+                    Thêm Combo
                 </Button>
             </div>
         </div>

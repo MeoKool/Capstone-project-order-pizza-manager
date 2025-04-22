@@ -1,5 +1,5 @@
-import ApiResponse, { del, get, } from '@/apis/apiUtils'
-import { ProductModel, ProductResponse, ProductsResult } from '@/types/product'
+import ApiResponse, { del, get, put, } from '@/apis/apiUtils'
+import { ProductModel, ProductResponse, ProductsResult, ProductStatus } from '@/types/product'
 
 class ProductService {
   private static instance: ProductService
@@ -52,11 +52,11 @@ class ProductService {
       throw error
     }
   }
-  public async get1000ProductsSortedByCreatedDateDesc(): Promise<ApiResponse<ProductsResult>> {
+  public async getAllProductandSortCreatedDate(): Promise<ApiResponse<ProductsResult>> {
     try {
       // Sử dụng TakeCount=1000 và SortBy="CreatedDate desc" (sau khi encode)
       const response = await get<ProductsResult>(
-        `/products?TakeCount=1000&SortBy=${encodeURIComponent("CreatedDate desc")}`
+        `products?TakeCount=10000&SortBy=CreatedDate%20desc`
       );
       return response;
     } catch (error) {
@@ -66,7 +66,7 @@ class ProductService {
   }
   public async getProductById(id: string): Promise<ApiResponse<ProductModel>> {
     try {
-      return await get<ProductModel>(`products/${id}?includeProperties=Category%2CProductOptions.Option.OptionItems%2CChildProducts`)
+      return await get<ProductModel>(`products/${id}?includeProperties=Category%2CProductOptions.Option.OptionItems%2CProductComboSlots%2CRecipes.Ingredient%2CProductComboSlots.ProductComboSlotItems.Product`)
     } catch (error) {
       console.error(`Error fetching product with id ${id}:`, error)
       throw error
@@ -205,6 +205,19 @@ class ProductService {
         message: `Error deleting product: ${error instanceof Error ? error.message : String(error)}`,
         statusCode: 500,
       }
+    }
+  }
+
+  public async updateStatusProduct(id: string, productStatus: ProductStatus): Promise<ApiResponse<void>> {
+    try {
+      const req = {
+        id,
+        productStatus
+      }
+      return await put<void>(`/products/update-status/${id}`, req)
+    } catch (error) {
+      console.log(`Error updating status for product ${id}:`, error);
+      throw error
     }
   }
 }

@@ -1,4 +1,4 @@
-// Định nghĩa các đơn vị đo lường
+
 export enum UnitType {
     Milligram = "Milligram",
     Gram = "Gram",
@@ -10,25 +10,31 @@ export enum UnitType {
     Tablespoon = "Tablespoon",
 }
 
-// Định nghĩa kiểu dữ liệu Recipe
 export interface Recipe {
     id: string
-    productSizeId: string
+    productId: string
     ingredientId: string
     ingredientName: string
     unit: UnitType
     quantity: number
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ingredient: any | null
+    ingredient: Ingredient
+}
+export interface Ingredient {
+    id: string
+    name: string
+    description: string | null
 }
 
-// Định nghĩa kiểu dữ liệu kết quả trả về từ API
 export interface RecipesResult {
     items: Recipe[] | Recipe
     totalCount: number
 }
 
-// Định nghĩa kiểu dữ liệu để tạo mới Recipe
+
+
+
+
+
 export interface CreateRecipe {
     productSizeId: string
     ingredientId: string

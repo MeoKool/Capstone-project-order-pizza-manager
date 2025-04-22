@@ -15,6 +15,7 @@ import FoodCard from "./FoodCard"
 import PaginationControls from "./PaginationControls"
 import LoadingSpinner from "./LoadingSpinner"
 import EmptyState from "./EmptyState"
+import { AddComboDialog } from "./dialogs/AddComboDialog"
 
 // Update the SortOption type to include the correct sort options
 type SortOption = "CreatedDate desc" | "Price desc" | "Price asc" | "Name asc" | "Name desc"
@@ -23,6 +24,7 @@ const FoodList: React.FC = () => {
     const [editingFood, setEditingFood] = useState<ProductModel | null>(null)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+    const [isAddComboDialogOpen, setIsAddComboDialogOpen] = useState(false)
     const [uploadingImageFood, setUploadingImageFood] = useState<ProductModel | null>(null)
     const [isUploadImageDialogOpen, setIsUploadImageDialogOpen] = useState(false)
     const [isFilterOpen, setIsFilterOpen] = useState(false)
@@ -103,6 +105,13 @@ const FoodList: React.FC = () => {
         }
     }
 
+    const handleAddComboDialogClose = (open: boolean) => {
+        setIsAddComboDialogOpen(open)
+        if (!open) {
+            // Refresh products when dialog is closed
+            refreshProducts()
+        }
+    }
     const handleUploadImageDialogClose = (open: boolean) => {
         setIsUploadImageDialogOpen(open)
         if (!open) {
@@ -149,6 +158,7 @@ const FoodList: React.FC = () => {
     const handleDeleteSuccess = () => {
         refreshProducts()
     }
+
     return (
         <Card className="mt-4">
             <CardHeader className="flex flex-row items-center justify-between">
@@ -167,6 +177,7 @@ const FoodList: React.FC = () => {
                     handleSortChange={handleSortChange}
                     refreshProducts={refreshProducts}
                     loading={loading}
+                    setIsAddComboDialogOpen={setIsAddComboDialogOpen}
                     setIsAddDialogOpen={setIsAddDialogOpen}
                     foodCategory={foodCategory}
                     categoryId={categoryId}
@@ -243,8 +254,6 @@ const FoodList: React.FC = () => {
                     />
                 )}
 
-                <AddFoodDialog open={isAddDialogOpen} onOpenChange={handleAddFoodDialogClose} />
-
                 {uploadingImageFood && (
                     <UploadImageDialog
                         product={uploadingImageFood}
@@ -252,6 +261,8 @@ const FoodList: React.FC = () => {
                         onOpenChange={handleUploadImageDialogClose}
                     />
                 )}
+                <AddFoodDialog open={isAddDialogOpen} onOpenChange={handleAddFoodDialogClose} />
+                <AddComboDialog open={isAddComboDialogOpen} onOpenChange={handleAddComboDialogClose} />
             </CardContent>
         </Card>
     )

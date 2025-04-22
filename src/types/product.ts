@@ -1,5 +1,8 @@
 import type { CategoryModel } from "./category"
 import type { ProductOption } from "./product-option"
+import { Recipe } from "./recipe"
+
+export type ProductStatus = "Available" | "OutOfIngredient" | "Locked"
 
 export interface ProductModel {
   id: string
@@ -12,8 +15,21 @@ export interface ProductModel {
   productType: string
   category: CategoryModel | null
   productOptions: ProductOption[]
-  productRole: 'Child' | 'Master'
+  productRole: 'Child' | 'Master' | 'Combo'
+  productStatus: ProductStatus
   childProducts: ChildProducts[]
+  recipes: Recipe[]
+  productComboSlots: ProductComboSlots[]
+}
+export interface ProductComboSlots {
+  id: string
+  slotName: string
+  productComboSlotItems: ProductComboSlotItem[]
+}
+export interface ProductComboSlotItem {
+  id: string
+  productId: string
+  product: ChildProducts
 }
 export interface ChildProducts {
   id: string

@@ -29,7 +29,7 @@ export function useProducts() {
 
                 const productsData = Array.isArray(response.result.items) ? response.result.items : [response.result.items]
                 const masterProducts = productsData.filter(
-                    (product) => product.productRole === 'Master'
+                    (product) => product.productRole === 'Master' || product.productRole === "Combo",
                 )
 
 
@@ -49,7 +49,7 @@ export function useProducts() {
     const fetchProductALL = useCallback(async () => {
         try {
             const productService = ProductService.getInstance();
-            const response = await productService.get1000ProductsSortedByCreatedDateDesc();
+            const response = await productService.getAllProductandSortCreatedDate();
 
             if (response.success && response.result) {
                 const productsData = Array.isArray(response.result.items)

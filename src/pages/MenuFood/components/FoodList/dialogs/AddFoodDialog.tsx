@@ -108,6 +108,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
     } else {
       form.setValue("sizes", "")
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.watch("sizeItems"), form])
 
   const resetForm = () => {
