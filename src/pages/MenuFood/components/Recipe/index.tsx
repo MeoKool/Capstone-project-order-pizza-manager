@@ -145,7 +145,7 @@ function RecipesPage() {
 
         // Apply product size ID filter
         if (filterProductSizeId) {
-            result = result.filter((recipe) => recipe.productSizeId === filterProductSizeId)
+            result = result.filter((recipe) => recipe.id === filterProductSizeId)
         }
 
         // Apply search filter
