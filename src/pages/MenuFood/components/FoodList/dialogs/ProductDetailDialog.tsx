@@ -1,5 +1,7 @@
+"use client"
+
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,6 +31,7 @@ import useCategories from "@/hooks/useCategories"
 import ProductService from "@/services/product-service"
 import { formatCurrencyVND } from "@/utils/utils"
 import { formatProductType } from "@/utils/product-formatters"
+
 import { formatProductStatus } from "@/utils/product-formatters"
 import type { ProductStatus } from "@/types/product"
 import { ProductStatusBadge } from "../../product/ProductStatusBadge"
@@ -280,7 +283,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
         if (!product) return null
 
         return (
-            <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex flex-col">
                 {/* Fixed Product Info Section */}
                 <div className="flex flex-col md:flex-row gap-6 pb-4">
                     {/* Product Image */}
@@ -347,7 +350,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                 <Separator className="my-2" />
 
                 {/* Scrollable Tabs Section */}
-                <div className="flex-1 overflow-hidden flex flex-col min-h-[300px]">
+                <div className="flex flex-col">
                     <Tabs defaultValue="details" className="w-full flex-1 flex flex-col">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="details" className="flex items-center gap-2">
@@ -361,8 +364,8 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                         </TabsList>
 
                         {/* Scrollable Content Area */}
-                        <div className="flex-1 overflow-hidden">
-                            <div className="h-full max-h-[calc(90vh-350px)] min-h-[300px] overflow-y-auto scrollbar-hide">
+                        <div>
+                            <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
                                 {/* Details Tab */}
                                 <TabsContent value="details" className="mt-4 max-h-[327px] pb-2">
                                     <Card>
@@ -529,13 +532,12 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Info className="h-5 w-5" />
                         Chi tiết sản phẩm
                     </DialogTitle>
-                    <DialogDescription />
                 </DialogHeader>
 
                 {loading ? (
@@ -562,7 +564,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                     product.productRole === "Combo" ? (
                         renderComboProductDetails()
                     ) : (
-                        <div className="flex flex-col flex-1 overflow-hidden">
+                        <div className="flex flex-col">
                             {/* Fixed Product Info Section */}
                             <div className="flex flex-col md:flex-row gap-6 pb-4">
                                 {/* Product Image */}
@@ -632,7 +634,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                             <Separator className="my-2" />
 
                             {/* Scrollable Tabs Section */}
-                            <div className="flex-1 overflow-hidden flex flex-col min-h-[300px]">
+                            <div className="flex flex-col">
                                 <Tabs defaultValue="details" className="w-full flex-1 flex flex-col">
                                     <TabsList className="grid w-full grid-cols-3">
                                         <TabsTrigger value="details" className="flex items-center gap-2">
@@ -650,8 +652,8 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                     </TabsList>
 
                                     {/* Scrollable Content Area */}
-                                    <div className="flex-1 overflow-hidden">
-                                        <div className="h-full max-h-[calc(90vh-350px)] min-h-[300px] overflow-y-auto scrollbar-hide">
+                                    <div>
+                                        <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
                                             {/* Options Tab */}
                                             <TabsContent value="options" className="mt-4 max-h-[327px] pb-2">
                                                 <Card>
