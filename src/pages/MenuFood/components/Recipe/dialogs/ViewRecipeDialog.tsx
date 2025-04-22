@@ -68,7 +68,7 @@ export function ViewRecipeDialog({ recipeId, open, onOpenChange }: ViewRecipeDia
                     // Fetch product size details
                     try {
                         const productSizeService = ProductSizeService.getInstance()
-                        const productSizeResponse = await productSizeService.getProductSizeById(response.result.productSizeId)
+                        const productSizeResponse = await productSizeService.getProductSizeById(response.result.id)
                         if (productSizeResponse.success && productSizeResponse.result) {
                             const productSize = productSizeResponse.result
                             setProductSizeDetails({
