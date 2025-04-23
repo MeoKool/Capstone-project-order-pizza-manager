@@ -32,6 +32,7 @@ import { TableReserveDialog } from "./table-reserve-dialog"
 import BookingService from "@/services/booking-service"
 import { TableMergeGroup } from "../table-merge-group"
 import { TableUnmergeDialog } from "../table-unmerge-dialog"
+import { TableCheckInDialog } from "../table-checkin-dialog"
 
 interface TableListProps {
     tables: TableResponse[]
@@ -54,7 +55,7 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
     const [runningTimers, setRunningTimers] = useState<{ [key: string]: boolean }>({})
     const [loadingTableIds, setLoadingTableIds] = useState<string[]>([])
     const [showUnmergeDialog, setShowUnmergeDialog] = useState(false)
-
+    const [showCheckInDialog, setShowCheckInDialog] = useState(false)
     const { zones_ } = useZone()
 
     const handleTimeUp = (tableId: string) => {
@@ -191,6 +192,10 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
     const handleCancelMerge = (table: TableResponse) => {
         setSelectedTable(table)
         setShowUnmergeDialog(true)
+    }
+    const handleOpenCheckInDialog = (table: TableResponse) => {
+        setSelectedTable(table)
+        setShowCheckInDialog(true)
     }
     // Step 1: Show the confirmation dialog
     const handleCancelReservation = async (table: TableResponse) => {
@@ -387,6 +392,12 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
                         }
                     }}
                 />
+                <TableCheckInDialog
+                    table={selectedTable}
+                    open={showCheckInDialog}
+                    onOpenChange={setShowCheckInDialog}
+                    onTableUpdated={onTableUpdated}
+                />
             </>
         ) : null
     }
@@ -413,6 +424,7 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
                     onOpenReserveDialog={handleOpenReserveDialog}
                     handleCancelReservation={handleCancelReservation}
                     onTableUpdated={onTableUpdated}
+                    onOpenCheckInDialog={handleOpenCheckInDialog}
                 />
             ))}
 

@@ -20,6 +20,7 @@ interface TableZoneGroupProps {
     onOpenCancelOrderDialog: (table: TableResponse) => void
     onOpenReserveDialog: (table: TableResponse) => void
     handleCancelReservation: (table: TableResponse) => Promise<void>
+    onOpenCheckInDialog: (table: TableResponse) => void
     onTableUpdated?: () => void
 }
 
@@ -39,6 +40,7 @@ export function TableZoneGroup({
     onOpenSwapDialog,
     onOpenCancelOrderDialog,
     handleCancelReservation,
+    onOpenCheckInDialog,
     onTableUpdated
 }: TableZoneGroupProps) {
     return (
@@ -69,6 +71,7 @@ export function TableZoneGroup({
                         onOpenCancelOrderDialog={onOpenCancelOrderDialog}
                         onOpenReserveDialog={onOpenReserveDialog}
                         handleCancelReservation={handleCancelReservation}
+                        onOpenCheckInDialog={onOpenCheckInDialog}
                         onTableUpdated={onTableUpdated}
                     />
                 ))}

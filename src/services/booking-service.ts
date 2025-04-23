@@ -129,4 +129,15 @@ export default class BookingService {
             throw error
         }
     }
+    public async checkInReservation(reservationId: string): Promise<ApiResponse<void>> {
+        try {
+            const res = { reservationId }
+            const response = await put<void>(`/reservations/check-in`, res)
+            console.log("Check-in reservation response:", response)
+            return response
+        } catch (error) {
+            console.error(`Error checking in reservation ${reservationId}:`, error)
+            throw error
+        }
+    }
 }
