@@ -209,18 +209,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {product.childProducts.map((childProduct) => (
-                            <TableRow key={childProduct.id}>
-                                <TableCell>{childProduct.name}</TableCell>
-                                <TableCell className="text-right font-medium">
-                                    {childProduct.price > 0 ? (
-                                        <span className="text-primary">+{childProduct.price.toLocaleString("vi-VN")} ₫</span>
-                                    ) : (
-                                        <span className="font-medium">+0 đ</span>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
+
                     </TableBody>
                 </Table>
             </div>
@@ -252,8 +241,8 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                 {slot.slotName}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <Table>
+                        <CardContent className="p-0 pb-10">
+                            <Table className="p-2">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Tên sản phẩm</TableHead>
@@ -265,7 +254,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                         <TableRow key={item.id}>
                                             <TableCell>{item.product.name}</TableCell>
                                             <TableCell className="text-right font-medium">
-                                                <span className="text-primary">{formatCurrencyVND(item.product.price)}</span>
+                                                <span className="text-primary">{formatCurrencyVND(item.extraPrice)}</span>
                                             </TableCell>
                                         </TableRow>
                                     ))}

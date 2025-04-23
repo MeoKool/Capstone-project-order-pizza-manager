@@ -30,11 +30,11 @@ export interface ProductComboSlotItem {
   id: string
   productId: string
   product: ChildProducts
+  extraPrice: number
 }
 export interface ChildProducts {
   id: string
   name: string
-  price: number
 
 }
 export interface ProductsResult {
