@@ -102,6 +102,18 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                         hover: "hover:bg-red-300",
                     },
                 }
+            case "Cooking":
+                return {
+                    bg: "bg-gray-50",
+                    border: "border-gray-300",
+                    text: "text-gray-600",
+                    badge: {
+                        bg: "bg-gray-50",
+                        text: "text-gray-600",
+                        border: "border-gray-300",
+                        hover: "hover:bg-gray-300",
+                    },
+                }
             default:
                 return {
                     bg: "bg-gray-50",
@@ -161,7 +173,9 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                                                 ? "Hoàn thành"
                                                 : status === "Cancelled"
                                                     ? "Đã hủy"
-                                                    : status}
+                                                    : status === "Cooking"
+                                                        ? "Đang nấu"
+                                                        : status}
                                 </span>
                                 <Badge className={`${colorClasses.badge.bg} ${colorClasses.badge.text} ${colorClasses.badge.border} ${colorClasses.hover}`}>
                                     {count}
