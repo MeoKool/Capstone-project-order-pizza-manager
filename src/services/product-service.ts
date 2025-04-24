@@ -56,7 +56,7 @@ class ProductService {
     try {
       // Sử dụng TakeCount=1000 và SortBy="CreatedDate desc" (sau khi encode)
       const response = await get<ProductsResult>(
-        `products?TakeCount=10000&SortBy=CreatedDate%20desc`
+        `/products?TakeCount=10000000&SortBy=CreatedDate%20desc&IncludeProperties=ChildProducts`
       );
       return response;
     } catch (error) {
