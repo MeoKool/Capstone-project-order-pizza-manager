@@ -214,7 +214,12 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           // Nếu tìm thấy category Pizza, lấy các sản phẩm trong category đó
           const productsResponse = await ProductService.getInstance().getProductsByCategory(pizzaCategory.id)
           if (productsResponse.success) {
-            setProducts(productsResponse.result.items)
+            const masterProductsSorted = productsResponse.result.items
+              .filter(product => product.productRole === "Master")
+              .sort((a, b) => a.name.localeCompare(b.name)); // hoặc sắp theo giá, id, v.v.
+
+            // Gán lại state
+            setProducts(masterProductsSorted);
           }
         } else {
           // Nếu không tìm thấy category Pizza, hiển thị thông báo
@@ -419,6 +424,7 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
     }
 
     // Kiểm tra tính hợp lệ của các trường
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formValid = await form.trigger(fieldsToValidate as any)
 
     // Kết hợp kết quả kiểm tra form và kiểm tra thời gian
@@ -487,8 +493,7 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
             <div key={step.id} className='flex flex-col items-center'>
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
-                  ${
-                    currentStep >= index ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-500'
+                  ${currentStep >= index ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-500'
                   }`}
               >
                 {currentStep > index ? <Check className='h-5 w-5' /> : <span>{index + 1}</span>}
