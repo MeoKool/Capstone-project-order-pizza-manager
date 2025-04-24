@@ -209,7 +209,18 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-
+                        {product.childProducts.map((childProduct) => (
+                            <TableRow key={childProduct.id}>
+                                <TableCell>{childProduct.name}</TableCell>
+                                <TableCell className="text-right font-medium">
+                                    {childProduct.price > 0 ? (
+                                        <span className="text-primary">+{childProduct.price.toLocaleString("vi-VN")} ₫</span>
+                                    ) : (
+                                        <span className="font-medium">+0 đ</span>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </div>

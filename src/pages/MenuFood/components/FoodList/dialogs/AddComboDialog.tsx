@@ -132,10 +132,15 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
         const query = searchQueries[`${slotIndex}-${itemIndex}`] || ""
 
         if (!query.trim() || !productALL) {
-            return productALL || []
+            // Nếu không có query thì vẫn filter theo role
+            return (productALL || []).filter((product) => product.productRole === "Child")
         }
 
-        return productALL.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()))
+        return productALL.filter(
+            (product) =>
+                product.productRole === "Child" &&
+                product.name.toLowerCase().includes(query.toLowerCase())
+        )
     }
 
     // Handle form submission
