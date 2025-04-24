@@ -37,7 +37,7 @@ export default function StaffManagementContainer() {
                 className='flex items-center gap-1 data-[state=active]:bg-red-500 data-[state=active]:text-white'
               >
                 <ClipboardList className='h-4 w-4' />
-                <span>Đơn xin nghỉ</span>
+                <span>Vắng mặt</span>
               </TabsTrigger>
               <TabsTrigger
                 value='manage'
