@@ -16,6 +16,7 @@ import {
     User,
     Calendar,
     Star,
+    CheckCircle,
 
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -48,6 +49,7 @@ interface TableCardProps {
     onOpenReserveDialog: (table: TableResponse) => void
     handleCancelReservation: (table: TableResponse) => Promise<void>
     onTableUpdated?: () => void
+    onOpenCheckInDialog: (table: TableResponse) => void
 }
 
 export function TableCard({
@@ -65,6 +67,7 @@ export function TableCard({
     onOpenCancelOrderDialog,
     onOpenReserveDialog,
     handleCancelReservation,
+    onOpenCheckInDialog,
     onTableUpdated
 }: TableCardProps) {
     const [showUnmergeDialog, setShowUnmergeDialog] = useState(false)
@@ -178,15 +181,28 @@ export function TableCard({
                     <div className="flex w-full gap-1 sm:gap-2">
 
                         {table.currentReservation && (
-                            <Button
-                                onClick={() => handleCancelReservation(table)}
-                                variant="outline"
-                                size="sm"
-                                className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-100"
-                                disabled={isLoading}
-                            >
-                                Hủy xếp bàn
-                            </Button>
+                            <>
+
+                                <Button
+                                    onClick={() => onOpenCheckInDialog(table)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-green-200 text-green-700 hover:bg-green-50"
+                                    disabled={isLoading}
+                                >
+                                    <CheckCircle className="mr-1 h-3 w-3 sm:h-4 sm:w-4" />
+                                    Check-in
+                                </Button>
+                                <Button
+                                    onClick={() => handleCancelReservation(table)}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 font-medium text-xs sm:text-sm py-1 h-7 sm:h-8 border-red-200 text-red-700 hover:bg-red-100"
+                                    disabled={isLoading}
+                                >
+                                    Hủy xếp bàn
+                                </Button>
+                            </>
                         )}
                     </div>
                 )
@@ -333,6 +349,16 @@ export function TableCard({
                                 >
                                     <Layers className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
                                     Hủy ghép bàn
+                                </DropdownMenuItem>
+                            )}
+                            {/* Add Check-in option for Reserved tables */}
+                            {table.status === "Reserved" && onOpenCheckInDialog && (
+                                <DropdownMenuItem
+                                    onClick={() => onOpenCheckInDialog(table)}
+                                    className="flex items-center cursor-pointer hover:bg-green-50 text-xs sm:text-sm py-1.5"
+                                >
+                                    <CheckCircle className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                                    Check-in
                                 </DropdownMenuItem>
                             )}
                         </DropdownMenuContent>

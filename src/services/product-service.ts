@@ -66,7 +66,7 @@ class ProductService {
   }
   public async getProductById(id: string): Promise<ApiResponse<ProductModel>> {
     try {
-      return await get<ProductModel>(`products/${id}?includeProperties=Category%2CProductOptions.Option.OptionItems%2CProductComboSlots%2CRecipes.Ingredient%2CProductComboSlots.ProductComboSlotItems.Product`)
+      return await get<ProductModel>(`products/${id}?includeProperties=Category%2CProductOptions.Option.OptionItems%2CProductComboSlots%2CRecipes.Ingredient%2CProductComboSlots.ProductComboSlotItems.Product%2CChildProducts`)
     } catch (error) {
       console.error(`Error fetching product with id ${id}:`, error)
       throw error

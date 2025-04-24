@@ -4,7 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Plus, Trash2, HelpCircle } from "lucide-react"
+import { Plus, Trash2, HelpCircle, X } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Control, UseFieldArrayReturn } from "react-hook-form"
 import { cn } from "@/utils/utils"
@@ -18,10 +18,14 @@ interface ProductSizeItemsProps {
 }
 
 export function ProductSizeItems({ control, fieldArray }: ProductSizeItemsProps) {
-    const { fields, append, remove } = fieldArray
+    const { fields, append, remove, replace } = fieldArray
 
     const addSizeItem = () => {
         append({ name: "", price: 0 })
+    }
+
+    const clearAllSizeItems = () => {
+        replace([])
     }
 
     // Log whenever fields change to help debug
@@ -33,7 +37,7 @@ export function ProductSizeItems({ control, fieldArray }: ProductSizeItemsProps)
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <FormLabel className="text-base">Kích cỡ và giá</FormLabel>
+                    <FormLabel className="text-base">Kích cỡ và giá (tùy chọn)</FormLabel>
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -46,7 +50,25 @@ export function ProductSizeItems({ control, fieldArray }: ProductSizeItemsProps)
                         </Tooltip>
                     </TooltipProvider>
                 </div>
-
+                <div className="flex items-center gap-2">
+                    {fields.length > 0 && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={clearAllSizeItems}
+                            className="text-destructive hover:bg-destructive/10"
+                            data-testid="clear-all-sizes"
+                        >
+                            <X className="h-4 w-4 mr-1" />
+                            Xóa tất cả
+                        </Button>
+                    )}
+                    <Button type="button" variant="outline" size="sm" onClick={addSizeItem} data-testid="add-size-button">
+                        <Plus className="h-4 w-4 mr-1" />
+                        Thêm kích cỡ
+                    </Button>
+                </div>
             </div>
 
             <Card className="border border-input">
@@ -116,14 +138,8 @@ export function ProductSizeItems({ control, fieldArray }: ProductSizeItemsProps)
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => remove(index)}
-                                        className={cn(
-                                            "h-9 w-9 rounded-full",
-                                            fields.length > 1
-                                                ? "text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                : "text-muted-foreground",
-                                        )}
-                                        disabled={fields.length <= 1}
-                                        title={fields.length <= 1 ? "Phải có ít nhất một kích cỡ" : "Xóa kích cỡ này"}
+                                        className="h-9 w-9 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        title="Xóa kích cỡ này"
                                         data-testid={`remove-size-${index}`}
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -148,11 +164,6 @@ export function ProductSizeItems({ control, fieldArray }: ProductSizeItemsProps)
                     )}
                 </CardContent>
             </Card>
-
-            {/* Helper text */}
-            <p className="text-sm text-muted-foreground mt-1">
-                Tất cả kích cỡ đã nhập sẽ được lưu, kể cả khi chưa điền đầy đủ thông tin.
-            </p>
         </div>
     )
 }

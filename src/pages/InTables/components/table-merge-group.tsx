@@ -23,7 +23,7 @@ interface TableMergeGroupProps {
     handleCancelReservation: (table: TableResponse) => Promise<void>
     onTableUpdated?: () => void
     handleCancelMerge: (table: TableResponse) => void
-
+    onOpenCheckInDialog: (table: TableResponse) => void
 
 }
 
@@ -44,7 +44,8 @@ export function TableMergeGroup({
     onOpenCancelOrderDialog,
     handleCancelReservation,
     onTableUpdated,
-    handleCancelMerge
+    handleCancelMerge,
+    onOpenCheckInDialog
 }: TableMergeGroupProps) {
     // Calculate total capacity of all tables in this merge group
     const totalCapacity = tables.reduce((sum, table) => sum + table.capacity, 0)
@@ -104,6 +105,7 @@ export function TableMergeGroup({
                         onOpenReserveDialog={onOpenReserveDialog}
                         handleCancelReservation={handleCancelReservation}
                         onTableUpdated={onTableUpdated}
+                        onOpenCheckInDialog={onOpenCheckInDialog}
                     />
                 ))}
             </div>

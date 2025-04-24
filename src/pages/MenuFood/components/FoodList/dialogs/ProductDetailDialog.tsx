@@ -159,18 +159,21 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {productOption.option.optionItems.map((item) => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell>{item.name}</TableCell>
-                                                    <TableCell className="text-right font-medium">
-                                                        {item.additionalPrice > 0 ? (
-                                                            <span className="text-primary">+{item.additionalPrice.toLocaleString("vi-VN")} ₫</span>
-                                                        ) : (
-                                                            <span className="font-medium">+0 đ</span>
-                                                        )}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {productOption.option.optionItems
+                                                .slice()
+                                                .sort((a, b) => a.additionalPrice - b.additionalPrice)
+                                                .map((item) => (
+                                                    <TableRow key={item.id}>
+                                                        <TableCell>{item.name}</TableCell>
+                                                        <TableCell className="text-right font-medium">
+                                                            {item.additionalPrice > 0 ? (
+                                                                <span className="text-primary">+{item.additionalPrice.toLocaleString("vi-VN")} ₫</span>
+                                                            ) : (
+                                                                <span className="font-medium">+0 đ</span>
+                                                            )}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
                                         </TableBody>
                                     </Table>
                                 </div>
@@ -209,18 +212,23 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {product.childProducts.map((childProduct) => (
-                            <TableRow key={childProduct.id}>
-                                <TableCell>{childProduct.name}</TableCell>
-                                <TableCell className="text-right font-medium">
-                                    {childProduct.price > 0 ? (
-                                        <span className="text-primary">+{childProduct.price.toLocaleString("vi-VN")} ₫</span>
-                                    ) : (
-                                        <span className="font-medium">+0 đ</span>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {product.childProducts
+                            .slice()
+                            .sort((a, b) => a.price - b.price)
+                            .map((childProduct) => (
+                                <TableRow key={childProduct.id}>
+                                    <TableCell>{childProduct.name}</TableCell>
+                                    <TableCell className="text-right font-medium">
+                                        {childProduct.price > 0 ? (
+                                            <span className="text-primary">
+                                                +{childProduct.price.toLocaleString("vi-VN")} ₫
+                                            </span>
+                                        ) : (
+                                            <span className="font-medium">+0 đ</span>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
             </div>
@@ -252,8 +260,8 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                 {slot.slotName}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <Table>
+                        <CardContent className="p-0 pb-10">
+                            <Table className="p-2">
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Tên sản phẩm</TableHead>
@@ -261,14 +269,18 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {slot.productComboSlotItems.map((item) => (
-                                        <TableRow key={item.id}>
-                                            <TableCell>{item.product.name}</TableCell>
-                                            <TableCell className="text-right font-medium">
-                                                <span className="text-primary">{formatCurrencyVND(item.product.price)}</span>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {slot.productComboSlotItems
+                                        .slice()
+                                        .sort((a, b) => a.extraPrice - b.extraPrice)
+                                        .map((item) => (
+                                            <TableRow key={item.id}>
+                                                <TableCell>{item.product.name}</TableCell>
+                                                <TableCell className="text-right font-medium">
+                                                    <span className="text-primary">{formatCurrencyVND(item.extraPrice)}</span>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+
                                 </TableBody>
                             </Table>
                         </CardContent>

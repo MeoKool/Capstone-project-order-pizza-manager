@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, CheckCircle, Plus, Trash2, PlusCircle, MinusCircle, Search } from "lucide-react"
+import { AlertCircle, CheckCircle, Plus, Trash2, PlusCircle, MinusCircle, Search, HelpCircle } from "lucide-react"
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
@@ -19,6 +19,7 @@ import useCategories from "@/hooks/useCategories"
 import { formatCurrencyVND } from "@/utils/utils"
 import useProducts from "@/hooks/useProducts"
 import { ProductImageUpload } from "./product-image-upload"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface AddComboDialogProps {
     open: boolean
@@ -131,10 +132,15 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
         const query = searchQueries[`${slotIndex}-${itemIndex}`] || ""
 
         if (!query.trim() || !productALL) {
-            return productALL || []
+            // Nếu không có query thì vẫn filter theo role
+            return (productALL || []).filter((product) => product.productRole === "Child")
         }
 
-        return productALL.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()))
+        return productALL.filter(
+            (product) =>
+                product.productRole === "Child" &&
+                product.name.toLowerCase().includes(query.toLowerCase())
+        )
     }
 
     // Handle form submission
@@ -250,7 +256,7 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
                                 name="price"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Giá (VND)</FormLabel>
+                                        <FormLabel>Giá combo (VND)</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="text"
@@ -259,7 +265,7 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
                                                     const value = e.target.value.replace(/[^0-9]/g, "")
                                                     field.onChange(value ? Number(value) : 0)
                                                 }}
-                                                placeholder="Nhập giá"
+                                                placeholder="Nhập giá combo"
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -364,7 +370,21 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
 
                                     <CardContent className="space-y-4">
                                         <div className="flex justify-between items-center">
-                                            <FormLabel className="text-sm">Sản phẩm trong nhóm</FormLabel>
+                                            <div className="flex items-center gap-2">
+                                                <FormLabel className="text-sm">Sản phẩm trong nhóm</FormLabel>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="right" className="max-w-[300px]">
+                                                            <p>Chọn sản phẩm và thêm giá phụ thu (nếu có).</p>
+                                                            <p className="mt-1">Giá thêm là phụ phí cộng thêm vào giá gốc của sản phẩm.</p>
+                                                            <p className="mt-1">Để giá thêm là 0 nếu không có phụ phí.</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            </div>
 
                                             {/* Add slot item button */}
                                             <Button
@@ -444,10 +464,17 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
                                                                     <FormControl>
                                                                         <Input
                                                                             type="text"
-                                                                            value={field.value === 0 ? "" : field.value.toLocaleString("vi-VN")}
+                                                                            inputMode="numeric"
+                                                                            value={
+                                                                                field.value === 0
+                                                                                    ? "0"
+                                                                                    : field.value
+                                                                                        ? field.value.toLocaleString("vi-VN")
+                                                                                        : ""
+                                                                            }
                                                                             onChange={(e) => {
                                                                                 const value = e.target.value.replace(/[^0-9]/g, "")
-                                                                                field.onChange(value ? Number(value) : 0)
+                                                                                field.onChange(value !== "" ? Number(value) : 0)
                                                                             }}
                                                                             placeholder="Nhập giá"
                                                                         />

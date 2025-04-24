@@ -128,7 +128,6 @@ const FoodList: React.FC = () => {
                 return "Bếp lạnh"
             case "HotKitchen":
                 return "Bếp nóng"
-
             default:
                 return type
         }

@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 
 interface TableLockToastProps {
-    tableCode: string
+    tableCode: string[] | string
     message: string
     note?: string
     duration?: number

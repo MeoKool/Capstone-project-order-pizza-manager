@@ -55,49 +55,57 @@ export const showReservationCreatedToast = (data: {
 }) => {
   return toast.custom(
     () => (
-      <div className='flex flex-col gap-3 bg-white border border-green-200 p-4 rounded-lg shadow-sm w-[356px] max-w-sm'>
-        <div className='flex items-center gap-2'>
-          <div className='bg-green-100 p-2 rounded-full'>
-            <Bell className='h-5 w-5 text-green-600' />
+      <div className='flex flex-col bg-white border-2 border-blue-100 rounded-lg shadow-sm w-[356px]'>
+        <div className='flex p-4 bg-blue-200 pt-4 items-center gap-2'>
+          <div className='bg-blue-100 p-2 rounded-full'>
+            <Bell className='h-5 w-5 text-blue-600' />
           </div>
           <div>
             <h3 className='font-bold text-lg'>Đặt bàn mới</h3>
-            <p className='text-sm text-gray-600'>Vừa nhận lúc {new Date().toLocaleTimeString('vi-VN')}</p>
+            <p className='text-sm text-gray-600'>
+              Vừa nhận lúc {new Date().toLocaleTimeString('vi-VN')}
+            </p>
           </div>
         </div>
 
-        <div className='flex items-center gap-2 mt-1'>
-          <span className='font-medium'>Khách hàng:</span>
-          <span className='font-semibold text-green-700'>{data.customerName}</span>
-        </div>
-
-        <div className='bg-green-50 p-3 rounded-lg border border-green-100 space-y-2'>
+        <div className='bg-blue-50 p-4 pl-7 space-y-2'>
           <div className='flex items-center gap-2'>
-            <Users className='h-4 w-4 text-green-600' />
-            <span className='font-medium'>Số người:</span>
-            <Badge variant='outline' className='bg-green-100 text-green-800 hover:bg-green-100'>
-              {data.numberOfPeople} người
-            </Badge>
+            <Users className='h-4 w-4 text-blue-600' />
+            <span className='font-medium'>Tên khách hàng: {data.customerName}</span>
+
           </div>
 
           <div className='flex items-center gap-2'>
-            <Phone className='h-4 w-4 text-green-600' />
-            <span className='font-medium'>Số điện thoại:</span>
-            <Badge variant='outline' className='bg-green-100 text-green-800 hover:bg-green-100'>
-              {data.phoneNumber}
-            </Badge>
+            <Users className='h-4 w-4 text-blue-600' />
+            <span className='font-medium'>Số người: {data.numberOfPeople} người</span>
+
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <Phone className='h-4 w-4 text-blue-600' />
+            <span className='font-medium'>Số điện thoại: {data.phoneNumber}</span>
+
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            window.location.href = '/in-tables'
-          }}
-          className='mt-2 text-green-700 bg-green-50 hover:bg-green-100 transition-colors px-3 py-1.5 rounded-md text-sm font-medium self-end'
-        >
-          Xem chi tiết
-        </button>
+        <div>
+          <p className='text-sm text-blue-700 bg-blue-50 p-3'>
+            <strong>Lưu ý:</strong> Đây là đơn đặt bàn mới. Bạn có thể xem chi tiết để chọn bàn và xác nhận.
+          </p>
+        </div>
+
+        <div className='flex justify-end bg-blue-50 pb-6 pt-0 px-5'>
+          <button
+            onClick={() => {
+              window.location.href = '/in-tables'
+            }}
+            className='text-gray-100 bg-blue-500 hover:bg-blue-600 transition-colors px-3 py-1.5 rounded-md text-sm font-medium self-end'
+          >
+            Xem chi tiết
+          </button>
+        </div>
       </div>
+
     ),
     { duration: data.duration || Number.POSITIVE_INFINITY }
   )
@@ -112,29 +120,31 @@ export const showAssignTableToast = (data: {
 }) => {
   return toast.custom(
     () => (
-      <div className='flex flex-col gap-3 bg-white border border-amber-200 p-4 rounded-lg shadow-sm w-[356px] max-w-sm'>
-        <div className='flex items-center gap-2'>
+      <div className='flex flex-col bg-white border-2 border-amber-100 rounded-lg shadow-sm w-[356px]'>
+        <div className='flex p-4 bg-amber-100 pt-4 items-center gap-2'>
           <div className='bg-amber-100 p-2 rounded-full'>
             <Clock className='h-5 w-5 text-amber-600' />
           </div>
           <div>
-            <h3 className='font-bold text-lg'>Sắp xếp bàn</h3>
+            <h3 className='font-bold text-lg'>Vui lòng chọn bàn cho khách!</h3>
             <p className='text-sm text-gray-600'>
               {data.arrivalTime ? `Khách đến lúc ${data.arrivalTime}` : 'Khách sắp đến'}
             </p>
           </div>
         </div>
 
-        <div className='flex items-center gap-2 mt-1'>
-          <span className='font-medium'>Khách hàng:</span>
-          <span className='font-semibold text-amber-700'>{data.customerName}</span>
-        </div>
-
-        <div className='bg-amber-50 p-3 rounded-lg border border-amber-100 space-y-2'>
+        <div className='bg-amber-50 p-4 pl-7  space-y-2'>
+          <div className='flex items-center gap-2'>
+            <Users className='h-4 w-4 text-amber-600' />
+            <span className='font-medium'>Tên khách hàng:</span>
+            <Badge variant='outline' className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'>
+              {data.customerName}
+            </Badge>
+          </div>
           <div className='flex items-center gap-2'>
             <Users className='h-4 w-4 text-amber-600' />
             <span className='font-medium'>Số người:</span>
-            <Badge variant='outline' className='bg-amber-100 text-amber-800 hover:bg-amber-100'>
+            <Badge variant='outline' className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'>
               {data.numberOfPeople} người
             </Badge>
           </div>
@@ -142,25 +152,29 @@ export const showAssignTableToast = (data: {
           <div className='flex items-center gap-2'>
             <Phone className='h-4 w-4 text-amber-600' />
             <span className='font-medium'>Số điện thoại:</span>
-            <Badge variant='outline' className='bg-amber-100 text-amber-800 hover:bg-amber-100'>
+            <Badge variant='outline' className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'>
               {data.phoneNumber}
             </Badge>
           </div>
         </div>
+        <div>
+          <p className='text-sm text-amber-700 bg-amber-50 p-3 '>
+            <strong>Lưu ý:</strong> Sau khi chọn bàn, trạng thái đặt bàn sẽ chuyển thành "Đã xác nhận" và bàn sẽ được mở để
+            phục vụ.
+          </p>
 
-        <p className='text-sm font-medium text-amber-700 mt-1 bg-amber-100 p-2 rounded-md flex items-center gap-2'>
-          <AlertTriangle className='h-4 w-4' />
-          Vui lòng chọn bàn cho khách!
-        </p>
+        </div>
+        <div className='flex justify-end bg-amber-50  pb-6 pt-0 px-5'>
+          <button
+            onClick={() => {
+              window.location.href = '/in-tables'
+            }}
+            className=' text-gray-100 bg-amber-500 hover:bg-amber-600 transition-colors px-3 py-1.5 rounded-md text-sm font-medium self-end'
+          >
+            Chọn bàn ngay
+          </button>
+        </div>
 
-        <button
-          onClick={() => {
-            window.location.href = '/in-tables'
-          }}
-          className='mt-2 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors px-3 py-1.5 rounded-md text-sm font-medium self-end'
-        >
-          Chọn bàn ngay
-        </button>
       </div>
     ),
     { duration: data.duration || Number.POSITIVE_INFINITY }

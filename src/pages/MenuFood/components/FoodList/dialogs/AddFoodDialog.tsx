@@ -67,7 +67,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
       productType: "HotKitchen",
       optionIds: [],
       sizes: "",
-      sizeItems: [{ name: "", price: 0 }], // Start with one empty size item
+      sizeItems: [],
     },
   })
 
@@ -120,7 +120,7 @@ export function AddFoodDialog({ open, onOpenChange }: AddFoodDialogProps) {
       productType: "HotKitchen",
       optionIds: [],
       sizes: "",
-      sizeItems: [{ name: "", price: 0 }], // Reset to one empty size item
+      sizeItems: [], // Reset to one empty size item
     })
     setSelectedFile(null)
     setSelectedOptions([])
