@@ -20,6 +20,7 @@ import { formatCurrencyVND } from "@/utils/utils"
 import useProducts from "@/hooks/useProducts"
 import { ProductImageUpload } from "./product-image-upload"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { ProductModel } from "@/types/product"
 
 interface AddComboDialogProps {
     open: boolean
@@ -128,19 +129,45 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
     }
 
     // Get filtered products for a specific slot and item
+    // Function to get filtered products for a specific slot and item
     const getFilteredProducts = (slotIndex: number, itemIndex: number) => {
         const query = searchQueries[`${slotIndex}-${itemIndex}`] || ""
 
-        if (!query.trim() || !productALL) {
-            return (productALL || []).filter((product) => product.productRole === "Child" && product.productStatus === "Available" || product.productRole === "Master")
+        if (!productALL) {
+            return []
         }
 
-        return productALL.filter(
-            (product) =>
-                product.productRole === "Child" && product.productStatus === "Available" || product.productRole === "Master" &&
-                product.name.toLowerCase().includes(query.toLowerCase())
-        )
+        let result: ProductModel[] = []
+
+        for (const product of productALL) {
+            // Only process master products
+            if (product.productRole === "Master" && product.productStatus === "Available") {
+                // If master has child products, add ONLY the child products (not the master)
+                if (product.childProducts && product.childProducts.length > 0) {
+                    // Find full child product objects from the original products array
+                    const childProductIds = product.childProducts.map((child) => child.id)
+                    const fullChildProducts = productALL.filter((p) => childProductIds.includes(p.id))
+
+                    // Add child products to result
+                    if (fullChildProducts.length > 0) {
+                        result = [...result, ...fullChildProducts]
+                    }
+                } else {
+                    // For master products without child products, add the master product itself
+                    result.push(product)
+                }
+            }
+            // Non-master products are NOT included
+        }
+
+        // Apply search filter if provided
+        if (query && query.trim() !== "") {
+            return result.filter((product) => product.name.toLowerCase().includes(query.toLowerCase()))
+        }
+
+        return result
     }
+
 
     // Handle form submission
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
