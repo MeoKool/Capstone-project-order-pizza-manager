@@ -1,4 +1,3 @@
-
 import { connection } from '@/lib/signalr-client'
 import { useEffect } from 'react'
 import { showAssignTableToast, showGeneralNotificationToast, showReservationCreatedToast } from '../custom-toast'
@@ -16,14 +15,13 @@ type Notification = {
 }
 
 interface ReservationCreatedNotification {
-  id?: string;
-  customerName: string;
-  phoneNumber: string;
-  numberOfPeople: number;
-  duration?: number;
-  onClickNavigateToTable?: () => void;
+  id?: string
+  customerName: string
+  phoneNumber: string
+  numberOfPeople: number
+  duration?: number
+  onClickNavigateToTable?: () => void
   arrivalTime?: string
-
 }
 
 // Map notification type numbers to toast types
@@ -65,6 +63,8 @@ export default function EnhancedSignalRListener() {
 
     // Handle reservation created notifications with custom styling
     connection.on('ReservationCreated', (data: ReservationCreatedNotification) => {
+      console.log('ReservationCreated', data)
+
       showReservationCreatedToast({
         customerName: data.customerName,
         phoneNumber: data.phoneNumber,
@@ -72,8 +72,8 @@ export default function EnhancedSignalRListener() {
         id: data.id,
         duration: data.duration,
         onClickNavigateToTable: () => navigate('/in-tables/booking')
-      });
-    });
+      })
+    })
 
     // Handle assign table notifications with custom styling
     connection.on('AssignTableForReservation', (data: ReservationCreatedNotification) => {
@@ -88,7 +88,7 @@ export default function EnhancedSignalRListener() {
     })
 
     // Empty handler for OrderItemUpdatedStatus
-    connection.on('OrderItemUpdatedStatus', () => { })
+    connection.on('OrderItemUpdatedStatus', () => {})
 
     // Clean up event listeners on component unmount
     return () => {

@@ -19,7 +19,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { BookingTable } from './components/Booking/BookingTable'
 import { ViewBookingDialog } from './components/Booking/ViewBookingDialog'
 import { AssignTableDialog } from './components/Booking/AssignTableDialog'
-import { formatDateString, getPrioritySortValue, getStatusColor, getStatusLabel, getStatusSortValue } from '@/utils/table-utils'
+import {
+  formatDateString,
+  getPrioritySortValue,
+  getStatusColor,
+  getStatusLabel,
+  getStatusSortValue
+} from '@/utils/table-utils'
+import { TimeSlotDisplay } from './components/Booking/TimeSlotDisplay'
 
 // Define types for sorting and filtering
 type SortOption =
@@ -34,10 +41,6 @@ type SortOption =
   | 'priorityStatus'
 
 type StatusFilter = 'all' | 'Created' | 'Confirmed' | 'Checkedin' | 'Cancelled'
-
-
-
-
 
 function BookingPage() {
   // State for reservations data
@@ -218,7 +221,10 @@ function BookingPage() {
             Làm mới
           </Button>
         </CardHeader>
-
+        {/* Add TimeSlotDisplay component here */}
+        <div className='mb-6'>
+          <TimeSlotDisplay date={dateFilter} />
+        </div>
         <CardContent>
           {/* Filters section */}
           <div className='flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 md:space-x-2 mb-6'>
