@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { MoreVertical, Edit, Trash2, ImagePlus, Eye } from "lucide-react"
+import { MoreVertical, Edit, Trash2, ImagePlus, Eye, ChefHat, Package2 } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -104,11 +104,20 @@ const FoodCard: React.FC<FoodCardProps> = ({
                             </div>
                         </>
                     )}
-                    <Badge variant="secondary" className="absolute top-2 right-2 bg-white/90 text-black">
-                        {formatProductType(food.productType)}
-                    </Badge>
+                    {food.productRole === "Combo" ? (
+                        <Badge variant="secondary" className="absolute top-2 right-2 bg-white/90 text-black">
+                            <Package2 className="w-3 h-3 mr-1" />{food.productRole}
+                        </Badge>
+                    ) : (
+                        <Badge variant="secondary" className="absolute top-2 right-2 bg-white/90 text-black">
+                            <ChefHat className="w-3 h-3 mr-1 " />{formatProductType(food.productType)}
+                        </Badge>
+                    )}
+
+
+
                 </div>
-                <CardContent className="p-4">
+                <CardContent className="py-4 pt-4 pb-2">
                     <div className="flex justify-between items-start">
                         <div>
                             <h3
@@ -156,7 +165,7 @@ const FoodCard: React.FC<FoodCardProps> = ({
                         </DropdownMenu>
                     </div>
                 </CardContent>
-                <CardFooter className="p-4 pt-0 flex justify-between items-center">
+                <CardFooter className="p-6 pt-0 flex justify-between items-center">
                     <span className="font-semibold text-primary text-lg">{food.price.toLocaleString("vi-VN")} ₫</span>
                     {food.productOptions && food.productOptions.length > 0 && (
                         <Badge variant="secondary">{food.productOptions.length} kích cỡ</Badge>

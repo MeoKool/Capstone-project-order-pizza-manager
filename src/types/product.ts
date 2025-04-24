@@ -3,7 +3,7 @@ import type { ProductOption } from "./product-option"
 import { Recipe } from "./recipe"
 
 export type ProductStatus = "Available" | "OutOfIngredient" | "Locked"
-
+export type ProductType = "ColdKitchen" | "HotKitchen"
 export interface ProductModel {
   id: string
   name: string
@@ -12,7 +12,7 @@ export interface ProductModel {
   imagePublicId: string | null
   description: string
   categoryId: string
-  productType: string
+  productType: ProductType
   category: CategoryModel | null
   productOptions: ProductOption[]
   productRole: 'Child' | 'Master' | 'Combo'
