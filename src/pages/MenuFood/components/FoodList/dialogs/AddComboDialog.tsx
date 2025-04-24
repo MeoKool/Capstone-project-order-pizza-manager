@@ -133,7 +133,7 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
 
         if (!query.trim() || !productALL) {
             // Nếu không có query thì vẫn filter theo role
-            return (productALL || []).filter((product) => product.productRole === "Child")
+            return (productALL || []).filter((product) => product.productRole !== "Combo")
         }
 
         return productALL.filter(
