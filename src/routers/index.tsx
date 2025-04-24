@@ -53,7 +53,21 @@ export const router = createBrowserRouter([
           <Suspense fallback={<Loading />}>
             <InTables />
           </Suspense>
-        )
+        ),
+        children: [
+          {
+            path: ':tab', // tab = tables | zones | booking
+            element: (
+              <Suspense fallback={<Loading />}>
+                <InTables />
+              </Suspense>
+            )
+          },
+          {
+            index: true, // fallback mặc định nếu không có tab
+            element: <Navigate to="tables" />
+          }
+        ]
       },
       {
         path: 'kitchens',

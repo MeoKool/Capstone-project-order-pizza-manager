@@ -1,8 +1,8 @@
-'use client'
 
 import { connection } from '@/lib/signalr-client'
 import { useEffect } from 'react'
 import { showAssignTableToast, showGeneralNotificationToast, showReservationCreatedToast } from '../custom-toast'
+import { useNavigate } from 'react-router-dom'
 
 let isConnected = false
 
@@ -15,11 +15,15 @@ type Notification = {
   createdAt: string
 }
 
-type ReservationCreatedNotification = {
-  numberOfPeople: number
-  customerName: string
-  phoneNumber: string
-  id: string
+interface ReservationCreatedNotification {
+  id?: string;
+  customerName: string;
+  phoneNumber: string;
+  numberOfPeople: number;
+  duration?: number;
+  onClickNavigateToTable?: () => void;
+  arrivalTime?: string
+
 }
 
 // Map notification type numbers to toast types
@@ -39,6 +43,8 @@ const getNotificationType = (type: number): 'info' | 'success' | 'warning' | 'er
 }
 
 export default function EnhancedSignalRListener() {
+  const navigate = useNavigate()
+
   useEffect(() => {
     if (!isConnected && connection.state === 'Disconnected') {
       isConnected = true
@@ -59,12 +65,26 @@ export default function EnhancedSignalRListener() {
 
     // Handle reservation created notifications with custom styling
     connection.on('ReservationCreated', (data: ReservationCreatedNotification) => {
-      showReservationCreatedToast(data)
-    })
+      showReservationCreatedToast({
+        customerName: data.customerName,
+        phoneNumber: data.phoneNumber,
+        numberOfPeople: data.numberOfPeople,
+        id: data.id,
+        duration: data.duration,
+        onClickNavigateToTable: () => navigate('/in-tables/booking')
+      });
+    });
 
     // Handle assign table notifications with custom styling
     connection.on('AssignTableForReservation', (data: ReservationCreatedNotification) => {
-      showAssignTableToast(data)
+      showAssignTableToast({
+        customerName: data.customerName,
+        phoneNumber: data.phoneNumber,
+        numberOfPeople: data.numberOfPeople,
+        id: data.id,
+        duration: data.duration,
+        onClickNavigateToTable: () => navigate('/in-tables/booking')
+      })
     })
 
     // Empty handler for OrderItemUpdatedStatus

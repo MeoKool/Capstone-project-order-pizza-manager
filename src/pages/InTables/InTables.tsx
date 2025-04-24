@@ -1,17 +1,22 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type React from 'react'
-import { useState } from 'react'
+
 import TableManagement from './table-management'
 import ZoneManagement from './zone-management'
 import { LayoutGrid, ListFilter } from 'lucide-react'
 import BookingPage from './booking-management'
+import { useNavigate, useParams } from 'react-router-dom'
 
 const InTables: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('tables')
+  const navigate = useNavigate()
+  const { tab = 'tables' } = useParams<{ tab: string }>()
 
+  const handleTabChange = (value: string) => {
+    navigate(`/in-tables/${value}`)
+  }
   return (
     <div className='mx-auto p-4 max-w-full bg-[#f8f9fa]'>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
+      <Tabs value={tab} onValueChange={handleTabChange} className='space-y-6'>
         <div className='flex items-center justify-between'>
           <TabsList className='grid w-full max-w-md grid-cols-3 p-1 bg-amber-50 border border-amber-100'>
             <TabsTrigger

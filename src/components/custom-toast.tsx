@@ -47,12 +47,18 @@ export const showTableLToast = ({ tableCode, message, note, duration = 5000 }: T
   )
 }
 
-export const showReservationCreatedToast = (data: {
-  customerName: string
+
+export interface ReservationProps {
   numberOfPeople: number
+  customerName: string
   phoneNumber: string
+  id?: string
+  onClickNavigateToTable: () => void
   duration?: number
-}) => {
+  arrivalTime?: string
+
+}
+export const showReservationCreatedToast = (data: ReservationProps) => {
   return toast.custom(
     () => (
       <div className='flex flex-col bg-white border-2 border-blue-100 rounded-lg shadow-sm w-[356px]'>
@@ -97,7 +103,8 @@ export const showReservationCreatedToast = (data: {
         <div className='flex justify-end bg-blue-50 pb-6 pt-0 px-5'>
           <button
             onClick={() => {
-              window.location.href = '/in-tables'
+              data.onClickNavigateToTable()
+              toast.dismiss()
             }}
             className='text-gray-100 bg-blue-500 hover:bg-blue-600 transition-colors px-3 py-1.5 rounded-md text-sm font-medium self-end'
           >
@@ -107,17 +114,11 @@ export const showReservationCreatedToast = (data: {
       </div>
 
     ),
-    { duration: data.duration || Number.POSITIVE_INFINITY }
+    { duration: Number.POSITIVE_INFINITY }
   )
 }
 
-export const showAssignTableToast = (data: {
-  customerName: string
-  numberOfPeople: number
-  phoneNumber: string
-  arrivalTime?: string
-  duration?: number
-}) => {
+export const showAssignTableToast = (data: ReservationProps) => {
   return toast.custom(
     () => (
       <div className='flex flex-col bg-white border-2 border-amber-100 rounded-lg shadow-sm w-[356px]'>
@@ -167,7 +168,8 @@ export const showAssignTableToast = (data: {
         <div className='flex justify-end bg-amber-50  pb-6 pt-0 px-5'>
           <button
             onClick={() => {
-              window.location.href = '/in-tables'
+              data.onClickNavigateToTable()
+              toast.dismiss()
             }}
             className=' text-gray-100 bg-amber-500 hover:bg-amber-600 transition-colors px-3 py-1.5 rounded-md text-sm font-medium self-end'
           >
