@@ -300,6 +300,9 @@ export function TableList({ tables, activeFilter = "all", onTableUpdated }: Tabl
                             handleCancelReservation={handleCancelReservation}
                             onTableUpdated={onTableUpdated}
                             handleCancelMerge={handleCancelMerge}
+                            onOpenCheckInDialog={handleOpenCheckInDialog}
+
+
                         />
                     )
                 })}
