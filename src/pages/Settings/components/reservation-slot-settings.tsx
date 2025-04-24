@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -23,13 +25,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2, Plus, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import ReservationSlotService, {
   type ReservationSlot,
   type CreateReservationSlotDto
 } from '@/services/reservation-slot-service'
+import { TimeInput } from '@/components/time-input'
 
 export function ReservationSlotSettings() {
   const [slots, setSlots] = useState<ReservationSlot[]>([])
@@ -43,6 +45,7 @@ export function ReservationSlotSettings() {
     endTime: '',
     capacity: 0
   })
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   const reservationSlotService = ReservationSlotService.getInstance()
 
@@ -70,9 +73,19 @@ export function ReservationSlotSettings() {
   }, [])
 
   const handleCreateSlot = async () => {
+    // Reset validation error
+    setValidationError(null)
+
     // Validate input
     if (!newSlot.startTime || !newSlot.endTime || newSlot.capacity <= 0) {
       toast.error('Vui lòng điền đầy đủ thông tin khung giờ')
+      return
+    }
+
+    // Validate that end time is after start time, with special handling for overnight slots
+    if (!isValidTimeRange(newSlot.startTime, newSlot.endTime)) {
+      setValidationError('Giờ kết thúc phải lớn hơn giờ bắt đầu')
+      toast.error('Giờ kết thúc phải lớn hơn giờ bắt đầu')
       return
     }
 
@@ -128,17 +141,41 @@ export function ReservationSlotSettings() {
     return time.substring(0, 5)
   }
 
-  // Generate time options (30 minute intervals)
-  const timeOptions = () => {
-    const options = []
-    for (let hour = 0; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const formattedHour = hour.toString().padStart(2, '0')
-        const formattedMinute = minute.toString().padStart(2, '0')
-        options.push(`${formattedHour}:${formattedMinute}`)
+  // Check if time range is valid, with special handling for overnight slots
+  const isValidTimeRange = (startTime: string, endTime: string) => {
+    if (!startTime || !endTime) return true
+
+    // Extract hours and minutes
+    const startParts = startTime.split(':')
+    const endParts = endTime.split(':')
+
+    const startHour = Number.parseInt(startParts[0], 10)
+    const startMinute = Number.parseInt(startParts[1], 10)
+    const endHour = Number.parseInt(endParts[0], 10)
+    const endMinute = Number.parseInt(endParts[1], 10)
+
+    // Special case: If end time is 00:00 (midnight), it's valid regardless of start time
+    if (endHour === 0 && endMinute === 0) return true
+
+    // Special case: If start time is in the evening (after 20:00) and end time is in the morning (before 06:00)
+    // This handles overnight slots
+    if (startHour >= 20 && endHour < 6) return true
+
+    // Normal case: end time should be greater than start time
+    if (endHour > startHour) return true
+    if (endHour === startHour && endMinute > startMinute) return true
+
+    return false
+  }
+
+  const validateTimeChange = (startTime: string, endTime: string) => {
+    if (startTime && endTime) {
+      if (!isValidTimeRange(startTime, endTime)) {
+        setValidationError('Giờ kết thúc phải lớn hơn giờ bắt đầu')
+      } else {
+        setValidationError(null)
       }
     }
-    return options
   }
 
   if (loading) {
@@ -179,45 +216,32 @@ export function ReservationSlotSettings() {
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='space-y-2'>
                     <Label htmlFor='start-time'>Giờ bắt đầu</Label>
-                    <Select
-                      onValueChange={(value) => setNewSlot({ ...newSlot, startTime: `${value}:00` })}
-                      value={newSlot.startTime ? formatTime(newSlot.startTime) : undefined}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder='Chọn giờ'>
-                          {newSlot.startTime ? formatTime(newSlot.startTime) : 'Chọn giờ'}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions().map((time) => (
-                          <SelectItem key={`start-${time}`} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <TimeInput
+                      label=''
+                      value={newSlot.startTime}
+                      onChange={(time) => {
+                        const newStartTime = `${time}:00`
+                        setNewSlot({ ...newSlot, startTime: newStartTime })
+                        validateTimeChange(newStartTime, newSlot.endTime)
+                      }}
+                      use24Hour={true}
+                    />
                   </div>
                   <div className='space-y-2'>
                     <Label htmlFor='end-time'>Giờ kết thúc</Label>
-                    <Select
-                      onValueChange={(value) => setNewSlot({ ...newSlot, endTime: `${value}:00` })}
-                      value={newSlot.endTime ? formatTime(newSlot.endTime) : undefined}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder='Chọn giờ'>
-                          {newSlot.endTime ? formatTime(newSlot.endTime) : 'Chọn giờ'}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions().map((time) => (
-                          <SelectItem key={`end-${time}`} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <TimeInput
+                      label=''
+                      value={newSlot.endTime}
+                      onChange={(time) => {
+                        const newEndTime = `${time}:00`
+                        setNewSlot({ ...newSlot, endTime: newEndTime })
+                        validateTimeChange(newSlot.startTime, newEndTime)
+                      }}
+                      use24Hour={true}
+                    />
                   </div>
                 </div>
+                {validationError && <div className='text-sm font-medium text-destructive'>{validationError}</div>}
                 <div className='space-y-2'>
                   <Label htmlFor='capacity'>Số lượng bàn tối đa</Label>
                   <Input
