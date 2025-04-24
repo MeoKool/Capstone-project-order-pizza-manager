@@ -107,7 +107,18 @@ export default function WorkshopFormBasicInfo({ zones }: Props) {
                 Số hotline <span className='text-red-500'>*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder='Nhập số hotline' {...field} className='h-11' />
+                <Input
+                  type='tel'
+                  placeholder='Nhập số hotline'
+                  {...field}
+                  className='h-11'
+                  maxLength={10}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) {
+                      e.preventDefault()
+                    }
+                  }}
+                />
               </FormControl>
               <FormMessage className='text-red-500' />
             </FormItem>
