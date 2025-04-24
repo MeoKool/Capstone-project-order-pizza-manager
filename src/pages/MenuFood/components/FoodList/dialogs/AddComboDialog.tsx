@@ -132,13 +132,12 @@ export function AddComboDialog({ open, onOpenChange }: AddComboDialogProps) {
         const query = searchQueries[`${slotIndex}-${itemIndex}`] || ""
 
         if (!query.trim() || !productALL) {
-            // Nếu không có query thì vẫn filter theo role
-            return (productALL || []).filter((product) => product.productRole !== "Combo")
+            return (productALL || []).filter((product) => product.productRole === "Child" && product.productStatus === "Available" || product.productRole === "Master")
         }
 
         return productALL.filter(
             (product) =>
-                product.productRole === "Child" &&
+                product.productRole === "Child" && product.productStatus === "Available" || product.productRole === "Master" &&
                 product.name.toLowerCase().includes(query.toLowerCase())
         )
     }
