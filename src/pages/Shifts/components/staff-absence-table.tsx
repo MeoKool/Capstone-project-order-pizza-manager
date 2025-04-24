@@ -169,7 +169,7 @@ export function StaffAbsenceTable({ onAddClick }: StaffAbsenceTableProps) {
           </Popover>
         </div>
         <Button onClick={onAddClick} className='bg-red-500 hover:bg-red-600'>
-          Thêm đơn xin nghỉ
+          Thêm mới
         </Button>
       </div>
 
