@@ -23,23 +23,17 @@ export function formatDate(date: string | Date, formatString = 'dd/MM/yyyy') {
   return format(dateObj, formatString)
 }
 
-// Utility function to convert UTC time to Vietnam time (UTC+7)
-export function convertToVietnamTime(utcDateString: string): Date {
-  const date = new Date(utcDateString)
-
-  // Create a date string that explicitly specifies the timezone as UTC
-  const utcDate = new Date(date.toISOString())
-
-  // Add 7 hours to convert to Vietnam time (UTC+7)
-  utcDate.setHours(utcDate.getHours() + 7)
-
-  return utcDate
+// Không còn chuyển đổi UTC sang giờ Việt Nam nữa
+export function convertToVietnamTime(dateString: string): Date {
+  // Trả về trực tiếp đối tượng Date mà không thêm 7 giờ
+  return new Date(dateString)
 }
 
 // Format date to Vietnam locale
 export function formatVietnamDate(date: Date | string): string {
-  const vietnamDate = typeof date === 'string' ? convertToVietnamTime(date) : date
-  return vietnamDate.toLocaleString('vi-VN', {
+  // Không cần chuyển đổi múi giờ, chỉ định dạng theo locale Việt Nam
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  return dateObj.toLocaleString('vi-VN', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -49,9 +43,8 @@ export function formatVietnamDate(date: Date | string): string {
   })
 }
 
-// Convert local time to UTC for sending to backend
+// Không còn chuyển đổi giờ địa phương sang UTC nữa
 export function convertToUTC(localDate: Date): Date {
-  const utcDate = new Date(localDate)
-  utcDate.setHours(utcDate.getHours() - 7)
-  return utcDate
+  // Trả về trực tiếp đối tượng Date mà không trừ 7 giờ
+  return localDate
 }

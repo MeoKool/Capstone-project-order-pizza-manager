@@ -31,7 +31,6 @@ import WorkshopFormBasicInfo from './WorkshopForm/WorkshopFormBasicInfo'
 import WorkshopFormTimeInfo from './WorkshopForm/WorkshopFormTimeInfo'
 import WorkshopFormRegisterInfo from './WorkshopForm/WorkshopFormRegisterInfo'
 import WorkshopFormFoodMenu from './WorkshopForm/WorkshopFormFoodMenu'
-import { convertToVietnamTime, convertToUTC } from '@/utils/date-utils'
 
 import type { ZoneResponse } from '@/types/zone'
 import type { ProductModel } from '@/types/product'
@@ -215,11 +214,11 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           const productsResponse = await ProductService.getInstance().getProductsByCategory(pizzaCategory.id)
           if (productsResponse.success) {
             const masterProductsSorted = productsResponse.result.items
-              .filter(product => product.productRole === "Master")
-              .sort((a, b) => a.name.localeCompare(b.name)); // hoặc sắp theo giá, id, v.v.
+              .filter((product) => product.productRole === 'Master')
+              .sort((a, b) => a.name.localeCompare(b.name)) // hoặc sắp theo giá, id, v.v.
 
             // Gán lại state
-            setProducts(masterProductsSorted);
+            setProducts(masterProductsSorted)
           }
         } else {
           // Nếu không tìm thấy category Pizza, hiển thị thông báo
@@ -248,10 +247,10 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
           productIds: productIds
         })
 
-        // Chuyển đổi thời gian từ UTC sang múi giờ Việt Nam (UTC+7)
-        const wd = convertToVietnamTime(w.workshopDate)
-        const sr = convertToVietnamTime(w.startRegisterDate)
-        const er = convertToVietnamTime(w.endRegisterDate)
+        // Không cần chuyển đổi thời gian từ UTC sang múi giờ Việt Nam nữa
+        const wd = new Date(w.workshopDate)
+        const sr = new Date(w.startRegisterDate)
+        const er = new Date(w.endRegisterDate)
 
         setWorkshopDate(wd)
         setStartRegisterDate(sr)
@@ -304,18 +303,25 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       const endRegDateTime = new Date(endRegisterDate!)
       endRegDateTime.setHours(Number.parseInt(endRegisterTime.hour), Number.parseInt(endRegisterTime.minute))
 
-      // Chuyển đổi thời gian từ múi giờ Việt Nam (UTC+7) sang UTC để gửi lên server
-      const workshopDateTimeUTC = convertToUTC(workshopDateTime)
-      const startRegDateTimeUTC = convertToUTC(startRegDateTime)
-      const endRegDateTimeUTC = convertToUTC(endRegDateTime)
+      // Tạo chuỗi ISO mà không chuyển đổi múi giờ
+      const formatToLocalISOString = (date: Date) => {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        const seconds = String(date.getSeconds()).padStart(2, '0')
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`
+      }
 
       // Log the dates for debugging
-      console.log('Workshop Date (Vietnam):', workshopDateTime.toISOString())
-      console.log('Workshop Date (UTC):', workshopDateTimeUTC.toISOString())
-      console.log('Start Register Date (Vietnam):', startRegDateTime.toISOString())
-      console.log('Start Register Date (UTC):', startRegDateTimeUTC.toISOString())
-      console.log('End Register Date (Vietnam):', endRegDateTime.toISOString())
-      console.log('End Register Date (UTC):', endRegDateTimeUTC.toISOString())
+      console.log('Workshop Date (Local):', workshopDateTime)
+      console.log('Workshop Date (ISO):', formatToLocalISOString(workshopDateTime))
+      console.log('Start Register Date (Local):', startRegDateTime)
+      console.log('Start Register Date (ISO):', formatToLocalISOString(startRegDateTime))
+      console.log('End Register Date (Local):', endRegDateTime)
+      console.log('End Register Date (ISO):', formatToLocalISOString(endRegDateTime))
 
       const payload = {
         ...values,
@@ -323,16 +329,16 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
         maxRegister: values.maxRegister ?? 0,
         maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
         maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
-        // Use the UTC date objects we created above
-        workshopDate: workshopDateTimeUTC.toISOString(),
-        startRegisterDate: startRegDateTimeUTC.toISOString(),
-        endRegisterDate: endRegDateTimeUTC.toISOString(),
+        // Sử dụng định dạng ISO mà không chuyển đổi múi giờ
+        workshopDate: formatToLocalISOString(workshopDateTime),
+        startRegisterDate: formatToLocalISOString(startRegDateTime),
+        endRegisterDate: formatToLocalISOString(endRegDateTime),
         zoneName: zones.find((z) => z.id === values.zoneId)?.name || ''
       }
 
       const res =
         isEditing && id
-          ? await WorkshopService.getInstance().updateWorkshop(id, payload) // Make sure to pass payload here
+          ? await WorkshopService.getInstance().updateWorkshop(id, payload)
           : await WorkshopService.getInstance().createWorkshop(payload)
 
       if (res.success) {
@@ -493,7 +499,8 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
             <div key={step.id} className='flex flex-col items-center'>
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
-                  ${currentStep >= index ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-500'
+                  ${
+                    currentStep >= index ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 text-gray-500'
                   }`}
               >
                 {currentStep > index ? <Check className='h-5 w-5' /> : <span>{index + 1}</span>}

@@ -11,18 +11,16 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import type { Dispatch, SetStateAction } from 'react'
 import { cn } from '@/utils/utils'
-import { convertToUTC } from '@/utils/date-utils'
 
-// Hàm chuyển đổi từ múi giờ địa phương sang UTC
+// Hàm chuyển đổi từ múi giờ địa phương sang UTC - không cần chuyển đổi nữa
 function localToUtcDate(localDate: Date | undefined, timeState: TimeState): Date | undefined {
   if (!localDate) return undefined
 
   const result = new Date(localDate)
   // Đặt giờ và phút theo múi giờ địa phương
   result.setHours(Number.parseInt(timeState.hour), Number.parseInt(timeState.minute))
-  // Chuyển đổi sang UTC (trừ 7 giờ cho múi giờ Việt Nam)
-  const utcResult = convertToUTC(result)
-  return utcResult
+  // Không cần chuyển đổi sang UTC nữa
+  return result
 }
 
 type TimeState = { hour: string; minute: string }
@@ -52,9 +50,7 @@ function debugDate(date?: Date, time?: TimeState) {
   return {
     localString: dateObj.toString(),
     isoString: dateObj.toISOString(),
-    localTime: `${time.hour}:${time.minute}`,
-    vietnamTime: `UTC+7: ${dateObj.getHours()}:${dateObj.getMinutes()}`,
-    utcTime: `UTC: ${dateObj.getUTCHours()}:${dateObj.getUTCMinutes()}`
+    localTime: `${time.hour}:${time.minute}`
   }
 }
 
