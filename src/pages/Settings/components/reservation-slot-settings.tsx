@@ -224,7 +224,6 @@ export function ReservationSlotSettings() {
                         setNewSlot({ ...newSlot, startTime: newStartTime })
                         validateTimeChange(newStartTime, newSlot.endTime)
                       }}
-                      use24Hour={true}
                     />
                   </div>
                   <div className='space-y-2'>
@@ -237,7 +236,6 @@ export function ReservationSlotSettings() {
                         setNewSlot({ ...newSlot, endTime: newEndTime })
                         validateTimeChange(newSlot.startTime, newEndTime)
                       }}
-                      use24Hour={true}
                     />
                   </div>
                 </div>
