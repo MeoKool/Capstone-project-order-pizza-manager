@@ -1,5 +1,5 @@
 import ApiResponse, { get, post, put } from "@/apis/apiUtils"
-import { Reservation, ReservationsResult } from "@/types/reservation"
+import { CreateBookingData, ReservationsResult } from "@/types/reservation"
 
 export type ApiErrorResponse = {
     error: {
@@ -46,13 +46,11 @@ export default class BookingService {
             id: string
             bookingDate: string
             guestCount: number
-            status: string
-            customerId: string
         },
-    ): Promise<ApiResponse<Reservation>> {
+    ): Promise<ApiResponse<void>> {
         try {
             console.log(`Updating reservation ${id} with data:`, data)
-            const response = await put<Reservation>(`/reservations/${id}`, data)
+            const response = await put<void>(`/reservations/${id}`, data)
             console.log("Update reservation response:", response)
             return response
         } catch (error) {
@@ -140,4 +138,17 @@ export default class BookingService {
             throw error
         }
     }
+    public async createBooking(data: CreateBookingData): Promise<ApiResponse<void>> {
+        try {
+            console.log("Creating new booking with data:", data)
+            const response = await post<void>("/reservations/create-reservation-by-manager", data)
+            console.log("Create booking response:", response)
+            return response
+        } catch (error) {
+            console.error("Error creating booking:", error)
+            throw error
+        }
+    }
+
+
 }

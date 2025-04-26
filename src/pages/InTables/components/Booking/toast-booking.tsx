@@ -3,7 +3,7 @@ import { toast } from "sonner"
 interface BookingSuccessToastProps {
     tableCode?: string
     message: string
-    name: string
+    name?: string
     duration?: number
 }
 

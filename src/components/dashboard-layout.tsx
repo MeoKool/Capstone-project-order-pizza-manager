@@ -59,6 +59,12 @@ const DashboardLayout = () => {
         return 'báo cáo'
       case '/more':
         return 'More'
+      case '/in-tables/zones':
+        return 'khu vực'
+      case '/in-tables/tables':
+        return 'bàn ăn'
+      case '/in-tables/booking':
+        return 'đặt bàn'
       default:
         return 'Dashboard'
     }

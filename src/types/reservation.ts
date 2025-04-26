@@ -29,3 +29,9 @@ export interface ReservationsResult {
     totalCount: number
 }
 
+export interface CreateBookingData {
+    customerName: string
+    phoneNumber: string
+    bookingTime: string
+    numberOfPeople: number
+}

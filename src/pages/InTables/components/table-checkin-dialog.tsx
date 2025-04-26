@@ -31,14 +31,23 @@ export function TableCheckInDialog({ table, open, onOpenChange, onTableUpdated }
     const reservationData = table.currentReservation
     const [tableCodesMap, setTableCodesMap] = useState<Record<string, string>>({})
     const sorted = Object.values(tableCodesMap).sort().join(", ");
+    const [tableIdForMerge, setTableIdForMerge] = useState<string[]>([])
+
+    //convert
+
+
+
+    const tableService = TableService.getInstance()
     // Fetch table codes for all tables in tableAssignReservations
     useEffect(() => {
         async function fetchTableCodes() {
             if (!reservationData?.tableAssignReservations?.length) return
 
             try {
-                const tableService = TableService.getInstance()
+
                 const tableIds = reservationData.tableAssignReservations.map((t) => t.tableId).filter(Boolean) as string[]
+                setTableIdForMerge(tableIds)
+                console.log(tableIds);
 
                 // Create a map to store tableId -> tableCode
                 const codesMap: Record<string, string> = {}
@@ -69,7 +78,9 @@ export function TableCheckInDialog({ table, open, onOpenChange, onTableUpdated }
         fetchTableCodes()
     }, [reservationData, table.id, table.code])
 
-
+    useEffect(() => {
+        console.log('tableIdForMerge:', tableIdForMerge)
+    }, [tableIdForMerge])
 
     // Format date and time for display
     const formatDateTime = (dateTimeStr: string) => {
@@ -110,6 +121,7 @@ export function TableCheckInDialog({ table, open, onOpenChange, onTableUpdated }
         try {
             const response = await bookingService.checkInReservation(table.currentReservationId)
 
+            const userNameBooking = table.currentReservation.customerName
             if (response.success) {
                 showTableLToast({
                     tableCode: sorted,
@@ -117,6 +129,14 @@ export function TableCheckInDialog({ table, open, onOpenChange, onTableUpdated }
                     note: `Khách hàng ${table.currentReservation.customerName} đã đến`,
                 })
 
+
+                if (tableIdForMerge && tableIdForMerge.length >= 2) {
+                    await tableService.mergeTable(tableIdForMerge, userNameBooking);
+                    setTimeout(() => {
+                        toast.dismiss();
+                        toast.success(`Gộp bàn ${sorted} thành công cho khách hàng ${userNameBooking} đặt bàn !`);
+                    }, 600);
+                }
                 // Close the dialog
                 onOpenChange(false)
 
