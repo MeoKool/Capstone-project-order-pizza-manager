@@ -82,7 +82,7 @@ export default function WorkshopsPage() {
             <div className='text-green-600 text-center w-[110px] py-0.4'>Đang mở đăng ký</div>
           </Badge>
         )
-      case 'CloseRegister':
+      case 'ClosedRegister':
         return (
           <Badge className='bg-gray-100 hover:bg-gray-300 border-gray-500 text-xs px-1'>
             <div className='text-gray-600 text-center w-[110px] py-0.4'>Đã đóng đăng ký</div>
