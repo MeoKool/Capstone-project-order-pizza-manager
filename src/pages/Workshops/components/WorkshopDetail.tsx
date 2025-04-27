@@ -147,7 +147,7 @@ export default function WorkshopDetail() {
                 <span className='bg-blue-500 text-white px-3 py-1 rounded-full text-sm'>Đã lên lịch</span>
               ) : workshop.workshopStatus === 'Closed' ? (
                 <span className='bg-gray-500 text-white px-3 py-1 rounded-full text-sm'>Đã kết thúc</span>
-              ) : workshop.workshopStatus === 'CloseRegister' ? (
+              ) : workshop.workshopStatus === 'ClosedRegister' ? (
                 <span className='bg-red-500 text-white px-3 py-1 rounded-full text-sm'>Đã đóng đăng ký</span>
               ) : (
                 <span className='bg-blue-500 text-white px-3 py-1 rounded-full text-sm'>{workshop.workshopStatus}</span>
