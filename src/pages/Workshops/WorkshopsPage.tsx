@@ -340,8 +340,8 @@ export default function WorkshopsPage() {
                     <div className='flex items-center space-x-2'>
                       <Checkbox
                         id='status-close-register'
-                        checked={statusFilter.includes('CloseRegister')}
-                        onCheckedChange={() => handleStatusFilterChange('CloseRegister')}
+                        checked={statusFilter.includes('ClosedRegister')}
+                        onCheckedChange={() => handleStatusFilterChange('ClosedRegister')}
                       />
                       <label htmlFor='status-close-register' className='text-sm cursor-pointer'>
                         Đã đóng đăng ký
