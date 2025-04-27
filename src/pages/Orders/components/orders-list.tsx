@@ -15,7 +15,8 @@ import {
   ChevronDown,
   ChevronRight,
   X,
-  Ban
+  Ban,
+  ChefHat
 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
@@ -640,6 +641,13 @@ function OrderDetailRows({ orderId }: { orderId: string }) {
           <div className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200'>
             <X className='w-3 h-3 mr-1' />
             Đã hủy
+          </div>
+        )
+      case 'Serving':
+        return (
+          <div className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200'>
+            <ChefHat className='w-3 h-3 mr-1' />
+            Đang phục vụ
           </div>
         )
       case 'Pending':

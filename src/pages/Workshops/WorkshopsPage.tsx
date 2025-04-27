@@ -82,7 +82,7 @@ export default function WorkshopsPage() {
             <div className='text-green-600 text-center w-[110px] py-0.4'>Đang mở đăng ký</div>
           </Badge>
         )
-      case 'CloseRegister':
+      case 'ClosedRegister':
         return (
           <Badge className='bg-gray-100 hover:bg-gray-300 border-gray-500 text-xs px-1'>
             <div className='text-gray-600 text-center w-[110px] py-0.4'>Đã đóng đăng ký</div>
@@ -340,8 +340,8 @@ export default function WorkshopsPage() {
                     <div className='flex items-center space-x-2'>
                       <Checkbox
                         id='status-close-register'
-                        checked={statusFilter.includes('CloseRegister')}
-                        onCheckedChange={() => handleStatusFilterChange('CloseRegister')}
+                        checked={statusFilter.includes('ClosedRegister')}
+                        onCheckedChange={() => handleStatusFilterChange('ClosedRegister')}
                       />
                       <label htmlFor='status-close-register' className='text-sm cursor-pointer'>
                         Đã đóng đăng ký
