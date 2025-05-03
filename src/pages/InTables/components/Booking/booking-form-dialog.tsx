@@ -1,7 +1,4 @@
-"use client"
-
 import type React from "react"
-
 import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -338,7 +335,7 @@ export function BookingFormDialog({ onSuccess, trigger }: BookingFormDialogProps
                                 control={form.control}
                                 name="bookingDate"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-col">
+                                    <FormItem className="flex flex-col mt-1">
                                         <FormLabel className="text-sm font-medium">
                                             Ngày đặt bàn <span className="text-red-500">*</span>
                                         </FormLabel>
@@ -369,6 +366,36 @@ export function BookingFormDialog({ onSuccess, trigger }: BookingFormDialogProps
                                             </PopoverContent>
                                         </Popover>
                                         <FormMessage className="text-xs" />
+                                        <div className="mb-2">
+
+                                            <FormField
+
+                                                control={form.control}
+                                                name="numberOfPeople"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-sm font-medium mb-20">
+                                                            Số người <span className="text-red-500">*</span>
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <div className="relative">
+                                                                <Users className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
+                                                                <Input
+                                                                    type="number"
+                                                                    placeholder="Nhập số người"
+                                                                    className="pl-10 text-sm"
+                                                                    min="1"
+                                                                    {...field}
+                                                                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                                                    value={field.value || ""}
+                                                                />
+                                                            </div>
+                                                        </FormControl>
+                                                        <FormMessage className="text-xs" />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
                                     </FormItem>
                                 )}
                             />
@@ -397,32 +424,8 @@ export function BookingFormDialog({ onSuccess, trigger }: BookingFormDialogProps
                                 )}
                             />
 
-                            <FormField
-                                control={form.control}
-                                name="numberOfPeople"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-sm font-medium">
-                                            Số người <span className="text-red-500">*</span>
-                                        </FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Users className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
-                                                <Input
-                                                    type="number"
-                                                    placeholder="Nhập số người"
-                                                    className="pl-10 text-sm"
-                                                    min="1"
-                                                    {...field}
-                                                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                                                    value={field.value || ""}
-                                                />
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage className="text-xs" />
-                                    </FormItem>
-                                )}
-                            />
+
+
                         </div>
 
                         <DialogFooter className="gap-2 sm:gap-0">
