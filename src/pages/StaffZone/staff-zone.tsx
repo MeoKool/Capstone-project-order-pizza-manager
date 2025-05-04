@@ -165,6 +165,7 @@ export default function StaffZoneManagement() {
     const timer = setInterval(() => setCurrentTime(new Date()), 60_000)
     return () => clearInterval(timer)
   }, [])
+
   useEffect(() => {
     fetchZonesAndStaff()
     checkCurrentWorkingSlot().then(() => {
@@ -323,15 +324,54 @@ export default function StaffZoneManagement() {
         toast.success(`${staffZone.staff.fullName} đã được chuyển sang khu vực mới`)
         // No need to fetch again, we already updated the UI
       } else {
+        // Show error message but don't refetch data
         toast.error(response.message || 'Đã xảy ra lỗi khi chuyển nhân viên')
-        // Revert the optimistic update on error
-        await fetchZonesAndStaff()
+
+        // Revert the optimistic update without refetching
+        setZoneWithStaff((prevState) => {
+          const revertedState = { ...prevState }
+
+          // Add back to source zone
+          revertedState[sourceZoneId] = {
+            ...revertedState[sourceZoneId],
+            staffZones: [...revertedState[sourceZoneId].staffZones, staffZone]
+          }
+
+          // Remove from target zone
+          revertedState[targetId] = {
+            ...revertedState[targetId],
+            staffZones: revertedState[targetId].staffZones.filter(
+              (sz) => !(sz.staff.id === staffZone.staff.id && sz.id === updatedStaffZone.id)
+            )
+          }
+
+          return revertedState
+        })
       }
     } catch (err) {
       console.error('Error moving staff:', err)
       toast.error('Đã xảy ra lỗi không mong muốn khi chuyển nhân viên')
-      // Revert the optimistic update on error
-      await fetchZonesAndStaff()
+
+      // Revert the optimistic update without refetching
+      setZoneWithStaff((prevState) => {
+        const revertedState = { ...prevState }
+
+        // Add back to source zone
+        revertedState[sourceZoneId] = {
+          ...revertedState[sourceZoneId],
+          staffZones: [...revertedState[sourceZoneId].staffZones, staffZone]
+        }
+
+        // Remove from target zone
+        revertedState[targetId] = {
+          ...revertedState[targetId],
+          staffZones: revertedState[targetId].staffZones.filter(
+            (sz) => !(sz.staff.id === staffZone.staff.id && sz.id === updatedStaffZone.id)
+          )
+        }
+
+        return revertedState
+      })
     } finally {
       setIsMoving(false)
       setMovingStaffId(null)
@@ -368,14 +408,12 @@ export default function StaffZoneManagement() {
         toast.success(`${staffZoneToDelete.staff.fullName} đã được xóa khỏi khu vực ${staffZoneToDelete.zone.name}`)
       } else {
         toast.error(response.message || 'Đã xảy ra lỗi khi xóa nhân viên')
-        // Refresh data on error
-        await fetchZonesAndStaff()
+        // Don't refresh data on error
       }
     } catch (err) {
       console.error('Error deleting staff zone:', err)
       toast.error('Đã xảy ra lỗi không mong muốn khi xóa nhân viên')
-      // Refresh data on error
-      await fetchZonesAndStaff()
+      // Don't refresh data on error
     } finally {
       setIsDeleting(false)
       setIsDeleteDialogOpen(false)
