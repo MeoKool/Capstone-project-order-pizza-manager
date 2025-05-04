@@ -1,10 +1,11 @@
+import { useState } from 'react'
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw, CheckCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw, CheckCircle, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useState } from 'react'
+import { AddZoneScheduleDialog } from './add-zone-schedule-dialog'
 
 interface CalendarHeaderProps {
   currentDate: Date
@@ -26,6 +27,7 @@ export function CalendarHeader({
   onViewChange
 }: CalendarHeaderProps) {
   const [isAutoAssigning, setIsAutoAssigning] = useState(false)
+  const [isAddZoneDialogOpen, setIsAddZoneDialogOpen] = useState(false)
 
   const handleAutoAssign = async () => {
     try {
@@ -148,6 +150,24 @@ export function CalendarHeader({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  className='bg-red-500 hover:bg-red-600 text-white'
+                  size='sm'
+                  onClick={() => setIsAddZoneDialogOpen(true)}
+                >
+                  <Plus className='h-4 w-4 mr-1' />
+                  Thêm nhân viên vào ca làm
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Thêm nhân viên vào ca làm việc tại khu vực</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
                   variant='outline'
                   size='sm'
                   onClick={onRefresh}
@@ -192,6 +212,9 @@ export function CalendarHeader({
           </TabsList>
         </Tabs>
       </div>
+
+      {/* Dialog for adding staff to zone schedule */}
+      <AddZoneScheduleDialog open={isAddZoneDialogOpen} onOpenChange={setIsAddZoneDialogOpen} onSuccess={onRefresh} />
     </div>
   )
 }

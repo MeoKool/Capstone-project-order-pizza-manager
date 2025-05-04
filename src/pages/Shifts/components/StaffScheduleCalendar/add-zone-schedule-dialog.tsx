@@ -18,34 +18,131 @@ import { vi } from 'date-fns/locale'
 import { CalendarIcon, Loader2, Search } from 'lucide-react'
 import { cn } from '@/utils/utils'
 import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import StaffAbsenceService from '@/services/staff-absence-service'
-import type { Day, Staff, WorkingSlot } from '@/types/staff-absence'
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 
-interface AddAbsenceDialogProps {
+// Types based on the provided code
+interface Staff {
+  id: string
+  fullName: string
+  username?: string
+}
+
+interface Day {
+  id: string
+  name: string
+}
+
+interface WorkingSlot {
+  id: string
+  shiftName: string
+  shiftStart: string
+  shiftEnd: string
+}
+
+interface Zone {
+  id: string
+  name: string
+}
+
+// Service to fetch data and make API calls
+class ZoneScheduleService {
+  private static instance: ZoneScheduleService
+
+  private constructor() {}
+
+  public static getInstance(): ZoneScheduleService {
+    if (!ZoneScheduleService.instance) {
+      ZoneScheduleService.instance = new ZoneScheduleService()
+    }
+    return ZoneScheduleService.instance
+  }
+
+  public async getAllStaff(): Promise<any> {
+    try {
+      const response = await fetch('https://vietsac.id.vn/api/staffs?Status=PartTime&TakeCount=1000')
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching staff:', error)
+      throw error
+    }
+  }
+
+  public async getAllDays(): Promise<any> {
+    try {
+      const response = await fetch('https://vietsac.id.vn/api/days')
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching days:', error)
+      throw error
+    }
+  }
+
+  public async getWorkingSlotsByDayId(dayId: string): Promise<any> {
+    try {
+      const response = await fetch(`https://vietsac.id.vn/api/working-slots?DayId=${dayId}&SortBy=shiftStart`)
+      return await response.json()
+    } catch (error) {
+      console.error(`Error fetching working slots for day ${dayId}:`, error)
+      throw error
+    }
+  }
+
+  public async getAllZones(): Promise<any> {
+    try {
+      const response = await fetch('https://vietsac.id.vn/api/zones?TakeCount=1000&SortBy=name')
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching zones:', error)
+      throw error
+    }
+  }
+
+  public async createZoneSchedule(request: {
+    workingDate: string
+    staffId: string
+    zoneId: string
+    workingSlotId: string
+  }): Promise<any> {
+    try {
+      const response = await fetch('https://vietsac.id.vn/api/staff-zone-schedules', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request)
+      })
+      return await response.json()
+    } catch (error) {
+      console.error('Error creating zone schedule:', error)
+      throw error
+    }
+  }
+}
+
+interface AddZoneScheduleDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }
 
-export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDialogProps) {
+export function AddZoneScheduleDialog({ open, onOpenChange, onSuccess }: AddZoneScheduleDialogProps) {
   const [staff, setStaff] = useState<Staff[]>([])
   const [days, setDays] = useState<Day[]>([])
   const [workingSlots, setWorkingSlots] = useState<WorkingSlot[]>([])
+  const [zones, setZones] = useState<Zone[]>([])
   const [selectedStaff, setSelectedStaff] = useState<string>('')
   const [selectedDay, setSelectedDay] = useState<string>('')
   const [selectedWorkingSlot, setSelectedWorkingSlot] = useState<string>('')
+  const [selectedZone, setSelectedZone] = useState<string>('')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [isAllDay, setIsAllDay] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const [staffSearchOpen, setStaffSearchOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredStaff, setFilteredStaff] = useState<Staff[]>([])
 
-  const staffAbsenceService = StaffAbsenceService.getInstance()
+  const zoneScheduleService = ZoneScheduleService.getInstance()
 
   // Hàm để xác định thứ từ ngày
   const getDayOfWeekFromDate = (date: Date): string => {
@@ -72,9 +169,10 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
     const fetchInitialData = async () => {
       setIsLoading(true)
       try {
-        const [staffResponse, daysResponse] = await Promise.all([
-          staffAbsenceService.getAllStaff(),
-          staffAbsenceService.getAllDays()
+        const [staffResponse, daysResponse, zonesResponse] = await Promise.all([
+          zoneScheduleService.getAllStaff(),
+          zoneScheduleService.getAllDays(),
+          zoneScheduleService.getAllZones()
         ])
 
         if (staffResponse.success) {
@@ -84,6 +182,10 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
 
         if (daysResponse.success) {
           setDays(daysResponse.result.items)
+        }
+
+        if (zonesResponse.success) {
+          setZones(zonesResponse.result.items)
         }
       } catch (error) {
         console.error('Error fetching initial data:', error)
@@ -99,8 +201,8 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
       setSelectedStaff('')
       setSelectedDay('')
       setSelectedWorkingSlot('')
+      setSelectedZone('')
       setSelectedDate(new Date())
-      setIsAllDay(false)
       setSearchTerm('')
     }
   }, [open])
@@ -120,7 +222,7 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
 
       setIsLoading(true)
       try {
-        const response = await staffAbsenceService.getWorkingSlotsByDayId(selectedDay)
+        const response = await zoneScheduleService.getWorkingSlotsByDayId(selectedDay)
         if (response.success) {
           setWorkingSlots(response.result.items)
         }
@@ -154,52 +256,44 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
 
   const handleSubmit = async () => {
     if (!selectedStaff || !selectedDate) {
-      toast.error('Vui lòng chọn nhân viên và ngày nghỉ')
+      toast.error('Vui lòng chọn nhân viên và ngày làm việc')
       return
     }
 
-    if (!isAllDay && !selectedWorkingSlot) {
-      toast.error('Vui lòng chọn ca làm việc hoặc chọn nghỉ cả ngày')
+    if (!selectedWorkingSlot) {
+      toast.error('Vui lòng chọn ca làm việc')
+      return
+    }
+
+    if (!selectedZone) {
+      toast.error('Vui lòng chọn khu vực làm việc')
       return
     }
 
     setIsSubmitting(true)
     try {
-      if (isAllDay) {
-        // Nếu nghỉ cả ngày, tạo nhiều đơn xin nghỉ cho tất cả ca làm việc trong ngày đó
-        const promises = workingSlots.map((slot) =>
-          staffAbsenceService.createAbsence({
-            staffId: selectedStaff,
-            workingSlotId: slot.id,
-            absentDate: format(selectedDate, 'yyyy-MM-dd')
-          })
-        )
+      await zoneScheduleService.createZoneSchedule({
+        staffId: selectedStaff,
+        workingSlotId: selectedWorkingSlot,
+        zoneId: selectedZone,
+        workingDate: format(selectedDate, 'yyyy-MM-dd')
+      })
 
-        await Promise.all(promises)
-      } else {
-        // Nếu chỉ nghỉ một ca, tạo một đơn xin nghỉ
-        await staffAbsenceService.createAbsence({
-          staffId: selectedStaff,
-          workingSlotId: selectedWorkingSlot,
-          absentDate: format(selectedDate, 'yyyy-MM-dd')
-        })
-      }
-
-      toast.success('Đã thêm đơn xin nghỉ thành công')
+      toast.success('Đã thêm nhân viên vào ca làm việc thành công')
 
       // Reset form
       setSelectedStaff('')
       setSelectedDay('')
       setSelectedWorkingSlot('')
+      setSelectedZone('')
       setSelectedDate(new Date())
-      setIsAllDay(false)
 
       // Gọi callback onSuccess để làm mới dữ liệu
       onSuccess()
       onOpenChange(false)
     } catch (error) {
-      console.error('Error creating absence:', error)
-      toast.error('Không thể tạo đơn xin nghỉ')
+      console.error('Error creating zone schedule:', error)
+      toast.error('Không thể thêm nhân viên vào ca làm việc')
     } finally {
       setIsSubmitting(false)
     }
@@ -220,8 +314,8 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
-          <DialogTitle>Thêm nhân viên xin nghỉ</DialogTitle>
-          <DialogDescription>Điền thông tin để tạo xin nghỉ phép cho nhân viên</DialogDescription>
+          <DialogTitle>Thêm nhân viên vào ca làm việc</DialogTitle>
+          <DialogDescription>Điền thông tin để thêm nhân viên vào ca làm việc tại khu vực</DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -275,7 +369,7 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
 
             <div className='grid grid-cols-4 items-center gap-4'>
               <Label htmlFor='date' className='text-right'>
-                Ngày nghỉ
+                Ngày làm việc
               </Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -312,36 +406,12 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
               </div>
             )}
 
-            <div className='grid grid-cols-4 items-center gap-4'>
-              <div className='text-right'>
-                <Label htmlFor='all-day'>Nghỉ cả ngày</Label>
-              </div>
-              <div className='col-span-3 flex items-center space-x-2'>
-                <Checkbox
-                  id='all-day'
-                  checked={isAllDay}
-                  onCheckedChange={(checked) => {
-                    setIsAllDay(checked === true)
-                    if (checked) {
-                      setSelectedWorkingSlot('')
-                    }
-                  }}
-                />
-                <label
-                  htmlFor='all-day'
-                  className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-                >
-                  Chọn tất cả ca làm việc
-                </label>
-              </div>
-            </div>
-
-            {!isAllDay && selectedDay && (
+            {selectedDay && (
               <div className='grid grid-cols-4 items-center gap-4'>
                 <Label htmlFor='working-slot' className='text-right'>
                   Ca làm việc
                 </Label>
-                <Select value={selectedWorkingSlot} onValueChange={setSelectedWorkingSlot} disabled={isAllDay}>
+                <Select value={selectedWorkingSlot} onValueChange={setSelectedWorkingSlot}>
                   <SelectTrigger id='working-slot' className='col-span-3'>
                     <SelectValue placeholder='Chọn ca làm việc' />
                   </SelectTrigger>
@@ -355,6 +425,24 @@ export function AddAbsenceDialog({ open, onOpenChange, onSuccess }: AddAbsenceDi
                 </Select>
               </div>
             )}
+
+            <div className='grid grid-cols-4 items-center gap-4'>
+              <Label htmlFor='zone' className='text-right'>
+                Khu vực
+              </Label>
+              <Select value={selectedZone} onValueChange={setSelectedZone}>
+                <SelectTrigger id='zone' className='col-span-3'>
+                  <SelectValue placeholder='Chọn khu vực' />
+                </SelectTrigger>
+                <SelectContent>
+                  {zones.map((zone) => (
+                    <SelectItem key={zone.id} value={zone.id}>
+                      {zone.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 

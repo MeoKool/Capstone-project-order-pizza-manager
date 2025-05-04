@@ -30,7 +30,7 @@ export default class StaffAbsenceService {
 
   public async getWorkingSlotsByDayId(dayId: string): Promise<WorkingSlotResponse> {
     try {
-      const response = await fetch(`https://vietsac.id.vn/api/working-slots?DayId=${dayId}`)
+      const response = await fetch(`https://vietsac.id.vn/api/working-slots?DayId=${dayId}&SortBy=shiftStart`)
       return await response.json()
     } catch (error) {
       console.error(`Error fetching working slots for day ${dayId}:`, error)

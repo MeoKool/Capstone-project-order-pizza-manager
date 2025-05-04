@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Toaster } from 'sonner'
 import { StaffAbsenceTable } from './staff-absence-table'
 import { AddAbsenceDialog } from './add-absence-dialog'
@@ -15,13 +15,11 @@ export default function StaffAbsencePage() {
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
-        <h1 className='text-2xl font-bold text-red-800'>Quản lý đơn xin nghỉ</h1>
+        <h1 className='text-2xl font-bold text-red-800'>Quản lý xin nghỉ</h1>
       </div>
 
       <Card>
-        <CardHeader className='pb-2'>
-          <CardTitle>Danh sách đơn xin nghỉ</CardTitle>
-        </CardHeader>
+        <CardHeader className='pb-2'></CardHeader>
         <CardContent>
           <StaffAbsenceTable key={refreshKey} onAddClick={() => setAddDialogOpen(true)} />
         </CardContent>
