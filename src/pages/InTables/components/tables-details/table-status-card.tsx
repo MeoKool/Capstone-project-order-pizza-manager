@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import TableService from "@/services/table-service"
 import { Reservation } from "@/types/reservation"
 import { TableTimer } from "../table-timer"
+import { cn } from "@/utils/utils"
 
 interface TableStatusCardProps {
     table: TableResponse
@@ -287,7 +288,17 @@ export function TableStatusCard({ table, isTimerRunning, onTimeUp }: TableStatus
 
     return (
         <Card className="border-amber-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-4 py-2 border-b border-amber-200">
+            <div
+                className={cn(
+                    "px-4 py-2 border-b flex items-center gap-2",
+                    {
+                        "bg-amber-100 border-amber-200": table.status === "Locked",
+                        "bg-green-100 border-green-200": table.status === "Opening",
+                        "bg-blue-100 border-blue-200": table.status === "Reserved",
+                        "bg-red-100 border-red-200": table.status === "Closing",
+                    }
+                )}
+            >
                 <div className="flex items-center gap-2">
                     {getStatusIcon(table.status)}
                     <h3 className="font-medium text-amber-900 text-sm">{statusInfo.title}</h3>

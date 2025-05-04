@@ -1,14 +1,18 @@
 import { Badge } from "@/components/ui/badge"
 import type { OrderItemDetail } from "@/types/order"
-import { ShoppingBag } from "lucide-react"
+import { ShoppingBag, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 interface OrderItemsListProps {
     orderItems: OrderItemDetail[]
     formatCurrency: (amount: number) => string
     orderStatus: string
+    onOpenCancelDialog: (item: OrderItemDetail) => void
 }
 
-export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: OrderItemsListProps) {
+export function OrderItemsList({ orderItems, formatCurrency, orderStatus, onOpenCancelDialog }: OrderItemsListProps) {
+
+
     // Get order item status badge
     const getOrderItemStatusBadge = (status: string) => {
         switch (status) {
@@ -86,7 +90,7 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                         bg: "bg-green-50",
                         text: "text-green-600",
                         border: "border-green-300",
-                        hover: "hover:bg-green-300"
+                        hover: "hover:bg-green-300",
                     },
                 }
             case "Cancelled":
@@ -153,7 +157,9 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                         <ShoppingBag className="h-3.5 w-3.5 text-blue-600" />
                         <p className="text-sm font-medium text-blue-700">Tổng số món: {totalItems}</p>
                     </div>
-                    <Badge className="bg-blue-100 hover:bg-blue-300 text-blue-700 border-blue-300">{orderItems.length} loại món</Badge>
+                    <Badge className="bg-blue-100 hover:bg-blue-300 text-blue-700 border-blue-300">
+                        {orderItems.length} loại món
+                    </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 mt-2">
@@ -177,7 +183,9 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
                                                         ? "Đang nấu"
                                                         : status}
                                 </span>
-                                <Badge className={`${colorClasses.badge.bg} ${colorClasses.badge.text} ${colorClasses.badge.border} ${colorClasses.hover}`}>
+                                <Badge
+                                    className={`${colorClasses.badge.bg} ${colorClasses.badge.text} ${colorClasses.badge.border} ${colorClasses.hover}`}
+                                >
                                     {count}
                                 </Badge>
                             </div>
@@ -190,44 +198,64 @@ export function OrderItemsList({ orderItems, formatCurrency, orderStatus }: Orde
 
     // For other statuses, show the detailed view
     return (
-        <div className="space-y-2">
-            {orderItems.map((item) => (
-                <div key={item.id} className="border border-amber-100 rounded-md p-2">
-                    <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                            <p className="font-medium text-amber-900 text-xs sm:text-sm">{item.name}</p>
-                            <p className="text-xs text-amber-700">
-                                {item.quantity} x {formatCurrency(item.price)}
-                            </p>
-                            {item.note && <p className="text-xs italic text-amber-600 mt-1">Ghi chú: {item.note}</p>}
+        <>
+            <div className="space-y-2">
+                {orderItems.map((item) => (
+                    <div key={item.id} className="border border-amber-100 rounded-md p-2">
+                        <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                                <p className="font-medium text-amber-900 text-xs sm:text-sm mr-2">{item.name}</p>
+                                <p className="text-xs text-amber-700">
+                                    {item.quantity} x {formatCurrency(item.price)}
+                                </p>
+                                {item.note && <p className="text-xs italic text-amber-600 mt-1">Ghi chú: {item.note}</p>}
 
-                            {/* Display order item options if any */}
-                            {item.orderItemDetails && item.orderItemDetails.length > 0 && (
-                                <div className="mt-1 pl-2 border-l-4 border-amber-100">
-                                    {item.orderItemDetails.map((option) => (
-                                        <p key={option.id} className="text-xs text-amber-600">
-                                            + {option.name} (+{formatCurrency(option.additionalPrice)})
-                                        </p>
-                                    ))}
+                                {/* Display order item options if any */}
+                                {item.orderItemDetails && item.orderItemDetails.length > 0 && (
+                                    <div className="mt-1 pl-2 border-l-4 border-amber-100">
+                                        {item.orderItemDetails.map((option) => (
+                                            <p key={option.id} className="text-xs text-amber-600">
+                                                + {option.name} (+{formatCurrency(option.additionalPrice)})
+                                            </p>
+                                        ))}
+                                    </div>
+                                )}
+                                {item.orderItemStatus === "Cancelled" && (
+                                    <div className="flex mt-2 p-2 bg-red-50 rounded-md border truncate border-red-100">
+                                        <h1 className="font-medium text-red-700 text-sm">Lý do hủy:</h1>
+                                        <h1 className="ml-2 text-red-700 text-sm">{item.reasonCancel || "Không có lý do"} </h1>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex flex-col justify-between min-h-[100px] ">
 
+                                <div>{getOrderItemStatusBadge(item.orderItemStatus)}</div>
+
+                                <div className="flex flex-col gap-1">
+
+                                    <p className="font-medium text-amber-900 text-xs sm:text-sm text-right">
+                                        {formatCurrency(item.totalPrice)}
+                                    </p>
+                                    {(item.orderItemStatus === "Pending"
+                                        || item.orderItemStatus === "Done"
+                                        || item.orderItemStatus === "Serving") && (
+                                            <Button
+                                                variant="red"
+                                                size="sm"
+                                                className="h-7 px-3 text-xs "
+                                                onClick={() => onOpenCancelDialog(item)}
+                                            >
+                                                <Trash2 className="h-3 w-3 mr-1" />
+                                                Hủy món
+                                            </Button>
+                                        )}
                                 </div>
-                            )}
-                            {item.orderItemStatus === 'Cancelled' && (
-                                <div className=' flex mt-2 p-2 bg-red-50 rounded-md border truncate border-red-100'>
-                                    <h1 className='font-medium text-red-700 text-sm'>Lý do hủy:</h1>
-                                    <h1 className='ml-2 text-red-700 text-sm'>{item.reasonCancel || 'Không có lý do'} </h1>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex flex-col justify-between min-h-[76px]">
-                            <div>{getOrderItemStatusBadge(item.orderItemStatus)}</div>
-                            <p className="font-medium text-amber-900 text-xs sm:text-sm text-right mt-auto">
-                                {formatCurrency(item.totalPrice)}
-                            </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            ))}
-        </div>
+                ))}
+            </div>
+
+        </>
     )
 }
