@@ -8,14 +8,12 @@ import {
   Trash2,
   Clock,
   CheckCircle2,
-  AlertCircle,
   ArrowUpDown,
   Calendar,
   Filter,
   ChevronDown,
   ChevronRight,
   X,
-  Ban,
   ChefHat
 } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -30,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { OrderDetailsDialog } from './order-details-dialog'
-import { type Order, PAYMENT_STATUS } from '@/types/order'
+import { type Order, OrderItem, PAYMENT_STATUS } from '@/types/order'
 import {
   Pagination,
   PaginationContent,
@@ -46,6 +44,7 @@ import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import OrderService from '@/services/order-service'
 import React from 'react'
+import { getStatusOrderBadge } from './StatusBadge'
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100]
 const orderService = OrderService.getInstance()
@@ -177,44 +176,7 @@ export function OrdersList() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case PAYMENT_STATUS.PAID:
-        return (
-          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-green-50 text-green-600'>
-            <CheckCircle2 className='mr-1 h-3.5 w-3.5' />
-            Đã thanh toán
-          </div>
-        )
-      case PAYMENT_STATUS.CHECKOUT:
-        return (
-          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-blue-50 text-blue-600'>
-            <Clock className='mr-1 h-3.5 w-3.5' />
-            Đã checkout
-          </div>
-        )
-      case PAYMENT_STATUS.UNPAID:
-        return (
-          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-amber-50 text-amber-600'>
-            <AlertCircle className='mr-1 h-3.5 w-3.5' />
-            Chưa thanh toán
-          </div>
-        )
-      case PAYMENT_STATUS.CANCELLED:
-        return (
-          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-red-50 text-red-600'>
-            <Ban className='mr-1 h-3.5 w-3.5' />
-            Đã hủy
-          </div>
-        )
-      default:
-        return (
-          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'>
-            {status}
-          </div>
-        )
-    }
-  }
+
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '—'
@@ -459,9 +421,8 @@ export function OrdersList() {
               paginatedOrders.map((order, index) => (
                 <React.Fragment key={order.id}>
                   <TableRow
-                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${
-                      expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
-                    }`}
+                    className={`hover:bg-orange-100 cursor-pointer transition-colors ${expandedRows[order.id] ? 'bg-orange-200 font-medium' : ''
+                      }`}
                     onClick={() => toggleRowExpansion(order.id)}
                   >
                     <TableCell className='text-center font-medium'>
@@ -480,7 +441,7 @@ export function OrdersList() {
                     <TableCell className='font-medium text-primary'>
                       {order.totalPrice ? order.totalPrice.toLocaleString('vi-VN') + ' ₫' : 'Chưa thanh toán'}
                     </TableCell>
-                    <TableCell>{getStatusBadge(order.status)}</TableCell>
+                    <TableCell>{getStatusOrderBadge(order.status)}</TableCell>
                     <TableCell className='text-right'>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -703,7 +664,7 @@ function OrderDetailRows({ orderId }: { orderId: string }) {
         <TableCell className='py-2 text-center text-primary'>Tổng thời gian</TableCell>
       </TableRow>
 
-      {orderDetail.orderItems.map((item: any, index: number) => {
+      {orderDetail.orderItems.map((item: OrderItem, index: number) => {
         const isEven = index % 2 === 0
         return (
           <TableRow key={item.id} className={`${isEven ? 'bg-white' : 'bg-gray-50'} text-sm`}>

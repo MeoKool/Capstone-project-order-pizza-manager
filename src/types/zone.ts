@@ -1,14 +1,21 @@
 export default interface ZoneRequest {
   name: string
-  capacity: number
   description: string
-  type: 'DininingArea' | 'WorkshopArea' | 'KitchenArea'
+  type: TYPEZONES
 }
 export interface ZoneResponse extends ZoneRequest {
   id: string
 }
 
+export type TYPEZONES = 'DininingArea' | 'WorkshopArea' | 'KitchenArea'
+
 export interface ZoneResult {
   items: ZoneResponse[]
   totalCount: number
+}
+export interface ZoneUpdate {
+  id: string
+  name: string
+  description: string
+  type: TYPEZONES
 }
