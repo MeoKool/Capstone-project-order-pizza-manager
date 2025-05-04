@@ -85,7 +85,7 @@ export default class WorkshopService {
 
   public updateWorkshop(workshopId: string, payload: object): Promise<ApiResponse<void>> {
     try {
-      return put<void>(`/workshops/${workshopId}`, { payload })
+      return put<void>(`/workshops/${workshopId}`, payload)
     } catch (error) {
       console.error('Error cancelling workshop:', error)
       throw error
@@ -125,6 +125,26 @@ export default class WorkshopService {
       return put<void>(`/workshops/close/${workshopId}`, {})
     } catch (error) {
       console.error('Error closing workshop:', error)
+      throw error
+    }
+  }
+  public openWorkshop(workshopId: string): Promise<ApiResponse<void>> {
+    try {
+      return put<void>(`/workshops/open/${workshopId}`, {})
+    } catch (error) {
+      console.error('Error opening workshop:', error)
+      throw error
+    }
+  }
+
+  public reopenToRegister(workshopId: string, newEndRegisterDate: string): Promise<ApiResponse<void>> {
+    try {
+      return put<void>(`/workshops/reopen-to-register/${workshopId}`, {
+        workshopId,
+        newEndRegisterDate
+      })
+    } catch (error) {
+      console.error('Error reopening workshop registration:', error)
       throw error
     }
   }

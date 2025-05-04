@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Filter, MoreHorizontal, Edit, Eye, CalendarIcon, X } from 'lucide-react'
+import { Search, Plus, Filter, MoreHorizontal, Edit, Eye, CalendarIcon, X, Clock } from 'lucide-react'
 import WorkshopService from '../../services/workshop-service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { format } from 'date-fns'
+import { format, isToday, isBefore, parseISO } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { WorkshopStatus, type Workshop } from '@/types/workshop'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -33,6 +33,7 @@ import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
 import { formatVietnamDate } from '@/utils/date-utils'
 import { Calendar } from '@/components/ui/calendar'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
@@ -46,9 +47,28 @@ export default function WorkshopsPage() {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
+  // New state for reopen registration
+  const [reopenWorkshopId, setReopenWorkshopId] = useState<string | null>(null)
+  const [reopenWorkshop, setReopenWorkshop] = useState<Workshop | null>(null)
+  const [newEndRegisterDate, setNewEndRegisterDate] = useState<Date | undefined>(undefined)
+  const [reopenDialogOpen, setReopenDialogOpen] = useState(false)
+
   useEffect(() => {
     fetchWorkshops()
   }, [])
+
+  useEffect(() => {
+    if (reopenWorkshopId) {
+      const workshop = workshops.find((w) => w.id === reopenWorkshopId)
+      if (workshop) {
+        setReopenWorkshop(workshop)
+        setReopenDialogOpen(true)
+      }
+    } else {
+      setReopenWorkshop(null)
+      setNewEndRegisterDate(undefined)
+    }
+  }, [reopenWorkshopId, workshops])
 
   const fetchWorkshops = async () => {
     try {
@@ -140,6 +160,70 @@ export default function WorkshopsPage() {
     }
   }
 
+  // New function to handle opening a workshop
+  const handleOpenWorkshop = async (id: string) => {
+    try {
+      const response = await workshopService.openWorkshop(id)
+      if (response.success) {
+        // Update the workshop status in the local state
+        setWorkshops(
+          workshops.map((workshop) =>
+            workshop.id === id ? { ...workshop, workshopStatus: WorkshopStatus.Opening } : workshop
+          )
+        )
+        toast.success('Workshop đã được mở thành công!')
+        // Fetch workshops again to refresh the list
+        fetchWorkshops()
+      } else {
+        toast.error(response.message)
+        console.error('Failed to open workshop:', response.message)
+      }
+    } catch (error) {
+      console.error('Error opening workshop:', error)
+      toast.error('Đã xảy ra lỗi khi mở workshop')
+    }
+  }
+
+  // New function to handle reopening registration
+  const handleReopenToRegister = async () => {
+    if (!reopenWorkshopId || !newEndRegisterDate) {
+      toast.error('Vui lòng chọn ngày kết thúc đăng ký mới')
+      return
+    }
+
+    try {
+      const formattedDate = newEndRegisterDate.toISOString()
+      const response = await workshopService.reopenToRegister(reopenWorkshopId, formattedDate)
+
+      if (response.success) {
+        // Update the workshop status in the local state
+        setWorkshops(
+          workshops.map((workshop) =>
+            workshop.id === reopenWorkshopId
+              ? {
+                  ...workshop,
+                  workshopStatus: WorkshopStatus.OpeningToRegister,
+                  endRegisterDate: formattedDate
+                }
+              : workshop
+          )
+        )
+        toast.success('Đã mở lại đăng ký workshop thành công!')
+        // Fetch workshops again to refresh the list
+        fetchWorkshops()
+        // Close the dialog
+        setReopenDialogOpen(false)
+        setReopenWorkshopId(null)
+      } else {
+        toast.error(response.message)
+        console.error('Failed to reopen workshop registration:', response.message)
+      }
+    } catch (error) {
+      console.error('Error reopening workshop registration:', error)
+      toast.error('Đã xảy ra lỗi khi mở lại đăng ký workshop')
+    }
+  }
+
   const handleCancelWorkshop = async () => {
     if (!cancelWorkshopId) return
 
@@ -179,6 +263,28 @@ export default function WorkshopsPage() {
       setSortColumn(column)
       setSortDirection('asc')
     }
+  }
+
+  // Check if a date is the same day as today
+  const isWorkshopToday = (dateString: string) => {
+    try {
+      return isToday(parseISO(dateString))
+    } catch {
+      return false
+    }
+  }
+
+  // Validate if the new end register date is valid
+  const isValidEndRegisterDate = (date: Date | undefined) => {
+    if (!date || !reopenWorkshop) return false
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const workshopDate = parseISO(reopenWorkshop.workshopDate)
+
+    // Date must be after or equal to today and before workshop date
+    return !isBefore(date, today) && isBefore(date, workshopDate)
   }
 
   const filteredWorkshops = workshops.filter((workshop) => {
@@ -478,6 +584,20 @@ export default function WorkshopsPage() {
                                 Chỉnh sửa
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
+
+                              {/* Mở workshop - chỉ hiển thị nếu đúng ngày diễn ra và trạng thái là Scheduled */}
+                              {workshop.workshopStatus === 'Scheduled' ||
+                                (workshop.workshopStatus === 'Closed' && isWorkshopToday(workshop.workshopDate) && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleOpenWorkshop(workshop.id)}
+                                    className='text-green-600'
+                                  >
+                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                    Mở workshop
+                                  </DropdownMenuItem>
+                                ))}
+
+                              {/* Đóng workshop - chỉ hiển thị nếu trạng thái là Opening */}
                               {workshop.workshopStatus === 'Opening' && (
                                 <DropdownMenuItem
                                   onClick={() => handleCloseWorkshop(workshop.id)}
@@ -487,6 +607,19 @@ export default function WorkshopsPage() {
                                   Đóng workshop
                                 </DropdownMenuItem>
                               )}
+
+                              {/* Mở lại đăng ký - chỉ hiển thị nếu trạng thái là ClosedRegister */}
+                              {workshop.workshopStatus === 'ClosedRegister' && (
+                                <DropdownMenuItem
+                                  onClick={() => setReopenWorkshopId(workshop.id)}
+                                  className='text-blue-600'
+                                >
+                                  <Clock className='mr-2 h-4 w-4' />
+                                  Mở lại đăng ký
+                                </DropdownMenuItem>
+                              )}
+
+                              {/* Hủy workshop - chỉ hiển thị nếu trạng thái không phải là Opening hoặc Closed */}
                               {(workshop.workshopStatus === 'Scheduled' ||
                                 workshop.workshopStatus === 'OpeningToRegister' ||
                                 workshop.workshopStatus === 'ClosedRegister') && (
@@ -528,6 +661,74 @@ export default function WorkshopsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reopen Registration Dialog */}
+      <Dialog
+        open={reopenDialogOpen}
+        onOpenChange={(open) => {
+          setReopenDialogOpen(open)
+          if (!open) setReopenWorkshopId(null)
+        }}
+      >
+        <DialogContent className='sm:max-w-[425px]'>
+          <DialogHeader>
+            <DialogTitle>Mở lại đăng ký workshop</DialogTitle>
+          </DialogHeader>
+          <div className='py-4'>
+            <div className='space-y-4'>
+              <div className='space-y-2'>
+                <label htmlFor='end-date' className='block text-sm font-medium'>
+                  Chọn ngày kết thúc đăng ký mới
+                </label>
+                <div className='border rounded-md p-4'>
+                  <Calendar
+                    mode='single'
+                    selected={newEndRegisterDate}
+                    onSelect={setNewEndRegisterDate}
+                    disabled={(date) => {
+                      if (!reopenWorkshop) return true
+                      const today = new Date()
+                      today.setHours(0, 0, 0, 0)
+                      const workshopDate = parseISO(reopenWorkshop.workshopDate)
+                      return isBefore(date, today) || !isBefore(date, workshopDate)
+                    }}
+                    initialFocus
+                  />
+                </div>
+                {newEndRegisterDate && (
+                  <p className='text-sm text-muted-foreground'>
+                    Ngày kết thúc đăng ký mới: {format(newEndRegisterDate, 'dd/MM/yyyy', { locale: vi })}
+                  </p>
+                )}
+                {newEndRegisterDate && reopenWorkshop && (
+                  <p className='text-sm text-muted-foreground'>
+                    Ngày diễn ra workshop: {formatDate(reopenWorkshop.workshopDate)}
+                  </p>
+                )}
+                {!isValidEndRegisterDate(newEndRegisterDate) && (
+                  <p className='text-sm text-red-500'>
+                    Ngày kết thúc đăng ký phải sau ngày hôm nay và trước ngày diễn ra workshop
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setReopenDialogOpen(false)
+                setReopenWorkshopId(null)
+              }}
+            >
+              Hủy
+            </Button>
+            <Button onClick={handleReopenToRegister} disabled={!isValidEndRegisterDate(newEndRegisterDate)}>
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
