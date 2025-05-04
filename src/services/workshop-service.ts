@@ -22,6 +22,19 @@ interface WorkshopRegister {
   tableCode: string | null
 }
 
+// Add interfaces for pizza summary and details
+interface PizzaSummary {
+  productName: string
+  productId: string
+  totalQuantity: number
+}
+
+interface PizzaDetail {
+  customerName: string
+  customerPhone: string
+  productName: string
+}
+
 export default class WorkshopService {
   private static instance: WorkshopService
 
@@ -60,6 +73,7 @@ export default class WorkshopService {
       throw error
     }
   }
+
   public cancelWorkshop(workshopId: string): Promise<ApiResponse<void>> {
     try {
       return put<void>(`/workshops/cancel-workshop`, { workshopId })
@@ -68,6 +82,7 @@ export default class WorkshopService {
       throw error
     }
   }
+
   public updateWorkshop(workshopId: string, payload: object): Promise<ApiResponse<void>> {
     try {
       return put<void>(`/workshops/update-workshop`, { workshopId, payload })
@@ -83,6 +98,25 @@ export default class WorkshopService {
       return get<WorkshopRegisterResult>(`/workshop-register?WorkshopId=${workshopId}`)
     } catch (error) {
       console.error(`Error fetching registrations for workshop ${workshopId}:`, error)
+      throw error
+    }
+  }
+
+  // Add new methods for pizza summary and details
+  public getPizzasSummary(workshopId: string): Promise<ApiResponse<PizzaSummary[]>> {
+    try {
+      return get<PizzaSummary[]>(`/workshop-register/pizzas-summary/${workshopId}`)
+    } catch (error) {
+      console.error(`Error fetching pizza summary for workshop ${workshopId}:`, error)
+      throw error
+    }
+  }
+
+  public getPizzasDetail(workshopId: string): Promise<ApiResponse<PizzaDetail[]>> {
+    try {
+      return get<PizzaDetail[]>(`/workshop-register/pizzas-detail/${workshopId}`)
+    } catch (error) {
+      console.error(`Error fetching pizza details for workshop ${workshopId}:`, error)
       throw error
     }
   }

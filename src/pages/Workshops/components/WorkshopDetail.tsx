@@ -1,5 +1,3 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 import WorkshopService from '@/services/workshop-service'
@@ -17,8 +15,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Edit, Pizza, Users, X } from 'lucide-react'
+import { ArrowLeft, Edit, Pizza, Users, X, Info } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 
 // Add interface for workshop registrations
 interface WorkshopRegister {
@@ -35,6 +35,19 @@ interface WorkshopRegister {
   tableCode: string | null
 }
 
+// Add interfaces for pizza summary and details
+interface PizzaSummary {
+  productName: string
+  productId: string
+  totalQuantity: number
+}
+
+interface PizzaDetail {
+  customerName: string
+  customerPhone: string
+  productName: string
+}
+
 export default function WorkshopDetail() {
   const { id } = useParams<{ id: string }>()
   const [workshop, setWorkshop] = useState<Workshop | null>(null)
@@ -43,6 +56,14 @@ export default function WorkshopDetail() {
   // Add state for registrations
   const [registrations, setRegistrations] = useState<WorkshopRegister[]>([])
   const [registrationsLoading, setRegistrationsLoading] = useState(true)
+  // Add state for pizza summary and details
+  const [pizzaSummary, setPizzaSummary] = useState<PizzaSummary[]>([])
+  const [pizzaDetails, setPizzaDetails] = useState<PizzaDetail[]>([])
+  const [pizzaSummaryLoading, setPizzaSummaryLoading] = useState(true)
+  const [pizzaDetailsLoading, setPizzaDetailsLoading] = useState(false)
+  const [selectedPizza, setSelectedPizza] = useState<string>('')
+  const [showPizzaDetailsDialog, setShowPizzaDetailsDialog] = useState(false)
+
   const navigate = useNavigate()
   const workshopService = WorkshopService.getInstance()
 
@@ -83,6 +104,42 @@ export default function WorkshopDetail() {
     fetchRegistrations()
   }, [id])
 
+  // Add effect to fetch pizza summary
+  useEffect(() => {
+    const fetchPizzaSummary = async () => {
+      if (!id) return
+      setPizzaSummaryLoading(true)
+      try {
+        const response = await workshopService.getPizzasSummary(id)
+        if (response.success) {
+          setPizzaSummary(response.result)
+        }
+      } catch (error) {
+        console.error('Error fetching pizza summary:', error)
+      } finally {
+        setPizzaSummaryLoading(false)
+      }
+    }
+    fetchPizzaSummary()
+  }, [id])
+
+  // Function to fetch pizza details
+  const fetchPizzaDetails = async () => {
+    if (!id) return
+    setPizzaDetailsLoading(true)
+    try {
+      const response = await workshopService.getPizzasDetail(id)
+      if (response.success) {
+        setPizzaDetails(response.result)
+        setShowPizzaDetailsDialog(true)
+      }
+    } catch (error) {
+      console.error('Error fetching pizza details:', error)
+    } finally {
+      setPizzaDetailsLoading(false)
+    }
+  }
+
   const handleCancelWorkshop = async () => {
     if (!id) return
 
@@ -122,6 +179,11 @@ export default function WorkshopDetail() {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date)
+  }
+
+  // Filter pizza details for a specific pizza
+  const getFilteredPizzaDetails = (productName: string) => {
+    return pizzaDetails.filter((detail) => detail.productName === productName)
   }
 
   return (
@@ -273,12 +335,69 @@ export default function WorkshopDetail() {
         </CardContent>
       </Card>
 
+      {/* Pizza Summary Section */}
+      <Card className='shadow-md border border-gray-200 rounded-xl mb-6'>
+        <CardHeader className='pb-4 border-b'>
+          <CardTitle className='flex items-center gap-2'>
+            <Pizza className='h-5 w-5' />
+            Tổng hợp pizza đã đăng ký
+          </CardTitle>
+        </CardHeader>
+        <CardContent className='py-6'>
+          {pizzaSummaryLoading ? (
+            <div className='flex justify-center items-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary'></div>
+            </div>
+          ) : pizzaSummary.length > 0 ? (
+            <div className='overflow-x-auto'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tên pizza</TableHead>
+                    <TableHead className='text-center'>Số lượng</TableHead>
+                    <TableHead className='text-right'>Thao tác</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pizzaSummary.map((pizza) => (
+                    <TableRow key={pizza.productId}>
+                      <TableCell className='font-medium'>{pizza.productName}</TableCell>
+                      <TableCell className='text-center'>
+                        <Badge variant='outline' className='bg-amber-100 text-amber-800 border-amber-300'>
+                          {pizza.totalQuantity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        <Button
+                          variant='ghost'
+                          size='sm'
+                          className='text-blue-600 hover:text-blue-800 hover:bg-blue-50'
+                          onClick={() => {
+                            setSelectedPizza(pizza.productName)
+                            fetchPizzaDetails()
+                          }}
+                        >
+                          <Info className='h-4 w-4 mr-1' />
+                          Xem chi tiết
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className='text-center text-muted-foreground py-8'>Chưa có pizza nào được đăng ký</div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Food Items Section */}
       <Card className='shadow-md border border-gray-200 rounded-xl'>
         <CardHeader className='pb-4 border-b'>
           <CardTitle className='flex items-center gap-2'>
             <Pizza className='h-5 w-5' />
-            Danh sách món ăn đã chọn
+            Danh sách món ăn đã chọn cho workshop
           </CardTitle>
         </CardHeader>
         <CardContent className='py-6'>
@@ -296,6 +415,53 @@ export default function WorkshopDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pizza Details Dialog */}
+      <Dialog open={showPizzaDetailsDialog} onOpenChange={setShowPizzaDetailsDialog}>
+        <DialogContent className='sm:max-w-[600px]'>
+          <DialogHeader>
+            <DialogTitle>Chi tiết đăng ký pizza: {selectedPizza}</DialogTitle>
+            <DialogDescription>Danh sách khách hàng đã đăng ký pizza này</DialogDescription>
+          </DialogHeader>
+
+          {pizzaDetailsLoading ? (
+            <div className='flex justify-center items-center h-32'>
+              <div className='animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary'></div>
+            </div>
+          ) : (
+            <div className='overflow-y-auto max-h-[400px]'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Họ tên</TableHead>
+                    <TableHead>Số điện thoại</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {getFilteredPizzaDetails(selectedPizza).map((detail, index) => (
+                    <TableRow key={index}>
+                      <TableCell className='font-medium'>{detail.customerName}</TableCell>
+                      <TableCell>{detail.customerPhone}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {getFilteredPizzaDetails(selectedPizza).length === 0 && (
+                <div className='text-center text-muted-foreground py-4'>
+                  Không tìm thấy thông tin chi tiết cho pizza này
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className='flex justify-end'>
+            <Button variant='outline' onClick={() => setShowPizzaDetailsDialog(false)}>
+              Đóng
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancel Workshop Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
