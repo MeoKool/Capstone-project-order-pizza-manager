@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
 import { parseISO, addWeeks, subWeeks, isSameDay, addMonths, subMonths } from 'date-fns'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
 import StaffScheduleService from '@/services/staff-schedule-service'
@@ -11,14 +13,14 @@ import type {
 } from '@/types/staff-schedule'
 
 import { toast } from 'sonner'
-import { CalendarHeader } from './StaffScheduleCalendar/calendar-header'
 import LoadingSpinner from '@/components/LoadingSpinner'
+import { CalendarHeader } from './StaffScheduleCalendar/calendar-header'
 import { WeekView } from './StaffScheduleCalendar/week-view'
 import { MonthView } from './StaffScheduleCalendar/month-view'
 import { DayDetailsDialog } from './StaffScheduleCalendar/day-details-dialog'
 import { RegistrationDialog } from './StaffScheduleCalendar/registration-dialog'
-import { SwapRequestDialog } from './StaffScheduleCalendar/swap-request-dialog'
 import { SwapActionDialog } from './StaffScheduleCalendar/swap-action-dialog'
+import { SwapRequestDialog } from './StaffScheduleCalendar/swap-request-dialog'
 
 export default function StaffScheduleCalendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -44,11 +46,14 @@ export default function StaffScheduleCalendar() {
   const [isDayDialogOpen, setIsDayDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'schedules' | 'registrations' | 'swaps'>('schedules')
 
-  useEffect(() => {
-    fetchSchedules()
-    fetchRegistrations()
-    fetchSwapRequests()
+  // Fetch all data
+  const fetchAllData = useCallback(async () => {
+    await Promise.all([fetchSchedules(), fetchRegistrations(), fetchSwapRequests()])
   }, [])
+
+  useEffect(() => {
+    fetchAllData()
+  }, [fetchAllData])
 
   const fetchSchedules = async () => {
     try {
@@ -58,13 +63,19 @@ export default function StaffScheduleCalendar() {
 
       if (response.success && response.result) {
         setStaffSchedules(response.result.items)
+
         // Update selectedDaySchedules if there's a selected date
         if (selectedDate) {
-          setSelectedDaySchedules(getSchedulesForDate(selectedDate))
+          const updatedSchedules = response.result.items.filter((schedule) => {
+            const scheduleDate = parseISO(schedule.workingDate)
+            return isSameDay(scheduleDate, selectedDate)
+          })
+          setSelectedDaySchedules(updatedSchedules)
         }
       }
     } catch (error) {
       console.error('Error fetching staff schedules:', error)
+      toast.error('Không thể tải lịch làm việc')
     } finally {
       setIsLoading(false)
     }
@@ -85,6 +96,7 @@ export default function StaffScheduleCalendar() {
       }
     } catch (error) {
       console.error('Error fetching registrations:', error)
+      toast.error('Không thể tải yêu cầu đăng ký')
     }
   }
 
@@ -121,6 +133,7 @@ export default function StaffScheduleCalendar() {
       }
     } catch (error) {
       console.error('Error fetching swap requests:', error)
+      toast.error('Không thể tải yêu cầu đổi ca')
     }
   }
 
@@ -145,14 +158,7 @@ export default function StaffScheduleCalendar() {
   }
 
   const handleRefresh = async () => {
-    await Promise.all([fetchSchedules(), fetchRegistrations(), fetchSwapRequests()])
-  }
-
-  const getSchedulesForDate = (date: Date) => {
-    return staffSchedules.filter((schedule) => {
-      const scheduleDate = parseISO(schedule.workingDate)
-      return isSameDay(scheduleDate, date)
-    })
+    await fetchAllData()
   }
 
   const getRegistrationsForDate = (date: Date) => {
@@ -172,7 +178,14 @@ export default function StaffScheduleCalendar() {
 
   const handleDateClick = (date: Date) => {
     setSelectedDate(date)
-    setSelectedDaySchedules(getSchedulesForDate(date))
+
+    // Filter schedules for the selected date
+    const filteredSchedules = staffSchedules.filter((schedule) => {
+      const scheduleDate = parseISO(schedule.workingDate)
+      return isSameDay(scheduleDate, date)
+    })
+
+    setSelectedDaySchedules(filteredSchedules)
     setIsDayDialogOpen(true)
     setActiveTab('schedules')
   }
@@ -217,10 +230,15 @@ export default function StaffScheduleCalendar() {
         )
 
         // Cập nhật lại danh sách
-        await Promise.all([fetchSchedules(), fetchRegistrations()])
+        await fetchAllData()
 
+        // Update selected day schedules
         if (selectedDate) {
-          setSelectedDaySchedules(getSchedulesForDate(selectedDate))
+          const updatedSchedules = staffSchedules.filter((schedule) => {
+            const scheduleDate = parseISO(schedule.workingDate)
+            return isSameDay(scheduleDate, selectedDate)
+          })
+          setSelectedDaySchedules(updatedSchedules)
         }
 
         setSelectedRegistration(null)
@@ -261,10 +279,15 @@ export default function StaffScheduleCalendar() {
         toast.success(swapAction === 'approve' ? 'Đã duyệt yêu cầu đổi ca' : 'Đã từ chối yêu cầu đổi ca')
 
         // Refresh data
-        await Promise.all([fetchSchedules(), fetchSwapRequests()])
+        await fetchAllData()
 
+        // Update selected day schedules if needed
         if (selectedDate) {
-          setSelectedDaySchedules(getSchedulesForDate(selectedDate))
+          const updatedSchedules = staffSchedules.filter((schedule) => {
+            const scheduleDate = parseISO(schedule.workingDate)
+            return isSameDay(scheduleDate, selectedDate)
+          })
+          setSelectedDaySchedules(updatedSchedules)
         }
 
         setSelectedSwapRequest(null)
@@ -279,6 +302,11 @@ export default function StaffScheduleCalendar() {
       setIsSwapActionDialogOpen(false)
       setSwapAction(null)
     }
+  }
+
+  // Function to update schedules after deletion
+  const handleScheduleUpdate = async () => {
+    await fetchSchedules()
   }
 
   if (isLoading) {
@@ -336,7 +364,7 @@ export default function StaffScheduleCalendar() {
         onRegistrationSelect={setSelectedRegistration}
         onSwapRequestSelect={setSelectedSwapRequest}
         zones={zones}
-        onUpdate={fetchSchedules}
+        onUpdate={handleScheduleUpdate}
       />
 
       {/* Registration Approval Dialog */}

@@ -85,7 +85,7 @@ export default class WorkshopService {
 
   public updateWorkshop(workshopId: string, payload: object): Promise<ApiResponse<void>> {
     try {
-      return put<void>(`/workshops/update-workshop`, { workshopId, payload })
+      return put<void>(`/workshops/${workshopId}`, { payload })
     } catch (error) {
       console.error('Error cancelling workshop:', error)
       throw error
@@ -117,6 +117,14 @@ export default class WorkshopService {
       return get<PizzaDetail[]>(`/workshop-register/pizzas-detail/${workshopId}`)
     } catch (error) {
       console.error(`Error fetching pizza details for workshop ${workshopId}:`, error)
+      throw error
+    }
+  }
+  public closeWorkshop(workshopId: string): Promise<ApiResponse<void>> {
+    try {
+      return put<void>(`/workshops/close/${workshopId}`, {})
+    } catch (error) {
+      console.error('Error closing workshop:', error)
       throw error
     }
   }

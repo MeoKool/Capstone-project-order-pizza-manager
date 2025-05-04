@@ -12,7 +12,7 @@ interface RegistrationsListProps {
 
 export function RegistrationsList({ registrations, onSelect }: RegistrationsListProps) {
   // Filter out approved registrations that already have a zoneId
-  const filteredRegistrations = registrations.filter((reg) => !(reg.status === 'Approved' && reg.zoneId !== null))
+  const filteredRegistrations = registrations.filter((reg) => !(reg.status === 'Approved'))
 
   if (filteredRegistrations.length === 0) {
     return <div className='text-center py-6 text-gray-500'>Không có yêu cầu đăng ký nào cần xử lý</div>
@@ -41,7 +41,7 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
         return (
           <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
             <CheckCircle className='h-3.5 w-3.5' />
-            <span>Đã duyệt</span>
+            <span>Ưu tiên</span>
           </Badge>
         )
       case 'Rejected':
@@ -56,7 +56,7 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
         return (
           <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1'>
             <AlertCircle className='h-3.5 w-3.5' />
-            <span>Chờ duyệt</span>
+            <span>Không ưu tiên</span>
           </Badge>
         )
       default:

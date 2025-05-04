@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import axios from 'axios'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -22,9 +22,7 @@ import {
 interface SchedulesListProps {
   schedules: StaffSchedule[]
   zones: Zone[]
-  onScheduleDeleted?: () => void
-  onUpdate?: () => void
-  refreshKey?: number
+  onUpdate: () => Promise<void>
 }
 
 interface ApiErrorResponse {
@@ -37,31 +35,18 @@ interface ApiErrorResponse {
   }
 }
 
-export function SchedulesList({ schedules: initialSchedules, zones, onUpdate }: SchedulesListProps) {
-  // Use local state to manage schedules
-  const [schedules, setSchedules] = useState<StaffSchedule[]>(initialSchedules)
-
-  // Update local state when props change
-  useEffect(() => {
-    setSchedules(initialSchedules)
-  }, [initialSchedules])
-
+export function SchedulesList({ schedules, zones, onUpdate }: SchedulesListProps) {
   const [hoveredStaffId, setHoveredStaffId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [staffToDelete, setStaffToDelete] = useState<StaffSchedule | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-
-  // Debug log
-  useEffect(() => {
-    console.log('Schedules updated:', schedules.length)
-  }, [schedules])
 
   if (schedules.length === 0) {
     return <div className='text-center py-6 text-gray-500'>Không có lịch làm việc nào cho ngày này</div>
   }
 
   // Group schedules by slot
-  const groupSchedulesBySlot = (schedules: StaffSchedule[]) => {
+  const groupSchedulesBySlot = () => {
     const grouped: Record<string, StaffSchedule[]> = {}
 
     schedules.forEach((schedule) => {
@@ -76,10 +61,10 @@ export function SchedulesList({ schedules: initialSchedules, zones, onUpdate }: 
   }
 
   // Group schedules by zone
-  const groupSchedulesByZone = (schedules: StaffSchedule[]) => {
+  const groupSchedulesByZone = (slotSchedules: StaffSchedule[]) => {
     const grouped: Record<string, StaffSchedule[]> = {}
 
-    schedules.forEach((schedule) => {
+    slotSchedules.forEach((schedule) => {
       const key = schedule.zoneId
       if (!grouped[key]) {
         grouped[key] = []
@@ -165,7 +150,7 @@ export function SchedulesList({ schedules: initialSchedules, zones, onUpdate }: 
     setIsDeleting(true)
 
     try {
-      // Make the API call first
+      // Make the API call to delete the staff schedule
       await axios.delete(`https://vietsac.id.vn/api/staff-zone-schedules/${staffToDelete.id}`, {
         params: {
           isHardDeleted: false
@@ -175,9 +160,7 @@ export function SchedulesList({ schedules: initialSchedules, zones, onUpdate }: 
       toast.success(`Đã xóa nhân viên ${staffToDelete.staffName} khỏi lịch làm việc`)
 
       // Call onUpdate to refresh the schedules in parent component
-      if (onUpdate) {
-        await onUpdate()
-      }
+      await onUpdate()
 
       // Close the confirmation dialog
       setIsConfirmOpen(false)
@@ -201,7 +184,7 @@ export function SchedulesList({ schedules: initialSchedules, zones, onUpdate }: 
     }
   }
 
-  const groupedBySlot = groupSchedulesBySlot(schedules)
+  const groupedBySlot = groupSchedulesBySlot()
 
   return (
     <>
