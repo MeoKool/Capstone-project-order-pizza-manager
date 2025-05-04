@@ -16,7 +16,7 @@ class OrderService {
 
   public async getAllOrders(): Promise<ApiResponse<OrdersResult>> {
     try {
-      return await get<OrdersResult>(`/orders?TakeCount=1000`)
+      return await get<OrdersResult>(`/orders?TakeCount=1000&SortBy=CreatedDate%20desc`)
     } catch (error) {
       console.error('Error fetching orders:', error)
       throw error

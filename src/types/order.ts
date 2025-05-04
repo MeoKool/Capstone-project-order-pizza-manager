@@ -1,5 +1,10 @@
 import { OrderVoucher } from './voucher'
 
+
+export interface OrderItemsResult {
+  items: OrderItem[]
+  totalCount: number
+}
 export interface OrderItem {
   id: string
   tableCode: string
@@ -14,6 +19,9 @@ export interface OrderItem {
   orderItemStatus: 'Pending' | 'Serving' | 'Done'
   order: null
   product: null
+  startTimeCooking: string
+  startTimeServing: string
+  endTime: string
   orderItemDetails: []
 }
 
@@ -24,14 +32,16 @@ export interface GetOrderByIdResponse {
 
 export interface Order {
   id: string
+  orderCode: string
   tableCode: string
   totalPrice: number
-  orderCode: string
+  status: string
   startTime: string
   endTime: string | null
-  status: string
   tableId: string
   table: string
+  type: 'Order' | 'Workshop'
+  orderItems?: OrderItem[]
 }
 
 // Response
@@ -42,10 +52,7 @@ export interface CreateOrderResponse {
   statusCode: number
 }
 
-export interface OrderItemsResult {
-  items: OrderItem[]
-  totalCount: number
-}
+
 
 export interface OrderIdResponse {
   id: string
