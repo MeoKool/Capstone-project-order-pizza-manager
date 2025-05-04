@@ -169,7 +169,7 @@ function InlineTimeInput({ value, onChange, selectedDate, label }: InlineTimeInp
                         <SelectValue placeholder="Chọn giờ đặt bàn" />
                     </div>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent side="bottom" className="h-60">
                     {validTimeSlots.length > 0 ? (
                         validTimeSlots.map((timeSlot) => (
                             <SelectItem key={timeSlot} value={timeSlot} className="text-sm">

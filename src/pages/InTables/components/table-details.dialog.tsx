@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import type TableResponse from "@/types/tables"
-import type { OrderDetail } from "@/types/order"
+import type { OrderDetail, OrderItemDetail } from "@/types/order"
 import OrderService from "@/services/order-service"
 import useZone from "@/hooks/useZone"
 import { getStatusBadge } from "@/utils/table-utils"
@@ -31,6 +31,7 @@ import { PaymentDialog } from "./tables-details/payment-dialog"
 import OrderProgress from "./tables-details/OrderLoadingBar/OrderLoadingBar"
 import { OrderStatusBadge } from "@/components/order-status-badge"
 import { OrderCancelDialog } from "./tables/order-cancel-dialog"
+import { CancelOrderItemDialog } from "./tables-details/cancel-order-item-dialog"
 
 interface TableDetailsDialogProps {
   table: TableResponse
@@ -55,6 +56,13 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
 
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+
+  // Order item cancellation states
+  const [selectedOrderItem, setSelectedOrderItem] = useState<OrderItemDetail | null>(null)
+  const [isCancelItemDialogOpen, setIsCancelItemDialogOpen] = useState(false)
+  const [isCancellingItem, setIsCancellingItem] = useState(false)
+  const [cancelItemError, setCancelItemError] = useState<string | null>(null)
+
 
   // Update currentTable when table prop changes
   useEffect(() => {
@@ -301,7 +309,53 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
       onTableUpdated()
     }
   }
+  const handleOpenCancelItemDialog = (item: OrderItemDetail) => {
+    setSelectedOrderItem(item)
+    setIsCancelItemDialogOpen(true)
+    setCancelItemError(null)
+  }
 
+  // Function to handle cancellation of an order item
+  const handleCancel = async (orderItemId: string, reason: string) => {
+    if (!reason.trim()) {
+      setCancelItemError("Vui lòng nhập lý do hủy món")
+      return false
+    }
+
+    setIsCancellingItem(true)
+    setCancelItemError(null)
+
+    try {
+      const orderService = OrderService.getInstance()
+      const response = await orderService.cancelOrderItem(orderItemId, reason)
+
+      if (response.success) {
+        toast.success("Hủy món thành công")
+        setIsCancelItemDialogOpen(false)
+
+        const updatedResponse = await orderService.getOrderById(currentTable.currentOrderId)
+        if (updatedResponse.success && updatedResponse.result) {
+          setOrderDetail(updatedResponse.result)
+        }
+
+        // If there's a callback for table updates, call it
+        if (onTableUpdated) {
+          onTableUpdated()
+        }
+
+        return true
+      } else {
+        setCancelItemError(response.message || "Không thể hủy món. Vui lòng thử lại.")
+        return false
+      }
+    } catch (err) {
+      console.error("Error cancelling order item:", err)
+      setCancelItemError("Đã xảy ra lỗi khi hủy món. Vui lòng thử lại.")
+      return false
+    } finally {
+      setIsCancellingItem(false)
+    }
+  }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -370,6 +424,7 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                               orderItems={orderDetail.orderItems}
                               formatCurrency={formatCurrency}
                               orderStatus={orderDetail.status}
+                              onOpenCancelDialog={handleOpenCancelItemDialog}
                             />
 
                             {/* Additional Fees */}
@@ -511,7 +566,16 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
+      {selectedOrderItem && (
+        <CancelOrderItemDialog
+          orderItem={selectedOrderItem}
+          open={isCancelItemDialogOpen}
+          onOpenChange={setIsCancelItemDialogOpen}
+          onCancel={handleCancel}
+          isSubmitting={isCancellingItem}
+          error={cancelItemError}
+        />
+      )}
       {orderDetail && (
         <>
           <PaymentDialog

@@ -94,6 +94,18 @@ class OrderService {
     }
   }
 
+
+  public async cancelOrderItem(id: string, note: string): Promise<ApiResponse<void>> {
+    try {
+      const req = JSON.stringify(note)
+
+      return await put<void>(`/order-items/cancelled/${id}`, req)
+    } catch (error) {
+      console.log(`error cancel order item with id ${id}`, error);
+      throw error
+    }
+  }
+
 }
 
 export default OrderService
