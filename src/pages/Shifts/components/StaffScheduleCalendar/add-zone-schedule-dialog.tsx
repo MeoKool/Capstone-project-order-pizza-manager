@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -45,6 +46,16 @@ interface Zone {
   name: string
 }
 
+interface ApiErrorResponse {
+  error: {
+    code: number
+    title: string
+    message: string
+    statusCode: number
+    timestamp: string
+  }
+}
+
 // Service to fetch data and make API calls
 class ZoneScheduleService {
   private static instance: ZoneScheduleService
@@ -60,8 +71,8 @@ class ZoneScheduleService {
 
   public async getAllStaff(): Promise<any> {
     try {
-      const response = await fetch('https://vietsac.id.vn/api/staffs?Status=PartTime&TakeCount=1000')
-      return await response.json()
+      const response = await axios.get('https://vietsac.id.vn/api/staffs?Status=PartTime&TakeCount=1000')
+      return response.data
     } catch (error) {
       console.error('Error fetching staff:', error)
       throw error
@@ -70,8 +81,8 @@ class ZoneScheduleService {
 
   public async getAllDays(): Promise<any> {
     try {
-      const response = await fetch('https://vietsac.id.vn/api/days')
-      return await response.json()
+      const response = await axios.get('https://vietsac.id.vn/api/days')
+      return response.data
     } catch (error) {
       console.error('Error fetching days:', error)
       throw error
@@ -80,8 +91,8 @@ class ZoneScheduleService {
 
   public async getWorkingSlotsByDayId(dayId: string): Promise<any> {
     try {
-      const response = await fetch(`https://vietsac.id.vn/api/working-slots?DayId=${dayId}&SortBy=shiftStart`)
-      return await response.json()
+      const response = await axios.get(`https://vietsac.id.vn/api/working-slots?DayId=${dayId}&SortBy=shiftStart`)
+      return response.data
     } catch (error) {
       console.error(`Error fetching working slots for day ${dayId}:`, error)
       throw error
@@ -90,8 +101,8 @@ class ZoneScheduleService {
 
   public async getAllZones(): Promise<any> {
     try {
-      const response = await fetch('https://vietsac.id.vn/api/zones?TakeCount=1000&SortBy=name')
-      return await response.json()
+      const response = await axios.get('https://vietsac.id.vn/api/zones?TakeCount=1000&SortBy=name')
+      return response.data
     } catch (error) {
       console.error('Error fetching zones:', error)
       throw error
@@ -105,16 +116,16 @@ class ZoneScheduleService {
     workingSlotId: string
   }): Promise<any> {
     try {
-      const response = await fetch('https://vietsac.id.vn/api/staff-zone-schedules', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(request)
-      })
-      return await response.json()
+      const response = await axios.post('https://vietsac.id.vn/api/staff-zone-schedules', request)
+      return response.data
     } catch (error) {
-      console.error('Error creating zone schedule:', error)
+      if (axios.isAxiosError(error) && error.response) {
+        // Handle specific error responses
+        if (error.response.status === 400) {
+          const errorData = error.response.data as ApiErrorResponse
+          throw new Error(errorData.error.message || 'Lỗi yêu cầu không hợp lệ')
+        }
+      }
       throw error
     }
   }
@@ -279,7 +290,14 @@ export function AddZoneScheduleDialog({ open, onOpenChange, onSuccess }: AddZone
         workingDate: format(selectedDate, 'yyyy-MM-dd')
       })
 
-      toast.success('Đã thêm nhân viên vào ca làm việc thành công')
+      // Lấy thông tin chi tiết để hiển thị trong thông báo thành công
+      const staffName = staff.find((s) => s.id === selectedStaff)?.fullName || ''
+      const zoneName = zones.find((z) => z.id === selectedZone)?.name || ''
+      const workingSlotName = workingSlots.find((w) => w.id === selectedWorkingSlot)?.shiftName || ''
+
+      toast.success(
+        `Đã thêm nhân viên ${staffName} vào ca làm việc ${workingSlotName} tại khu vực ${zoneName} thành công`
+      )
 
       // Reset form
       setSelectedStaff('')
@@ -293,7 +311,13 @@ export function AddZoneScheduleDialog({ open, onOpenChange, onSuccess }: AddZone
       onOpenChange(false)
     } catch (error) {
       console.error('Error creating zone schedule:', error)
-      toast.error('Không thể thêm nhân viên vào ca làm việc')
+
+      // Hiển thị thông báo lỗi cụ thể từ API
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Không thể thêm nhân viên vào ca làm việc')
+      }
     } finally {
       setIsSubmitting(false)
     }

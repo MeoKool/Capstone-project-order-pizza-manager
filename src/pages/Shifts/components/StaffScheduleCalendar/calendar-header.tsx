@@ -1,10 +1,14 @@
+'use client'
+
 import { useState } from 'react'
+import axios from 'axios'
 import { format, startOfWeek, endOfWeek } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, RefreshCw, CheckCircle, Plus } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { toast } from 'sonner'
 import { AddZoneScheduleDialog } from './add-zone-schedule-dialog'
 
 interface CalendarHeaderProps {
@@ -15,6 +19,16 @@ interface CalendarHeaderProps {
   onToday: () => void
   onRefresh: () => void
   onViewChange: (view: 'week' | 'month') => void
+}
+
+interface ApiErrorResponse {
+  error: {
+    code: number
+    title: string
+    message: string
+    statusCode: number
+    timestamp: string
+  }
 }
 
 export function CalendarHeader({
@@ -44,24 +58,28 @@ export function CalendarHeader({
 
       console.log('Sending date:', formattedDate) // Log để kiểm tra ngày
 
-      const response = await fetch('https://vietsac.id.vn/api/staff-zone-schedules/auto-assign', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          workingDate: formattedDate
-        })
+      await axios.post('https://vietsac.id.vn/api/staff-zone-schedules/auto-assign', {
+        workingDate: formattedDate
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to auto assign')
-      }
+      toast.success('Đã tự động phân khu vực thành công')
 
       // Nếu thành công, làm mới dữ liệu
       onRefresh()
     } catch (error) {
       console.error('Error auto assigning:', error)
+
+      // Xử lý lỗi từ API
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 400) {
+          const errorData = error.response.data as ApiErrorResponse
+          toast.error(errorData.error.message || 'Lỗi yêu cầu không hợp lệ')
+        } else {
+          toast.error('Không thể tự động phân khu vực')
+        }
+      } else {
+        toast.error('Không thể tự động phân khu vực')
+      }
     } finally {
       setIsAutoAssigning(false)
     }
