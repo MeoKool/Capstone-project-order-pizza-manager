@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -23,6 +23,7 @@ interface SchedulesListProps {
   schedules: StaffSchedule[]
   zones: Zone[]
   onScheduleDeleted?: () => void
+  refreshKey?: number
 }
 
 interface ApiErrorResponse {
@@ -35,11 +36,24 @@ interface ApiErrorResponse {
   }
 }
 
-export function SchedulesList({ schedules, zones, onScheduleDeleted }: SchedulesListProps) {
+export function SchedulesList({ schedules: initialSchedules, zones, onScheduleDeleted }: SchedulesListProps) {
+  // Use local state to manage schedules
+  const [schedules, setSchedules] = useState<StaffSchedule[]>(initialSchedules)
+
+  // Update local state when props change
+  useEffect(() => {
+    setSchedules(initialSchedules)
+  }, [initialSchedules])
+
   const [hoveredStaffId, setHoveredStaffId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [staffToDelete, setStaffToDelete] = useState<StaffSchedule | null>(null)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
+  // Debug log
+  useEffect(() => {
+    console.log('Schedules updated:', schedules.length)
+  }, [schedules])
 
   if (schedules.length === 0) {
     return <div className='text-center py-6 text-gray-500'>Không có lịch làm việc nào cho ngày này</div>
@@ -148,24 +162,32 @@ export function SchedulesList({ schedules, zones, onScheduleDeleted }: Schedules
     if (!staffToDelete) return
 
     setIsDeleting(true)
+
+    // Store the staff to delete for potential rollback
+    const staffToRemove = staffToDelete
+
     try {
-      await axios.delete(`https://vietsac.id.vn/api/staff-zone-schedules`, {
+      // Optimistic UI update - remove the staff from the local state immediately
+      setSchedules((prevSchedules) => prevSchedules.filter((schedule) => schedule.id !== staffToRemove.id))
+
+      // Make the API call
+      await axios.delete(`https://vietsac.id.vn/api/staff-zone-schedules/${staffToRemove.id}`, {
         params: {
           isHardDeleted: false
-        },
-        data: {
-          id: staffToDelete.id
         }
       })
 
-      toast.success(`Đã xóa nhân viên ${staffToDelete.staffName} khỏi lịch làm việc`)
+      toast.success(`Đã xóa nhân viên ${staffToRemove.staffName} khỏi lịch làm việc`)
 
-      // Call the callback to refresh data
+      // Call the callback to refresh data from the parent component
       if (onScheduleDeleted) {
         onScheduleDeleted()
       }
     } catch (error) {
       console.error('Error deleting staff schedule:', error)
+
+      // Revert the optimistic update if there's an error
+      setSchedules(initialSchedules)
 
       // Handle specific error responses
       if (axios.isAxiosError(error) && error.response) {
@@ -182,6 +204,11 @@ export function SchedulesList({ schedules, zones, onScheduleDeleted }: Schedules
       setIsDeleting(false)
       setIsConfirmOpen(false)
       setStaffToDelete(null)
+
+      // Force a re-render by calling onScheduleDeleted again
+      if (onScheduleDeleted) {
+        onScheduleDeleted()
+      }
     }
   }
 
@@ -191,7 +218,7 @@ export function SchedulesList({ schedules, zones, onScheduleDeleted }: Schedules
     <>
       <div className='space-y-6 pb-4'>
         {Object.entries(groupedBySlot).map(([slotId, slotSchedules]) => {
-          const slot = slotSchedules[0].workingSlot
+          const slot = slotSchedules[0]?.workingSlot
           const groupedByZone = groupSchedulesByZone(slotSchedules)
 
           return (
@@ -220,70 +247,74 @@ export function SchedulesList({ schedules, zones, onScheduleDeleted }: Schedules
 
                 {/* Danh sách khu vực và nhân viên */}
                 <div className='divide-y divide-gray-100'>
-                  {Object.entries(groupedByZone).map(([zoneId, zoneStaffList]) => (
-                    <div key={zoneId} className='py-3 first:pt-0 last:pb-0'>
-                      <div className='flex items-center gap-2 mb-3'>
-                        <div className='h-8 w-8 rounded-full bg-red-100 flex items-center justify-center border border-red-200'>
-                          <MapPin className='h-4 w-4 text-red-700' />
-                        </div>
-                        <div>
-                          <div className='font-medium text-red-900'>{zoneStaffList[0].zone.name}</div>
-                          <div className='text-xs text-gray-600'>{getZoneDescription(zoneId)}</div>
-                        </div>
-                      </div>
+                  {Object.entries(groupedByZone).map(([zoneId, zoneStaffList]) => {
+                    if (zoneStaffList.length === 0) return null
 
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pl-10'>
-                        {zoneStaffList.map((staff) => (
-                          <div
-                            key={staff.id}
-                            className='flex items-start gap-3 p-2 rounded-md hover:bg-red-50/50 relative group'
-                            onMouseEnter={() => setHoveredStaffId(staff.id)}
-                            onMouseLeave={() => setHoveredStaffId(null)}
-                          >
-                            <Avatar className='h-8 w-8 bg-red-100 text-red-700 border border-red-200'>
-                              <AvatarFallback>{getInitials(staff.staffName)}</AvatarFallback>
-                            </Avatar>
-                            <div className='flex-1'>
-                              <div className='font-medium'>{staff.staffName}</div>
-                              {staff.staff && (
-                                <div className='flex flex-wrap gap-2 mt-1'>
-                                  <Badge
-                                    variant='outline'
-                                    className={`${getStaffTypeColor(staff.staff.staffType)} border text-xs py-0 h-5`}
-                                  >
-                                    {getStaffTypeLabel(staff.staff.staffType)}
-                                  </Badge>
-                                  <Badge
-                                    variant='outline'
-                                    className={`${getStaffStatusColor(staff.staff.status)} border text-xs py-0 h-5`}
-                                  >
-                                    {getStaffStatusLabel(staff.staff.status)}
-                                  </Badge>
-                                </div>
-                              )}
-                              {staff.staff && (
-                                <div className='mt-1 text-sm text-gray-700'>
-                                  <Phone className='h-3.5 w-3.5 inline mr-1 text-red-600' />
-                                  {staff.staff.phone}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Delete button that appears on hover */}
-                            <button
-                              className={`absolute top-2 right-2 p-1 rounded-full bg-red-100 hover:bg-red-200 text-red-600 
-                                ${hoveredStaffId === staff.id ? 'opacity-100' : 'opacity-0'} 
-                                transition-opacity duration-200`}
-                              onClick={() => handleDeleteClick(staff)}
-                              aria-label='Xóa nhân viên khỏi lịch làm việc'
-                            >
-                              <X className='h-4 w-4' />
-                            </button>
+                    return (
+                      <div key={zoneId} className='py-3 first:pt-0 last:pb-0'>
+                        <div className='flex items-center gap-2 mb-3'>
+                          <div className='h-8 w-8 rounded-full bg-red-100 flex items-center justify-center border border-red-200'>
+                            <MapPin className='h-4 w-4 text-red-700' />
                           </div>
-                        ))}
+                          <div>
+                            <div className='font-medium text-red-900'>{zoneStaffList[0]?.zone?.name}</div>
+                            <div className='text-xs text-gray-600'>{getZoneDescription(zoneId)}</div>
+                          </div>
+                        </div>
+
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pl-10'>
+                          {zoneStaffList.map((staff) => (
+                            <div
+                              key={staff.id}
+                              className='flex items-start gap-3 p-2 rounded-md hover:bg-red-50/50 relative group'
+                              onMouseEnter={() => setHoveredStaffId(staff.id)}
+                              onMouseLeave={() => setHoveredStaffId(null)}
+                            >
+                              <Avatar className='h-8 w-8 bg-red-100 text-red-700 border border-red-200'>
+                                <AvatarFallback>{getInitials(staff.staffName)}</AvatarFallback>
+                              </Avatar>
+                              <div className='flex-1'>
+                                <div className='font-medium'>{staff.staffName}</div>
+                                {staff.staff && (
+                                  <div className='flex flex-wrap gap-2 mt-1'>
+                                    <Badge
+                                      variant='outline'
+                                      className={`${getStaffTypeColor(staff.staff.staffType)} border text-xs py-0 h-5`}
+                                    >
+                                      {getStaffTypeLabel(staff.staff.staffType)}
+                                    </Badge>
+                                    <Badge
+                                      variant='outline'
+                                      className={`${getStaffStatusColor(staff.staff.status)} border text-xs py-0 h-5`}
+                                    >
+                                      {getStaffStatusLabel(staff.staff.status)}
+                                    </Badge>
+                                  </div>
+                                )}
+                                {staff.staff && (
+                                  <div className='mt-1 text-sm text-gray-700'>
+                                    <Phone className='h-3.5 w-3.5 inline mr-1 text-red-600' />
+                                    {staff.staff.phone}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Delete button that appears on hover */}
+                              <button
+                                className={`absolute top-2 right-2 p-1 rounded-full bg-red-100 hover:bg-red-200 text-red-600 
+                                  ${hoveredStaffId === staff.id ? 'opacity-100' : 'opacity-0'} 
+                                  transition-opacity duration-200`}
+                                onClick={() => handleDeleteClick(staff)}
+                                aria-label='Xóa nhân viên khỏi lịch làm việc'
+                              >
+                                <X className='h-4 w-4' />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             </div>

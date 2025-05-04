@@ -71,7 +71,9 @@ class ZoneScheduleService {
 
   public async getAllStaff(): Promise<any> {
     try {
-      const response = await axios.get('https://vietsac.id.vn/api/staffs?Status=PartTime&TakeCount=1000')
+      const response = await axios.get(
+        'https://vietsac.id.vn/api/staffs?StaffType=Cheff&StaffType=Staff&Status=PartTime&TakeCount=1000'
+      )
       return response.data
     } catch (error) {
       console.error('Error fetching staff:', error)
@@ -338,7 +340,7 @@ export function AddZoneScheduleDialog({ open, onOpenChange, onSuccess }: AddZone
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
-          <DialogTitle>Thêm nhân viên vào ca làm việc</DialogTitle>
+          <DialogTitle>Thêm nhân viên bán thời gian vào ca làm việc</DialogTitle>
           <DialogDescription>Điền thông tin để thêm nhân viên vào ca làm việc tại khu vực</DialogDescription>
         </DialogHeader>
 
