@@ -22,6 +22,7 @@ interface DayDetailsDialogProps {
   onRegistrationSelect: (registration: WorkingSlotRegister) => void
   onSwapRequestSelect: (request: SwapWorkingSlotRequest) => void
   zones: Zone[]
+  onUpdate?: () => Promise<void>
 }
 
 export function DayDetailsDialog({
@@ -35,7 +36,8 @@ export function DayDetailsDialog({
   onTabChange,
   onRegistrationSelect,
   onSwapRequestSelect,
-  zones
+  zones,
+  onUpdate
 }: DayDetailsDialogProps) {
   if (!selectedDate) return null
 
@@ -90,7 +92,7 @@ export function DayDetailsDialog({
 
             <div className='flex-1 overflow-auto'>
               <TabsContent value='schedules' className='mt-0'>
-                <SchedulesList schedules={schedules} zones={zones} />
+                <SchedulesList schedules={schedules} zones={zones} onUpdate={onUpdate} />
               </TabsContent>
 
               <TabsContent value='registrations' className='mt-0'>

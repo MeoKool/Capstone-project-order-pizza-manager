@@ -58,6 +58,10 @@ export default function StaffScheduleCalendar() {
 
       if (response.success && response.result) {
         setStaffSchedules(response.result.items)
+        // Update selectedDaySchedules if there's a selected date
+        if (selectedDate) {
+          setSelectedDaySchedules(getSchedulesForDate(selectedDate))
+        }
       }
     } catch (error) {
       console.error('Error fetching staff schedules:', error)
@@ -332,6 +336,7 @@ export default function StaffScheduleCalendar() {
         onRegistrationSelect={setSelectedRegistration}
         onSwapRequestSelect={setSelectedSwapRequest}
         zones={zones}
+        onUpdate={fetchSchedules}
       />
 
       {/* Registration Approval Dialog */}

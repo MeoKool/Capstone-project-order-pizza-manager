@@ -23,6 +23,7 @@ interface SchedulesListProps {
   schedules: StaffSchedule[]
   zones: Zone[]
   onScheduleDeleted?: () => void
+  onUpdate?: () => void
   refreshKey?: number
 }
 
@@ -36,7 +37,7 @@ interface ApiErrorResponse {
   }
 }
 
-export function SchedulesList({ schedules: initialSchedules, zones, onScheduleDeleted }: SchedulesListProps) {
+export function SchedulesList({ schedules: initialSchedules, zones, onUpdate }: SchedulesListProps) {
   // Use local state to manage schedules
   const [schedules, setSchedules] = useState<StaffSchedule[]>(initialSchedules)
 
@@ -163,31 +164,26 @@ export function SchedulesList({ schedules: initialSchedules, zones, onScheduleDe
 
     setIsDeleting(true)
 
-    // Store the staff to delete for potential rollback
-    const staffToRemove = staffToDelete
-
     try {
-      // Optimistic UI update - remove the staff from the local state immediately
-      setSchedules((prevSchedules) => prevSchedules.filter((schedule) => schedule.id !== staffToRemove.id))
-
-      // Make the API call
-      await axios.delete(`https://vietsac.id.vn/api/staff-zone-schedules/${staffToRemove.id}`, {
+      // Make the API call first
+      await axios.delete(`https://vietsac.id.vn/api/staff-zone-schedules/${staffToDelete.id}`, {
         params: {
           isHardDeleted: false
         }
       })
 
-      toast.success(`Đã xóa nhân viên ${staffToRemove.staffName} khỏi lịch làm việc`)
+      toast.success(`Đã xóa nhân viên ${staffToDelete.staffName} khỏi lịch làm việc`)
 
-      // Call the callback to refresh data from the parent component
-      if (onScheduleDeleted) {
-        onScheduleDeleted()
+      // Call onUpdate to refresh the schedules in parent component
+      if (onUpdate) {
+        await onUpdate()
       }
+
+      // Close the confirmation dialog
+      setIsConfirmOpen(false)
+      setStaffToDelete(null)
     } catch (error) {
       console.error('Error deleting staff schedule:', error)
-
-      // Revert the optimistic update if there's an error
-      setSchedules(initialSchedules)
 
       // Handle specific error responses
       if (axios.isAxiosError(error) && error.response) {
@@ -202,13 +198,6 @@ export function SchedulesList({ schedules: initialSchedules, zones, onScheduleDe
       }
     } finally {
       setIsDeleting(false)
-      setIsConfirmOpen(false)
-      setStaffToDelete(null)
-
-      // Force a re-render by calling onScheduleDeleted again
-      if (onScheduleDeleted) {
-        onScheduleDeleted()
-      }
     }
   }
 
