@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Plus, Filter, MoreHorizontal, Edit, Trash2, Eye, CalendarIcon, X } from 'lucide-react'
+import { Search, Plus, Filter, MoreHorizontal, Edit, Eye, CalendarIcon, X } from 'lucide-react'
 import WorkshopService from '../../services/workshop-service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -117,20 +117,26 @@ export default function WorkshopsPage() {
     navigate(`/workshops/edit/${id}`)
   }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa workshop này không?')) {
-      try {
-        // Implement delete API call when available
-        // const response = await workshopService.deleteWorkshop(id)
-        // if (response.success) {
-        //   fetchWorkshops()
-        // }
-        console.log('Delete workshop:', id)
-        // For now, just filter out the deleted workshop from the state
-        setWorkshops(workshops.filter((workshop) => workshop.id !== id))
-      } catch (error) {
-        console.error('Error deleting workshop:', error)
+  const handleCloseWorkshop = async (id: string) => {
+    try {
+      const response = await workshopService.closeWorkshop(id)
+      if (response.success) {
+        // Update the workshop status in the local state
+        setWorkshops(
+          workshops.map((workshop) =>
+            workshop.id === id ? { ...workshop, workshopStatus: WorkshopStatus.Closed } : workshop
+          )
+        )
+        toast.success('Workshop đã được đóng thành công!')
+        // Fetch workshops again to refresh the list
+        fetchWorkshops()
+      } else {
+        toast.error(response.message)
+        console.error('Failed to close workshop:', response.message)
       }
+    } catch (error) {
+      console.error('Error closing workshop:', error)
+      toast.error('Đã xảy ra lỗi khi đóng workshop')
     }
   }
 
@@ -472,18 +478,26 @@ export default function WorkshopsPage() {
                                 Chỉnh sửa
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setCancelWorkshopId(workshop.id)}
-                                className='text-red-600'
-                                disabled={workshop.workshopStatus === 'Cancelled'}
-                              >
-                                <X className='mr-2 h-4 w-4' />
-                                Hủy workshop
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDelete(workshop.id)} className='text-red-600'>
-                                <Trash2 className='mr-2 h-4 w-4' />
-                                Xóa
-                              </DropdownMenuItem>
+                              {workshop.workshopStatus === 'Opening' && (
+                                <DropdownMenuItem
+                                  onClick={() => handleCloseWorkshop(workshop.id)}
+                                  className='text-orange-600'
+                                >
+                                  <CalendarIcon className='mr-2 h-4 w-4' />
+                                  Đóng workshop
+                                </DropdownMenuItem>
+                              )}
+                              {(workshop.workshopStatus === 'Scheduled' ||
+                                workshop.workshopStatus === 'OpeningToRegister' ||
+                                workshop.workshopStatus === 'ClosedRegister') && (
+                                <DropdownMenuItem
+                                  onClick={() => setCancelWorkshopId(workshop.id)}
+                                  className='text-red-600'
+                                >
+                                  <X className='mr-2 h-4 w-4' />
+                                  Hủy workshop
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
