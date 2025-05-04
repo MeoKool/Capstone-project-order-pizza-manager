@@ -22,7 +22,7 @@ interface DayDetailsDialogProps {
   onRegistrationSelect: (registration: WorkingSlotRegister) => void
   onSwapRequestSelect: (request: SwapWorkingSlotRequest) => void
   zones: Zone[]
-  onUpdate?: () => Promise<void>
+  onUpdate: () => Promise<void>
 }
 
 export function DayDetailsDialog({
