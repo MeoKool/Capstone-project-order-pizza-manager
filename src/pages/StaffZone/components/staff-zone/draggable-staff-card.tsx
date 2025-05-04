@@ -32,13 +32,13 @@ export function DraggableStaffCard({ staffZone, isMoving, movingStaffId }: Dragg
   const getStaffTypeBadgeColor = (staffType: string) => {
     switch (staffType) {
       case 'Staff':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-100 text-blue-800  hover:bg-blue-200'
       case 'Cheff':
-        return 'bg-amber-100 text-amber-800'
+        return 'bg-amber-100 text-amber-800 hover:bg-amber-200'
       case 'Manager':
-        return 'bg-purple-100 text-purple-800'
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-200'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200'
     }
   }
 
