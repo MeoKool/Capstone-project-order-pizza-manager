@@ -9,13 +9,25 @@ type Props = {
   products: ProductModel[]
   handleProductSelect: (id: string, isChecked: boolean) => void
   isProductSelected: (id: string) => boolean
+  disabled?: boolean
 }
 
-export default function WorkshopFormFoodMenu({ products, handleProductSelect, isProductSelected }: Props) {
+export default function WorkshopFormFoodMenu({
+  products,
+  handleProductSelect,
+  isProductSelected,
+  disabled = false
+}: Props) {
   const { control } = useFormContext()
 
   return (
     <div className='space-y-6'>
+      {disabled && (
+        <div className='p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700'>
+          <p>Khi cập nhật workshop, bạn không thể chỉnh sửa thông tin thực đơn.</p>
+        </div>
+      )}
+
       <div className='flex flex-col space-y-4'>
         <FormField
           control={control}
@@ -51,6 +63,7 @@ export default function WorkshopFormFoodMenu({ products, handleProductSelect, is
                           id={`product-${product.id}`}
                           checked={checked}
                           onCheckedChange={(checked) => handleProductSelect(product.id, checked as boolean)}
+                          disabled={disabled}
                         />
                         <div className='grid gap-1.5 leading-none'>
                           <Label htmlFor={`product-${product.id}`} className='text-sm font-semibold'>

@@ -1,3 +1,5 @@
+'use client'
+
 import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -38,6 +40,7 @@ type Props = {
   setWorkshopTime: Dispatch<SetStateAction<TimeState>>
   setStartRegisterTime: Dispatch<SetStateAction<TimeState>>
   setEndRegisterTime: Dispatch<SetStateAction<TimeState>>
+  disabled?: boolean
 }
 
 // Add this debugging function to help see what's happening with dates
@@ -66,7 +69,8 @@ export default function WorkshopFormTimeInfo({
   endRegisterTime,
   setWorkshopTime,
   setStartRegisterTime,
-  setEndRegisterTime
+  setEndRegisterTime,
+  disabled = false
 }: Props) {
   const { control, setValue } = useFormContext()
   const today = new Date()
@@ -83,8 +87,11 @@ export default function WorkshopFormTimeInfo({
 
   // Kiểm tra thời gian hợp lệ khi thay đổi
   useEffect(() => {
-    validateDates()
-  }, [workshopDate, startRegisterDate, endRegisterDate, workshopTime, startRegisterTime, endRegisterTime])
+    // Skip validation if disabled (in edit mode)
+    if (!disabled) {
+      validateDates()
+    }
+  }, [workshopDate, startRegisterDate, endRegisterDate, workshopTime, startRegisterTime, endRegisterTime, disabled])
 
   // Hàm kiểm tra tính hợp lệ của các ngày và thời gian
   const validateDates = () => {
@@ -230,6 +237,12 @@ export default function WorkshopFormTimeInfo({
 
   return (
     <div className='space-y-6'>
+      {disabled && (
+        <div className='p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700'>
+          <p>Khi cập nhật workshop, bạn không thể chỉnh sửa thông tin thời gian.</p>
+        </div>
+      )}
+
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
         {/* Workshop Date */}
         <FormField
@@ -252,6 +265,7 @@ export default function WorkshopFormTimeInfo({
                   minDate={today}
                   hasError={timeErrors.workshopDate}
                   errorMessage='Thời gian diễn ra không được nhỏ hơn thời gian hiện tại'
+                  disabled={disabled}
                 />
               </div>
               <FormMessage className='text-red-500' />
@@ -279,7 +293,7 @@ export default function WorkshopFormTimeInfo({
                   minutes={minutes}
                   minDate={today}
                   maxDate={workshopDate}
-                  disabled={!workshopDate}
+                  disabled={!workshopDate || disabled}
                   hasError={timeErrors.startRegisterDate}
                   errorMessage='Thời gian bắt đầu đăng ký không được lớn hơn thời gian diễn ra'
                 />
@@ -310,7 +324,7 @@ export default function WorkshopFormTimeInfo({
                   minutes={minutes}
                   minDate={startRegisterDate || today}
                   maxDate={workshopDate}
-                  disabled={!workshopDate || !startRegisterDate}
+                  disabled={!workshopDate || !startRegisterDate || disabled}
                   hasError={timeErrors.endRegisterDate}
                   errorMessage='Thời gian kết thúc đăng ký phải sau thời gian bắt đầu và không được lớn hơn thời gian diễn ra'
                 />

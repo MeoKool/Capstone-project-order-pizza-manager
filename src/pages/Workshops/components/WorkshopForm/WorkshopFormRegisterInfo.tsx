@@ -22,7 +22,11 @@ const parseCurrency = (value: string): number => {
   return Number.parseFloat(normalized) || 0
 }
 
-export default function WorkshopFormRegisterInfo() {
+type RegisterInfoProps = {
+  disabled?: boolean
+}
+
+export default function WorkshopFormRegisterInfo({ disabled = false }: RegisterInfoProps) {
   const { control, setValue, watch } = useFormContext()
   const [formattedFee, setFormattedFee] = useState('')
   const totalFee = watch('totalFee')
@@ -54,6 +58,12 @@ export default function WorkshopFormRegisterInfo() {
 
   return (
     <div className='space-y-6'>
+      {disabled && (
+        <div className='p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700'>
+          <p>Khi cập nhật workshop, bạn không thể chỉnh sửa thông tin đăng ký.</p>
+        </div>
+      )}
+
       <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         <FormField
           control={control}
@@ -72,6 +82,7 @@ export default function WorkshopFormRegisterInfo() {
                     value={formattedFee}
                     onChange={handleFeeChange}
                     onBlur={field.onBlur}
+                    disabled={disabled}
                   />
                   <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
                     VNĐ
@@ -103,6 +114,7 @@ export default function WorkshopFormRegisterInfo() {
                       const value = e.target.value === '' ? undefined : Number(e.target.value)
                       field.onChange(value)
                     }}
+                    disabled={disabled}
                   />
                   <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
                     người
@@ -136,6 +148,7 @@ export default function WorkshopFormRegisterInfo() {
                       const value = e.target.value === '' ? undefined : Number(e.target.value)
                       field.onChange(value)
                     }}
+                    disabled={disabled}
                   />
                   <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
                     pizza
@@ -167,6 +180,7 @@ export default function WorkshopFormRegisterInfo() {
                       const value = e.target.value === '' ? undefined : Number(e.target.value)
                       field.onChange(value)
                     }}
+                    disabled={disabled}
                   />
                   <div className='absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500 bg-gray-100 h-11 rounded-r-md border-l'>
                     người

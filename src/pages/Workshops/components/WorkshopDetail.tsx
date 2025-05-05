@@ -218,16 +218,18 @@ export default function WorkshopDetail() {
           </div>
 
           <div className='flex gap-2'>
-            {workshop.workshopStatus !== 'Cancelled' && (
-              <Button
-                variant='outline'
-                className='text-amber-600 border-amber-600 hover:bg-amber-50'
-                onClick={() => setShowCancelDialog(true)}
-              >
-                <X className='mr-2 h-4 w-4' />
-                Hủy workshop
-              </Button>
-            )}
+            {workshop.workshopStatus !== WorkshopStatus.Cancelled &&
+              workshop.workshopStatus !== WorkshopStatus.Opening &&
+              workshop.workshopStatus !== WorkshopStatus.Closed && (
+                <Button
+                  variant='outline'
+                  className='text-amber-600 border-amber-600 hover:bg-amber-50'
+                  onClick={() => setShowCancelDialog(true)}
+                >
+                  <X className='mr-2 h-4 w-4' />
+                  Hủy workshop
+                </Button>
+              )}
             <Button variant='outline' onClick={() => navigate(`/workshops/edit/${workshop.id}`)}>
               <Edit className='mr-2 h-4 w-4' />
               Chỉnh sửa
