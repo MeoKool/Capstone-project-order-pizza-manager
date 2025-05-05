@@ -42,11 +42,11 @@ export default function RecentOrders() {
                     .map((order: Order) => {
                         return {
                             id: order.id,
-                            orderCode: order.orderCode || `#${order.id.substring(0, 4)}`,
+                            orderCode: order.orderCode || `Chưa thanh toán`,
                             tableCode: order.tableCode || "N/A",
                             totalPrice: order.totalPrice,
                             status: order.status,
-                            endTime: order.endTime ? new Date(order.endTime).toLocaleDateString("vi-VN") : "N/A",
+                            endTime: order.endTime ? new Date(order.endTime).toLocaleDateString("vi-VN") : "Đang cập nhật",
                         }
                     })
                     // Sort by date (newest first)
@@ -132,8 +132,8 @@ export default function RecentOrders() {
                                         <div className="text-[10px] text-muted-foreground">{order.endTime}</div>
                                     </TableCell>
                                     <TableCell className="text-xs p-2">{order.tableCode || order.tableCode}</TableCell>
-                                    <TableCell className="text-xs p-2">
-                                        <div className="flex flex-col gap-1">
+                                    <TableCell className="text-xs text-right">
+                                        <div className="">
                                             {getStatusOrderBadge(order.status)}
                                         </div>
                                     </TableCell>

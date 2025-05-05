@@ -1,11 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { DollarSign, ShoppingBag, Utensils, Users } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { DollarSign, ShoppingBag, Utensils } from "lucide-react"
 import StatCard from "./stat-card"
 import OrderService from "@/services/order-service"
 import type { Order } from "@/types/order"
 import { toast } from "sonner"
+import TableResponse from "@/types/tables"
+
+// Define the TableService interface based on the provided information
+interface TableService {
+    getAllTables: () => Promise<{
+        success: boolean
+        result: {
+            items: TableResponse[]
+            totalCount: number
+        }
+    }>
+}
 
 export default function StatCards() {
     const [isLoading, setIsLoading] = useState(true)
@@ -14,16 +26,57 @@ export default function StatCards() {
     const [activeOrders, setActiveOrders] = useState(0)
     const [newOrdersLastHour, setNewOrdersLastHour] = useState(0)
     const [tablesInUse, setTablesInUse] = useState(0)
-    const [totalTables,] = useState(20) // Default value, could be fetched from a service
-    const [customersToday, setCustomersToday] = useState(0)
-    const [customersYesterday, setCustomersYesterday] = useState(0)
+    const [totalTables, setTotalTables] = useState(0)
+
+
+    // Reference to the TableService
+    const tableServiceRef = useRef<TableService | null>(null)
 
     useEffect(() => {
-        fetchOrderData()
+        // Import the TableService dynamically to avoid issues with SSR
+        import("@/services/table-service").then((module) => {
+            tableServiceRef.current = module.default.getInstance()
+            fetchData()
+        })
     }, [])
 
-    const fetchOrderData = async () => {
+    const fetchData = async () => {
         setIsLoading(true)
+        try {
+            await Promise.all([fetchOrderData(), fetchTableData()])
+        } catch (err) {
+            console.error("Error fetching data:", err)
+            toast.error("Không thể tải dữ liệu")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const fetchTableData = async () => {
+        try {
+            if (!tableServiceRef.current) {
+                console.error("TableService not initialized")
+                return
+            }
+
+            const response = await tableServiceRef.current.getAllTables()
+
+            if (response.success && Array.isArray(response.result.items)) {
+                const tables = response.result.items
+                const openTables = tables.filter((table) => table.status === "Opening")
+
+                setTotalTables(tables.length)
+                setTablesInUse(openTables.length)
+            } else {
+                throw new Error("Invalid table data")
+            }
+        } catch (err) {
+            console.error("Error fetching table data:", err)
+            toast.error("Không thể tải dữ liệu bàn")
+        }
+    }
+
+    const fetchOrderData = async () => {
         try {
             const svc = OrderService.getInstance()
             const res = await svc.getAllOrders()
@@ -31,13 +84,11 @@ export default function StatCards() {
             if (res.success && Array.isArray(res.result.items)) {
                 processOrderData(res.result.items)
             } else {
-                throw new Error("Invalid data")
+                throw new Error("Invalid order data")
             }
         } catch (err) {
             console.error("Error fetching order data:", err)
             toast.error("Không thể tải dữ liệu đơn hàng")
-        } finally {
-            setIsLoading(false)
         }
     }
 
@@ -60,7 +111,7 @@ export default function StatCards() {
             return orderDate && orderDate >= yesterday && orderDate < today
         })
 
-        const activeOrdersList = orders.filter((order) => order.status === "Unpaid")
+        const activeOrdersList = orders.filter((order) => order.status === "Unpaid" || order.status === "CheckedOut")
 
         const newOrdersInLastHour = orders.filter((order) => {
             const orderDate = order.endTime ? new Date(order.endTime) : null
@@ -76,21 +127,13 @@ export default function StatCards() {
             .filter((order) => order.status === "Paid")
             .reduce((sum, order) => sum + order.totalPrice, 0)
 
-        // Count unique tables in use
-        const tablesInUseSet = new Set(activeOrdersList.filter((order) => order.tableId).map((order) => order.tableId))
-
-        // Estimate customers (assuming average 2.5 customers per order)
-        const estimatedCustomersToday = Math.round(todayOrders.length * 2.5)
-        const estimatedCustomersYesterday = Math.round(yesterdayOrders.length * 2.5)
 
         // Update state
         setTodayRevenue(todayTotalRevenue)
         setYesterdayRevenue(yesterdayTotalRevenue)
         setActiveOrders(activeOrdersList.length)
         setNewOrdersLastHour(newOrdersInLastHour.length)
-        setTablesInUse(tablesInUseSet.size)
-        setCustomersToday(estimatedCustomersToday)
-        setCustomersYesterday(estimatedCustomersYesterday)
+
     }
 
     // Format currency
@@ -115,7 +158,7 @@ export default function StatCards() {
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 md:grid-cols-3 gap-4">
             <StatCard
                 title="Tổng doanh thu hôm nay"
                 value={isLoading ? "Đang tải..." : formatCurrency(todayRevenue)}
@@ -137,23 +180,14 @@ export default function StatCards() {
             <StatCard
                 title="Bàn đang sử dụng"
                 value={isLoading ? "Đang tải..." : `${tablesInUse}/${totalTables}`}
-                description={isLoading ? "Đang tính toán..." : `${Math.round((tablesInUse / totalTables) * 100)}% công suất`}
+                description={
+                    isLoading ? "Đang tính toán..." : `${Math.round((tablesInUse / totalTables) * 100 || 0)}% công suất`
+                }
                 icon={<Utensils className="h-4 w-4 text-amber-600" />}
                 trend="neutral"
                 isLoading={isLoading}
             />
-            <StatCard
-                title="Khách hàng hôm nay"
-                value={isLoading ? "Đang tải..." : customersToday.toString()}
-                description={
-                    isLoading
-                        ? "Đang tính toán..."
-                        : `${customersToday - customersYesterday > 0 ? "+" : ""}${customersToday - customersYesterday} khách so với hôm qua`
-                }
-                icon={<Users className="h-4 w-4 text-purple-600" />}
-                trend={isLoading ? "neutral" : determineTrend(customersToday, customersYesterday)}
-                isLoading={isLoading}
-            />
+
         </div>
     )
 }
