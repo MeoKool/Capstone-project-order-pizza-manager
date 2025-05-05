@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Plus, Filter, MoreHorizontal, Edit, Eye, CalendarIcon, X, Clock } from 'lucide-react'
@@ -34,6 +36,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { formatVietnamDate } from '@/utils/date-utils'
 import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([])
@@ -53,6 +56,10 @@ export default function WorkshopsPage() {
   const [newEndRegisterDate, setNewEndRegisterDate] = useState<Date | undefined>(undefined)
   const [reopenDialogOpen, setReopenDialogOpen] = useState(false)
 
+  // Add state for time selection
+  const [newEndRegisterHour, setNewEndRegisterHour] = useState('12')
+  const [newEndRegisterMinute, setNewEndRegisterMinute] = useState('00')
+
   useEffect(() => {
     fetchWorkshops()
   }, [])
@@ -67,6 +74,8 @@ export default function WorkshopsPage() {
     } else {
       setReopenWorkshop(null)
       setNewEndRegisterDate(undefined)
+      setNewEndRegisterHour('12')
+      setNewEndRegisterMinute('00')
     }
   }, [reopenWorkshopId, workshops])
 
@@ -192,7 +201,11 @@ export default function WorkshopsPage() {
     }
 
     try {
-      const formattedDate = newEndRegisterDate.toISOString()
+      // Create a new date with the selected time
+      const dateWithTime = new Date(newEndRegisterDate)
+      dateWithTime.setHours(Number.parseInt(newEndRegisterHour), Number.parseInt(newEndRegisterMinute))
+
+      const formattedDate = dateWithTime.toISOString()
       const response = await workshopService.reopenToRegister(reopenWorkshopId, formattedDate)
 
       if (response.success) {
@@ -276,15 +289,14 @@ export default function WorkshopsPage() {
 
   // Validate if the new end register date is valid
   const isValidEndRegisterDate = (date: Date | undefined) => {
-    if (!date || !reopenWorkshop) return false
+    if (!date) return false
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const workshopDate = parseISO(reopenWorkshop.workshopDate)
-
-    // Date must be after or equal to today and before workshop date
-    return !isBefore(date, today) && isBefore(date, workshopDate)
+    // Only check if date is after or equal to today
+    // Removed the check for being before workshop date
+    return !isBefore(date, today)
   }
 
   const filteredWorkshops = workshops.filter((workshop) => {
@@ -367,6 +379,10 @@ export default function WorkshopsPage() {
   const clearDateFilter = () => {
     setDate(undefined)
   }
+
+  // Generate hours and minutes for select dropdowns
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 
   return (
     <div className='mx-auto p-4 max-w-full'>
@@ -686,18 +702,51 @@ export default function WorkshopsPage() {
                     selected={newEndRegisterDate}
                     onSelect={setNewEndRegisterDate}
                     disabled={(date) => {
-                      if (!reopenWorkshop) return true
+                      // Only check if date is after today
                       const today = new Date()
                       today.setHours(0, 0, 0, 0)
-                      const workshopDate = parseISO(reopenWorkshop.workshopDate)
-                      return isBefore(date, today) || !isBefore(date, workshopDate)
+                      return isBefore(date, today)
                     }}
                     initialFocus
                   />
                 </div>
+
+                {/* Add time selection */}
+                <div className='mt-4 space-y-2'>
+                  <label className='block text-sm font-medium'>Chọn giờ kết thúc đăng ký</label>
+                  <div className='flex items-center space-x-2'>
+                    <Select value={newEndRegisterHour} onValueChange={setNewEndRegisterHour}>
+                      <SelectTrigger className='w-[80px]'>
+                        <SelectValue placeholder='Giờ' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {hours.map((hour) => (
+                          <SelectItem key={hour} value={hour}>
+                            {hour}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <span>:</span>
+                    <Select value={newEndRegisterMinute} onValueChange={setNewEndRegisterMinute}>
+                      <SelectTrigger className='w-[80px]'>
+                        <SelectValue placeholder='Phút' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {minutes.map((minute) => (
+                          <SelectItem key={minute} value={minute}>
+                            {minute}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 {newEndRegisterDate && (
                   <p className='text-sm text-muted-foreground'>
-                    Ngày kết thúc đăng ký mới: {format(newEndRegisterDate, 'dd/MM/yyyy', { locale: vi })}
+                    Ngày kết thúc đăng ký mới: {format(newEndRegisterDate, 'dd/MM/yyyy', { locale: vi })}{' '}
+                    {newEndRegisterHour}:{newEndRegisterMinute}
                   </p>
                 )}
                 {newEndRegisterDate && reopenWorkshop && (
@@ -706,9 +755,7 @@ export default function WorkshopsPage() {
                   </p>
                 )}
                 {!isValidEndRegisterDate(newEndRegisterDate) && (
-                  <p className='text-sm text-red-500'>
-                    Ngày kết thúc đăng ký phải sau ngày hôm nay và trước ngày diễn ra workshop
-                  </p>
+                  <p className='text-sm text-red-500'>Ngày kết thúc đăng ký phải sau ngày hôm nay</p>
                 )}
               </div>
             </div>
