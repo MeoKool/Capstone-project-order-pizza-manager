@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import AuthService, { type StaffDetails } from '@/services/auth-service'
+import { StaffType } from '@/types/staff'
 
 interface AuthContextType {
   user: StaffDetails | null
@@ -15,7 +16,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<StaffDetails | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const authService = AuthService.getInstance()
-
   // Check if user is already logged in
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -34,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     try {
       const staffDetails = await authService.login(username, password)
-
+      if (staffDetails.staffType !== StaffType.Manager) {
+        window.location.href = '/unauthorized'
+        return
+      }
       // Save only staff details to localStorage
       localStorage.setItem('user', JSON.stringify(staffDetails))
 

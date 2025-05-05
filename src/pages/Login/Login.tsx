@@ -46,7 +46,7 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       await login(data.username, data.password)
-      toast.success('Đăng nhập thành công')
+      toast.success('Đăng nhập thành công!')
       navigate(from, { replace: true })
     } catch (error) {
       console.error('Login error:', error)

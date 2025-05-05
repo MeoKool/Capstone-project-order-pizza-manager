@@ -25,10 +25,15 @@ const More = lazy(() => import('@/pages/More/More'))
 import Loading from '@/routers/Loading'
 import StaffZone from '@/pages/StaffZone/staff-zone'
 import FeedbackPage from '@/pages/Feedback/page'
+import UnauthorizedPage from '@/pages/Login/UnauthorizedPage'
 export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />
+  },
+  {
+    path: '/unauthorized',
+    element: <UnauthorizedPage />
   },
   {
     path: '/',
@@ -65,7 +70,7 @@ export const router = createBrowserRouter([
           },
           {
             index: true, // fallback mặc định nếu không có tab
-            element: <Navigate to="tables" />
+            element: <Navigate to='tables' />
           }
         ]
       },
