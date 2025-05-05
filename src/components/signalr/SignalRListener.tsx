@@ -87,15 +87,22 @@ export default function EnhancedSignalRListener() {
       })
     })
 
+    connection.on('OrderItemCancelledStatus', (data) => {
+      console.log('OrderItemCancelledStatus', data)
+    })
+    connection.on('PaymentSuccess', (data) => {
+      console.log('PaymentSuccess', data)
+    })
     // Empty handler for OrderItemUpdatedStatus
     connection.on('OrderItemUpdatedStatus', () => {})
-
     // Clean up event listeners on component unmount
     return () => {
       connection.off('OrderItemUpdatedStatus')
       connection.off('AssignTableForReservation')
       connection.off('ReceiveNotification')
       connection.off('ReservationCreated')
+      connection.off('OrderItemCancelledStatus')
+      connection.off('PaymentSuccess')
     }
   }, [])
 
