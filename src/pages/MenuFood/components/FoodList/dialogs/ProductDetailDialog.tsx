@@ -173,7 +173,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                             <TableRow>
                                                 <TableHead>Tên</TableHead>
                                                 <TableHead className="text-right">Giá thêm</TableHead>
-                                                <TableHead className="text-center">Trạng thái</TableHead>
+                                                <TableHead className="text-right">Trạng thái</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>

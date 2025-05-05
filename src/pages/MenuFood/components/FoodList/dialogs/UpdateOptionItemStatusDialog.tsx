@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -28,8 +28,15 @@ export function UpdateOptionItemStatusDialog({
     const [selectedStatus, setSelectedStatus] = useState<OPTIONITEM_STATUS>(currentStatus)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
+    // Reset selected status when dialog opens with current status
+    useEffect(() => {
+        if (isOpen) {
+            setSelectedStatus(currentStatus)
+        }
+    }, [isOpen, currentStatus])
+
     const handleUpdateStatus = async () => {
-        if (!optionItemId && !optionItemName) return
+        if (!optionItemId && !optionItemName || selectedStatus === currentStatus) return
 
         setIsSubmitting(true)
         const formatOptionStatus = (status: OPTIONITEM_STATUS) => {
@@ -51,6 +58,7 @@ export function UpdateOptionItemStatusDialog({
             const response = await optionService.updateStatusOptionItem(optionItemId, selectedStatus)
 
             if (response.success) {
+                setSelectedStatus(selectedStatus)
                 toast.success(`Cập nhật trạng thái "${nameStatus}" thành công cho lựa chọn: ${optionItemName}`)
                 onOpenChange(false)
                 if (onSuccess) {
