@@ -112,7 +112,9 @@ class StaffService {
     const mapping = {
       Staff: 0,
       Manager: 1,
-      Cheff: 2
+      Cheff: 2,
+      ScreenChef: 3,
+      ScreenWaiter: 4
     }
     return mapping[staffType]
   }

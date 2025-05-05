@@ -183,6 +183,8 @@ export function StaffTable() {
             <SelectItem value='Staff'>Nhân viên</SelectItem>
             <SelectItem value='Manager'>Quản lý</SelectItem>
             <SelectItem value='Cheff'>Đầu bếp</SelectItem>
+            <SelectItem value='ScreenChef'>Tài khoản bếp trưởng</SelectItem>
+            <SelectItem value='ScreenWaiter'>Tài khoản phục vụ</SelectItem>
           </SelectContent>
         </Select>
         {hasFilters && (
@@ -339,6 +341,8 @@ export function StaffTable() {
                       {member.staffType === 'Staff' && 'Nhân viên'}
                       {member.staffType === 'Manager' && 'Quản lý'}
                       {member.staffType === 'Cheff' && 'Đầu bếp'}
+                      {member.staffType === 'ScreenChef' && 'Tài khoản bếp trưởng'}
+                      {member.staffType === 'ScreenWaiter' && 'Tài khoản phục vụ'}
                     </Badge>
                   </TableCell>
                   <TableCell>

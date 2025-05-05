@@ -100,6 +100,10 @@ export function SchedulesList({ schedules, zones, onUpdate }: SchedulesListProps
         return 'Bán thời gian'
       case 'Cheff':
         return 'Đầu bếp'
+      case 'ScreenChef':
+        return 'Tài khoản bếp trưởng'
+      case 'ScreenWaiter':
+        return 'Tài khoản phục vụ'
       default:
         return status
     }

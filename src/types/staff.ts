@@ -24,5 +24,7 @@ export interface StaffModel {
 export enum StaffType {
   Staff = 'Staff',
   Manager = 'Manager',
-  ChefF = 'Cheff'
+  ChefF = 'Cheff',
+  ScreenChef = 'ScreenChef',
+  ScreenWaiter = 'ScreenWaiter'
 }

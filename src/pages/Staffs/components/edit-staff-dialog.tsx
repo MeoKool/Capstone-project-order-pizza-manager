@@ -35,7 +35,11 @@ const formSchema = z.object({
     .or(z.literal('')),
   fullName: z.string().min(2, 'Tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Email không hợp lệ'),
-  phone: z.string().min(10, 'Số điện thoại phải có ít nhất 10 số'),
+  phone: z
+    .string()
+    .min(10, { message: 'Số điện thoại phải có ít nhất 10 số' })
+    .max(10, { message: 'Số điện thoại phải có đúng 10 số' })
+    .regex(/^[0-9]+$/, { message: 'Số điện thoại chỉ được chứa các chữ số' }),
   staffType: z.nativeEnum(StaffType),
   status: z.enum(['FullTime', 'PartTime'])
 })
@@ -205,6 +209,8 @@ export function EditStaffDialog({ staff, open, onOpenChange }: EditStaffDialogPr
                         <SelectItem value='Staff'>Nhân viên</SelectItem>
                         <SelectItem value='Manager'>Quản lý</SelectItem>
                         <SelectItem value='Cheff'>Đầu bếp</SelectItem>
+                        <SelectItem value='ScreenChef'>Tài khoản bếp trưởng</SelectItem>
+                        <SelectItem value='ScreenWaiter'>Tài khoản phục vụ</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage className='text-xs font-medium text-destructive' />
