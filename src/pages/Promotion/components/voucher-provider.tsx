@@ -14,6 +14,7 @@ interface VoucherContextType {
   error: string | null
   fetchVouchers: () => Promise<void>
   fetchVoucherTypes: () => Promise<void>
+  invalidateVoucherType: (id: string) => Promise<void>
   addVoucherType: (voucherType: CreateVoucherTypeDto) => Promise<void>
   updateVoucherType: (id: string, voucherType: Partial<CreateVoucherTypeDto>) => Promise<void>
   deleteVoucherType: (id: string) => Promise<void>
@@ -237,6 +238,47 @@ export function VoucherProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const inValidateVoucherType = async (id: string) => {
+    console.log('Invalidating voucher type:', id)
+    try {
+      const response = await voucherService.invalidateVoucherBatch(id)
+      console.log('Invalidate voucher type response:', response)
+
+      if (response.success) {
+        toast.success('Vô hiệu hóa loại voucher thành công')
+        await fetchVoucherTypes()
+      } else {
+        console.error('Failed to invalidate voucher type:', response.message)
+        toast.error(response.message || 'Vô hiệu hóa loại voucher thất bại')
+        throw new Error(response.message)
+      }
+    } catch (err) {
+      console.error('Error invalidating voucher type:', err)
+      toast.error('Đã xảy ra lỗi khi vô hiệu hóa loại voucher')
+      throw err
+    }
+  }
+  const invalidateVoucherType = async (id: string) => {
+    console.log('Invalidating voucher type:', id)
+    try {
+      const response = await voucherService.invalidateVoucherBatch(id)
+      console.log('Invalidate voucher type response:', response)
+
+      if (response.success) {
+        toast.success('Vô hiệu hóa loại voucher thành công')
+        await fetchVoucherTypes()
+      } else {
+        console.error('Failed to invalidate voucher type:', response.message)
+        toast.error(response.message || 'Vô hiệu hóa loại voucher thất bại')
+        throw new Error(response.message)
+      }
+    } catch (err) {
+      console.error('Error invalidating voucher type:', err)
+      toast.error('Đã xảy ra lỗi khi vô hiệu hóa loại voucher')
+      throw err
+    }
+  }
+
   useEffect(() => {
     fetchVouchers()
     fetchVoucherTypes()
@@ -251,6 +293,8 @@ export function VoucherProvider({ children }: { children: ReactNode }) {
     error,
     fetchVouchers,
     fetchVoucherTypes,
+    inValidateVoucherType,
+    invalidateVoucherType,
     addVoucherType,
     updateVoucherType,
     deleteVoucherType,

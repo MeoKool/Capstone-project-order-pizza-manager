@@ -18,8 +18,8 @@ import {
   Search,
   X,
   Calendar,
-  Ticket,
-  FilterX
+  FilterX,
+  Ban
 } from 'lucide-react'
 import { format, isValid, parseISO } from 'date-fns'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -30,13 +30,15 @@ interface VoucherTypeTableProps {
   onEdit: (voucherType: VoucherType) => void
   onDelete: (voucherType: VoucherType) => void
   onGenerateVouchers: (voucherType: VoucherType) => void
+  onInvalidate: (voucherType: VoucherType) => void
 }
 
-export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: VoucherTypeTableProps) {
+export function VoucherTypeTable({ onInvalidate }: VoucherTypeTableProps) {
   const { voucherTypes, loading } = useVoucher()
   const [searchTerm, setSearchTerm] = useState('')
   const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<Date | null>(null)
+  const [validityFilter, setValidityFilter] = useState<string>('all')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -52,6 +54,11 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
 
       const matchesDiscountType = discountTypeFilter === 'all' || type.discountType === discountTypeFilter
 
+      const matchesValidity =
+        validityFilter === 'all' ||
+        (validityFilter === 'valid' && type.isValid) ||
+        (validityFilter === 'invalid' && !type.isValid)
+
       const matchesDate =
         !dateFilter ||
         (isValid(parseISO(type.startDate)) &&
@@ -59,9 +66,9 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
           dateFilter >= new Date(type.startDate) &&
           dateFilter <= new Date(type.endDate))
 
-      return matchesSearch && matchesDiscountType && matchesDate
+      return matchesSearch && matchesDiscountType && matchesDate && matchesValidity
     })
-  }, [voucherTypes, searchTerm, discountTypeFilter, dateFilter])
+  }, [voucherTypes, searchTerm, discountTypeFilter, dateFilter, validityFilter])
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredVoucherTypes.length / itemsPerPage)
@@ -74,9 +81,11 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
     setSearchTerm('')
     setDiscountTypeFilter('all')
     setDateFilter(null)
+    setValidityFilter('all')
   }
 
-  const hasFilters = searchTerm !== '' || discountTypeFilter !== 'all' || dateFilter !== null
+  const hasFilters =
+    searchTerm !== '' || discountTypeFilter !== 'all' || dateFilter !== null || validityFilter !== 'all'
 
   // Pagination handlers
   const goToFirstPage = () => setCurrentPage(1)
@@ -138,7 +147,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
   return (
     <div className='space-y-4'>
       {/* Filter controls - restructured for better spacing */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 bg-gray-50/50 p-4 rounded-xl border'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-6 bg-gray-50/50 p-4 rounded-xl border'>
         <div className='relative sm:col-span-2'>
           <Search className='absolute left-3 top-2.5 h-4 w-4 text-muted-foreground' />
           <Input
@@ -180,6 +189,23 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
             <SelectItem value='all'>Tất cả loại</SelectItem>
             <SelectItem value='Percentage'>Phần trăm (%)</SelectItem>
             <SelectItem value='Direct'>Trực tiếp (VNĐ)</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={validityFilter}
+          onValueChange={(value) => {
+            setValidityFilter(value)
+            setCurrentPage(1) // Reset to first page on filter change
+          }}
+        >
+          <SelectTrigger className='bg-white border-input'>
+            <SelectValue placeholder='Trạng thái' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>Tất cả trạng thái</SelectItem>
+            <SelectItem value='valid'>Có hiệu lực</SelectItem>
+            <SelectItem value='invalid'>Vô hiệu hóa</SelectItem>
           </SelectContent>
         </Select>
 
@@ -267,6 +293,26 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
               </Button>
             </Badge>
           )}
+          {validityFilter !== 'all' && (
+            <Badge
+              variant='secondary'
+              className='flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border-0'
+            >
+              Trạng thái: {validityFilter === 'valid' ? 'Có hiệu lực' : 'Vô hiệu hóa'}
+              <Button
+                variant='ghost'
+                size='sm'
+                className='h-4 w-4 p-0 ml-1 text-primary hover:bg-transparent'
+                onClick={() => {
+                  setValidityFilter('all')
+                  setCurrentPage(1) // Reset to first page on clear
+                }}
+              >
+                <X className='h-3 w-3' />
+                <span className='sr-only'>Xóa bộ lọc trạng thái</span>
+              </Button>
+            </Badge>
+          )}
           {dateFilter && (
             <Badge
               variant='secondary'
@@ -300,6 +346,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
               <TableHead className='font-medium'>Giá trị</TableHead>
               <TableHead className='font-medium'>Số lượng</TableHead>
               <TableHead className='font-medium'>Thời gian</TableHead>
+              <TableHead className='font-medium'>Trạng thái</TableHead>
               <TableHead className='w-[80px]'></TableHead>
             </TableRow>
           </TableHeader>
@@ -326,7 +373,7 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
                     <div className='h-5 bg-gray-200 rounded w-32'></div>
                   </TableCell>
                   <TableCell>
-                    <div className='h-5 bg-gray-200 rounded w-16'></div>
+                    <div className='h-5 bg-gray-200 rounded w-24'></div>
                   </TableCell>
                   <TableCell>
                     <div className='h-5 bg-gray-200 rounded w-8'></div>
@@ -372,27 +419,46 @@ export function VoucherTypeTable({ onEdit, onDelete, onGenerateVouchers }: Vouch
                     </div>
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant='ghost' size='sm' className='h-8 w-8 p-0 rounded-full hover:bg-gray-100'>
-                          <MoreHorizontal className='h-4 w-4' />
-                          <span className='sr-only'>Mở menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem onClick={() => onEdit(type)}>Chỉnh sửa</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onGenerateVouchers(type)}>
+                    <Badge
+                      variant={type.isValid ? 'outline' : 'destructive'}
+                      className={
+                        type.isValid
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200 border-0'
+                          : 'bg-red-100 text-red-800 hover:bg-red-200 border-0'
+                      }
+                    >
+                      {type.isValid ? 'Có hiệu lực' : 'Vô hiệu hóa'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {type.isValid && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant='ghost' size='sm' className='h-8 w-8 p-0 rounded-full hover:bg-gray-100'>
+                            <MoreHorizontal className='h-4 w-4' />
+                            <span className='sr-only'>Mở menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end'>
+                          {/* <DropdownMenuItem onClick={() => onEdit(type)}>Chỉnh sửa</DropdownMenuItem> */}
+                          {/* <DropdownMenuItem onClick={() => onGenerateVouchers(type)}>
                           <Ticket className='h-4 w-4 mr-2' />
                           Tạo voucher
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
+                        </DropdownMenuItem> */}
+                          <DropdownMenuItem onSelect={() => onInvalidate(type)}>
+                            <Ban className='h-4 w-4 mr-2' />
+                            Vô hiệu hóa
+                          </DropdownMenuItem>
+
+                          {/* <DropdownMenuItem
                           onClick={() => onDelete(type)}
                           className='text-destructive focus:text-destructive'
                         >
                           Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        </DropdownMenuItem> */}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
