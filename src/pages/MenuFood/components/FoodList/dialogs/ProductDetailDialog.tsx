@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -24,6 +22,7 @@ import {
     CheckCheckIcon,
     AlertCircle,
     Layers,
+    Settings2,
 } from "lucide-react"
 import type { ProductModel } from "@/types/product"
 import type { ProductOption } from "@/types/product-option"
@@ -37,6 +36,9 @@ import type { ProductStatus } from "@/types/product"
 import { ProductStatusBadge } from "../../product/ProductStatusBadge"
 import { ProductStatusSelect } from "../../product/ProductStatusSelect"
 import { RecipeTable } from "../../product/RecipeTable"
+import { OptionItemStatusBadge } from "../../product/OptionItemStatusBadge"
+import { UpdateOptionItemStatusDialog } from './UpdateOptionItemStatusDialog'
+import OptionItem from "@/types/option"
 
 interface ProductDetailDialogProps {
     productId: string | null
@@ -50,7 +52,9 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
     const [error, setError] = useState<string | null>(null)
     const { foodCategory } = useCategories()
     const productService = ProductService.getInstance()
-
+    const [selectedOptionItem, setSelectedOptionItem] = useState<OptionItem | null>(null)
+    const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
+    const [selectedOptionItemName, setSelectedOptionItemName] = useState<string>("")
     useEffect(() => {
         const fetchProductDetails = async () => {
             if (!productId || !open) return
@@ -59,7 +63,6 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
             setError(null)
 
             try {
-                // Use the service method instead of direct fetch
                 const response = await productService.getProductById(productId)
                 console.log(response)
 
@@ -78,6 +81,20 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
 
         fetchProductDetails()
     }, [productId, open, productService])
+
+    // Add new function to handle option item status update success
+    const handleOptionItemStatusUpdate = async () => {
+        if (!productId) return
+
+        try {
+            const response = await productService.getProductById(productId)
+            if (response.success && response.result) {
+                setProduct(response.result)
+            }
+        } catch (err) {
+            console.error("Error refreshing product details:", err)
+        }
+    }
 
     // Function to handle status change
     const handleStatusChange = (newStatus: ProductStatus) => {
@@ -156,6 +173,7 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                             <TableRow>
                                                 <TableHead>Tên</TableHead>
                                                 <TableHead className="text-right">Giá thêm</TableHead>
+                                                <TableHead className="text-center">Trạng thái</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -170,6 +188,25 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
                                                                 <span className="text-primary">+{item.additionalPrice.toLocaleString("vi-VN")} ₫</span>
                                                             ) : (
                                                                 <span className="font-medium">+0 đ</span>
+                                                            )}
+                                                        </TableCell>
+                                                        <TableCell className="w-44">
+                                                            {item.optionItemStatus && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <OptionItemStatusBadge status={item.optionItemStatus} className="w-36" />
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8"
+                                                                        onClick={() => {
+                                                                            setSelectedOptionItem(item)
+                                                                            setIsStatusDialogOpen(true)
+                                                                            setSelectedOptionItemName(item.name)
+                                                                        }}
+                                                                    >
+                                                                        <Settings2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
                                                             )}
                                                         </TableCell>
                                                     </TableRow>
@@ -543,321 +580,332 @@ export function ProductDetailDialog({ productId, open, onOpenChange }: ProductDe
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <Info className="h-5 w-5" />
-                        Chi tiết sản phẩm
-                    </DialogTitle>
-                </DialogHeader>
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Info className="h-5 w-5" />
+                            Chi tiết sản phẩm
+                        </DialogTitle>
+                    </DialogHeader>
 
-                {loading ? (
-                    <div className="space-y-4 flex-1">
-                        <div className="flex flex-col md:flex-row gap-4">
-                            <Skeleton className="h-64 w-full md:w-1/3 rounded-md" />
-                            <div className="w-full md:w-2/3 space-y-4">
-                                <Skeleton className="h-8 w-3/4" />
-                                <Skeleton className="h-6 w-1/3" />
-                                <Skeleton className="h-4 w-1/2" />
-                                <Skeleton className="h-20 w-full" />
-                            </div>
-                        </div>
-                        <Skeleton className="h-40 w-full" />
-                    </div>
-                ) : error ? (
-                    <div className="p-4 text-center flex-1 flex flex-col items-center justify-center min-h-[300px]">
-                        <p className="text-destructive">{error}</p>
-                        <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-4">
-                            Đóng
-                        </Button>
-                    </div>
-                ) : product ? (
-                    product.productRole === "Combo" ? (
-                        renderComboProductDetails()
-                    ) : (
-                        <div className="flex flex-col">
-                            {/* Fixed Product Info Section */}
-                            <div className="flex flex-col md:flex-row gap-6 pb-4">
-                                {/* Product Image */}
-                                <div className="w-full md:w-1/3">
-                                    <div className="relative aspect-square overflow-hidden rounded-md border">
-                                        <img
-                                            src={getProductImageUrl(product) || "/placeholder.svg"}
-                                            alt={product.name}
-                                            className="object-cover w-full h-full"
-                                            onError={(e) => {
-                                                ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=256&width=256"
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Product Info */}
+                    {loading ? (
+                        <div className="space-y-4 flex-1">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <Skeleton className="h-64 w-full md:w-1/3 rounded-md" />
                                 <div className="w-full md:w-2/3 space-y-4">
-                                    <div className="flex justify-between items-start">
-                                        <h2 className="text-2xl font-bold">{product.name}</h2>
-                                        <div className="flex gap-2">
-                                            <Badge variant="secondary" className="text-sm">
-                                                {formatProductType(product.productType)}
-                                            </Badge>
+                                    <Skeleton className="h-8 w-3/4" />
+                                    <Skeleton className="h-6 w-1/3" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                    <Skeleton className="h-20 w-full" />
+                                </div>
+                            </div>
+                            <Skeleton className="h-40 w-full" />
+                        </div>
+                    ) : error ? (
+                        <div className="p-4 text-center flex-1 flex flex-col items-center justify-center min-h-[300px]">
+                            <p className="text-destructive">{error}</p>
+                            <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-4">
+                                Đóng
+                            </Button>
+                        </div>
+                    ) : product ? (
+                        product.productRole === "Combo" ? (
+                            renderComboProductDetails()
+                        ) : (
+                            <div className="flex flex-col">
+                                {/* Fixed Product Info Section */}
+                                <div className="flex flex-col md:flex-row gap-6 pb-4">
+                                    {/* Product Image */}
+                                    <div className="w-full md:w-1/3">
+                                        <div className="relative aspect-square overflow-hidden rounded-md border">
+                                            <img
+                                                src={getProductImageUrl(product) || "/placeholder.svg"}
+                                                alt={product.name}
+                                                className="object-cover w-full h-full"
+                                                onError={(e) => {
+                                                    ; (e.target as HTMLImageElement).src = "/placeholder.svg?height=256&width=256"
+                                                }}
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        <Badge variant="secondary" className="flex items-center gap-1 h-7">
-                                            <ListFilter className="h-3 w-3" />
-                                            {getCategoryName(product.categoryId)}
-                                        </Badge>
+                                    {/* Product Info */}
+                                    <div className="w-full md:w-2/3 space-y-4">
+                                        <div className="flex justify-between items-start">
+                                            <h2 className="text-2xl font-bold">{product.name}</h2>
+                                            <div className="flex gap-2">
+                                                <Badge variant="secondary" className="text-sm">
+                                                    {formatProductType(product.productType)}
+                                                </Badge>
+                                            </div>
+                                        </div>
 
-                                        <Badge variant="secondary" className="text-primary font-semibold h-7">
-                                            {formatCurrencyVND(product.price)}
-                                        </Badge>
-                                        {product.productRole && (
-                                            <Badge
-                                                variant={product.productRole === "Master" ? "secondary" : "outline"}
-                                                className="flex items-center gap-1 h-7"
-                                            >
-                                                <CheckCheckIcon className="h-3 w-3 mr-1" />
-                                                {product.productRole === "Master" ? "Sản phẩm chính" : "Sản phẩm con"}
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <Badge variant="secondary" className="flex items-center gap-1 h-7">
+                                                <ListFilter className="h-3 w-3" />
+                                                {getCategoryName(product.categoryId)}
                                             </Badge>
+
+                                            <Badge variant="secondary" className="text-primary font-semibold h-7">
+                                                {formatCurrencyVND(product.price)}
+                                            </Badge>
+                                            {product.productRole && (
+                                                <Badge
+                                                    variant={product.productRole === "Master" ? "secondary" : "outline"}
+                                                    className="flex items-center gap-1 h-7"
+                                                >
+                                                    <CheckCheckIcon className="h-3 w-3 mr-1" />
+                                                    {product.productRole === "Master" ? "Sản phẩm chính" : "Sản phẩm con"}
+                                                </Badge>
+                                            )}
+                                            {product.productStatus && <ProductStatusBadge status={product.productStatus} />}
+                                        </div>
+
+                                        {/* Status update buttons */}
+                                        {productId && product.productStatus && (
+                                            <ProductStatusSelect
+                                                productId={productId}
+                                                currentStatus={product.productStatus}
+                                                onStatusChange={handleStatusChange}
+                                            />
                                         )}
-                                        {product.productStatus && <ProductStatusBadge status={product.productStatus} />}
-                                    </div>
 
-                                    {/* Status update buttons */}
-                                    {productId && product.productStatus && (
-                                        <ProductStatusSelect
-                                            productId={productId}
-                                            currentStatus={product.productStatus}
-                                            onStatusChange={handleStatusChange}
-                                        />
-                                    )}
+                                        <Separator />
 
-                                    <Separator />
-
-                                    <div>
-                                        <h3 className="text-sm font-medium mb-1">Mô tả:</h3>
-                                        <p className="text-sm text-muted-foreground">{product.description || "Không có mô tả"}</p>
+                                        <div>
+                                            <h3 className="text-sm font-medium mb-1">Mô tả:</h3>
+                                            <p className="text-sm text-muted-foreground">{product.description || "Không có mô tả"}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <Separator className="my-2" />
+                                <Separator className="my-2" />
 
-                            {/* Scrollable Tabs Section */}
-                            <div className="flex flex-col">
-                                <Tabs defaultValue="details" className="w-full flex-1 flex flex-col">
-                                    <TabsList className="grid w-full grid-cols-3">
-                                        <TabsTrigger value="details" className="flex items-center gap-2">
-                                            <Info className="h-4 w-4" />
-                                            Thông tin sản phẩm
-                                        </TabsTrigger>
-                                        <TabsTrigger value="options" className="flex items-center gap-2">
-                                            <Tag className="h-4 w-4" />
-                                            Tùy chọn
-                                        </TabsTrigger>
-                                        <TabsTrigger value="recipes" className="flex items-center gap-2">
-                                            <CookingPot className="h-4 w-4" />
-                                            Công thức
-                                        </TabsTrigger>
-                                    </TabsList>
+                                {/* Scrollable Tabs Section */}
+                                <div className="flex flex-col">
+                                    <Tabs defaultValue="details" className="w-full flex-1 flex flex-col">
+                                        <TabsList className="grid w-full grid-cols-3">
+                                            <TabsTrigger value="details" className="flex items-center gap-2">
+                                                <Info className="h-4 w-4" />
+                                                Thông tin sản phẩm
+                                            </TabsTrigger>
+                                            <TabsTrigger value="options" className="flex items-center gap-2">
+                                                <Tag className="h-4 w-4" />
+                                                Tùy chọn
+                                            </TabsTrigger>
+                                            <TabsTrigger value="recipes" className="flex items-center gap-2">
+                                                <CookingPot className="h-4 w-4" />
+                                                Công thức
+                                            </TabsTrigger>
+                                        </TabsList>
 
-                                    {/* Scrollable Content Area */}
-                                    <div>
-                                        <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
-                                            {/* Options Tab */}
-                                            <TabsContent value="options" className="mt-4 max-h-[327px] pb-2">
-                                                <Card>
-                                                    <CardHeader>
-                                                        <CardTitle>Tùy chọn sản phẩm</CardTitle>
-                                                        <CardDescription className="pb-1">Các tùy chọn có thể thêm vào sản phẩm</CardDescription>
-                                                        <Separator />
-                                                    </CardHeader>
-                                                    <CardContent>{renderProductOptions()}</CardContent>
-                                                </Card>
-                                            </TabsContent>
+                                        {/* Scrollable Content Area */}
+                                        <div>
+                                            <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
+                                                {/* Options Tab */}
+                                                <TabsContent value="options" className="mt-4 max-h-[327px] pb-2">
+                                                    <Card>
+                                                        <CardHeader>
+                                                            <CardTitle>Tùy chọn sản phẩm</CardTitle>
+                                                            <CardDescription className="pb-1">Các tùy chọn có thể thêm vào sản phẩm</CardDescription>
+                                                            <Separator />
+                                                        </CardHeader>
+                                                        <CardContent>{renderProductOptions()}</CardContent>
+                                                    </Card>
+                                                </TabsContent>
 
-                                            {/* Details Tab */}
-                                            <TabsContent value="details" className="mt-4 max-h-[327px] pb-2">
-                                                <Card>
-                                                    <CardHeader>
-                                                        <CardTitle>Thông tin sản phẩm</CardTitle>
-                                                        <CardDescription className="pb-1">Chi tiết về món ăn này</CardDescription>
-                                                        <Separator />
-                                                    </CardHeader>
-                                                    <CardContent>
-                                                        <div className="space-y-6">
-                                                            {/* Thông tin cơ bản */}
-                                                            <div className="bg-gray-50 p-4 rounded-lg">
-                                                                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                                                                    <Info className="h-4 w-4 text-primary" />
-                                                                    Thông tin cơ bản
-                                                                </h3>
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                    <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
-                                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                                            <Tag className="h-4 w-4" />
+                                                {/* Details Tab */}
+                                                <TabsContent value="details" className="mt-4 max-h-[327px] pb-2">
+                                                    <Card>
+                                                        <CardHeader>
+                                                            <CardTitle>Thông tin sản phẩm</CardTitle>
+                                                            <CardDescription className="pb-1">Chi tiết về món ăn này</CardDescription>
+                                                            <Separator />
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                            <div className="space-y-6">
+                                                                {/* Thông tin cơ bản */}
+                                                                <div className="bg-gray-50 p-4 rounded-lg">
+                                                                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                                                        <Info className="h-4 w-4 text-primary" />
+                                                                        Thông tin cơ bản
+                                                                    </h3>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                        <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <Tag className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-xs text-muted-foreground">Tên sản phẩm</p>
+                                                                                <p className="font-medium">{product.name}</p>
+                                                                            </div>
                                                                         </div>
-                                                                        <div>
-                                                                            <p className="text-xs text-muted-foreground">Tên sản phẩm</p>
-                                                                            <p className="font-medium">{product.name}</p>
+
+                                                                        <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <DollarSign className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-xs text-muted-foreground">Giá bán</p>
+                                                                                <p className="font-medium text-primary">{formatCurrencyVND(product.price)}</p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <Utensils className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-xs text-muted-foreground">Loại sản phẩm</p>
+                                                                                <p className="font-medium">{formatProductType(product.productType)}</p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <ListFilter className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-xs text-muted-foreground">Danh mục</p>
+                                                                                <p className="font-medium">{getCategoryName(product.categoryId)}</p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <Link className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-xs text-muted-foreground">Vai trò sản phẩm</p>
+                                                                                <p className="font-medium">
+                                                                                    {product.productRole === "Master" ? "Sản phẩm chính" : "Sản phẩm con"}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
+                                                                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                                                <AlertCircle className="h-4 w-4" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="text-xs text-muted-foreground">Trạng thái</p>
+                                                                                <p className="font-medium">
+                                                                                    {product.productStatus && formatProductStatus(product.productStatus)}
+                                                                                </p>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
+                                                                </div>
 
-                                                                    <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
-                                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                                            <DollarSign className="h-4 w-4" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-xs text-muted-foreground">Giá bán</p>
-                                                                            <p className="font-medium text-primary">{formatCurrencyVND(product.price)}</p>
-                                                                        </div>
-                                                                    </div>
+                                                                {/* Thông tin chi tiết */}
+                                                                <div className="bg-gray-50 p-4 rounded-lg">
+                                                                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                                                        <LayoutGrid className="h-4 w-4 text-primary" />
+                                                                        Thông tin chi tiết
+                                                                    </h3>
 
-                                                                    <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
-                                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                                            <Utensils className="h-4 w-4" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-xs text-muted-foreground">Loại sản phẩm</p>
-                                                                            <p className="font-medium">{formatProductType(product.productType)}</p>
-                                                                        </div>
-                                                                    </div>
+                                                                    <div className="grid grid-cols-3 gap-4">
+                                                                        {product.productRole === "Master" && (
+                                                                            <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
+                                                                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                                                                                    <Package className="h-5 w-5" />
+                                                                                </div>
+                                                                                <p className="text-xs text-muted-foreground mb-1">Sản phẩm con</p>
+                                                                                <p className="text-xl font-bold">{product.childProducts?.length || 0}</p>
+                                                                            </div>
+                                                                        )}
 
-                                                                    <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
-                                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                                            <ListFilter className="h-4 w-4" />
+                                                                        <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
+                                                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                                                                                <Tag className="h-5 w-5" />
+                                                                            </div>
+                                                                            <p className="text-xs text-muted-foreground mb-1">Tùy chọn</p>
+                                                                            <p className="text-xl font-bold">{product.productOptions?.length || 0}</p>
                                                                         </div>
-                                                                        <div>
-                                                                            <p className="text-xs text-muted-foreground">Danh mục</p>
-                                                                            <p className="font-medium">{getCategoryName(product.categoryId)}</p>
-                                                                        </div>
-                                                                    </div>
 
-                                                                    <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
-                                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                                            <Link className="h-4 w-4" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-xs text-muted-foreground">Vai trò sản phẩm</p>
-                                                                            <p className="font-medium">
-                                                                                {product.productRole === "Master" ? "Sản phẩm chính" : "Sản phẩm con"}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-3 bg-white p-3 rounded-md shadow-sm">
-                                                                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                                            <AlertCircle className="h-4 w-4" />
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-xs text-muted-foreground">Trạng thái</p>
-                                                                            <p className="font-medium">
-                                                                                {product.productStatus && formatProductStatus(product.productStatus)}
+                                                                        <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
+                                                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
+                                                                                <CookingPot className="h-5 w-5" />
+                                                                            </div>
+                                                                            <p className="text-xs text-muted-foreground mb-1">Khu vực bếp</p>
+                                                                            <p className="text-sm font-medium truncate w-full">
+                                                                                {formatProductType(product.productType)}
                                                                             </p>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
 
-                                                            {/* Thông tin chi tiết */}
-                                                            <div className="bg-gray-50 p-4 rounded-lg">
-                                                                <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                                                                    <LayoutGrid className="h-4 w-4 text-primary" />
-                                                                    Thông tin chi tiết
-                                                                </h3>
-
-                                                                <div className="grid grid-cols-3 gap-4">
-                                                                    {product.productRole === "Master" && (
-                                                                        <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
-                                                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                                                                                <Package className="h-5 w-5" />
-                                                                            </div>
-                                                                            <p className="text-xs text-muted-foreground mb-1">Sản phẩm con</p>
-                                                                            <p className="text-xl font-bold">{product.childProducts?.length || 0}</p>
+                                                                {/* Child Products Section - Added to the details tab */}
+                                                                {product.productRole === "Master" &&
+                                                                    product.childProducts &&
+                                                                    product.childProducts.length > 0 && (
+                                                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                                                            <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                                                                                <Package className="h-4 w-4 text-primary" />
+                                                                                Sản phẩm con
+                                                                            </h3>
+                                                                            <div className="bg-white p-4 rounded-md shadow-sm">{renderChildProducts()}</div>
                                                                         </div>
                                                                     )}
 
-                                                                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
-                                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                                                                            <Tag className="h-5 w-5" />
-                                                                        </div>
-                                                                        <p className="text-xs text-muted-foreground mb-1">Tùy chọn</p>
-                                                                        <p className="text-xl font-bold">{product.productOptions?.length || 0}</p>
-                                                                    </div>
-
-                                                                    <div className="bg-white p-4 rounded-md shadow-sm flex flex-col items-center text-center">
-                                                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2">
-                                                                            <CookingPot className="h-5 w-5" />
-                                                                        </div>
-                                                                        <p className="text-xs text-muted-foreground mb-1">Khu vực bếp</p>
-                                                                        <p className="text-sm font-medium truncate w-full">
-                                                                            {formatProductType(product.productType)}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Child Products Section - Added to the details tab */}
-                                                            {product.productRole === "Master" &&
-                                                                product.childProducts &&
-                                                                product.childProducts.length > 0 && (
+                                                                {/* Mô tả sản phẩm */}
+                                                                {product.description && (
                                                                     <div className="bg-gray-50 p-4 rounded-lg">
                                                                         <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                                                                            <Package className="h-4 w-4 text-primary" />
-                                                                            Sản phẩm con
+                                                                            <FileText className="h-4 w-4 text-primary" />
+                                                                            Mô tả sản phẩm
                                                                         </h3>
-                                                                        <div className="bg-white p-4 rounded-md shadow-sm">{renderChildProducts()}</div>
+                                                                        <div className="bg-white p-4 rounded-md shadow-sm">
+                                                                            <p className="text-sm">{product.description}</p>
+                                                                        </div>
                                                                     </div>
                                                                 )}
-
-                                                            {/* Mô tả sản phẩm */}
-                                                            {product.description && (
-                                                                <div className="bg-gray-50 p-4 rounded-lg">
-                                                                    <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                                                                        <FileText className="h-4 w-4 text-primary" />
-                                                                        Mô tả sản phẩm
-                                                                    </h3>
-                                                                    <div className="bg-white p-4 rounded-md shadow-sm">
-                                                                        <p className="text-sm">{product.description}</p>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            </TabsContent>
-                                            <TabsContent value="recipes" className="mt-4 max-h-[327px] pb-2">
-                                                <Card>
-                                                    <CardHeader>
-                                                        <CardTitle>Công thức chế biến</CardTitle>
-                                                        <CardDescription className="pb-1">Nguyên liệu và định lượng cho món ăn này</CardDescription>
-                                                        <Separator />
-                                                    </CardHeader>
-                                                    <CardContent>{product.recipes && <RecipeTable recipes={product.recipes} />}</CardContent>
-                                                </Card>
-                                            </TabsContent>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </TabsContent>
+                                                <TabsContent value="recipes" className="mt-4 max-h-[327px] pb-2">
+                                                    <Card>
+                                                        <CardHeader>
+                                                            <CardTitle>Công thức chế biến</CardTitle>
+                                                            <CardDescription className="pb-1">Nguyên liệu và định lượng cho món ăn này</CardDescription>
+                                                            <Separator />
+                                                        </CardHeader>
+                                                        <CardContent>{product.recipes && <RecipeTable recipes={product.recipes} />}</CardContent>
+                                                    </Card>
+                                                </TabsContent>
+                                            </div>
                                         </div>
-                                    </div>
-                                </Tabs>
-                            </div>
+                                    </Tabs>
+                                </div>
 
-                            <div className="flex justify-end mt-4">
-                                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                                    Đóng
-                                </Button>
+                                <div className="flex justify-end mt-4">
+                                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                                        Đóng
+                                    </Button>
+                                </div>
                             </div>
+                        )
+                    ) : (
+                        <div className="p-4 text-center flex-1 flex flex-col items-center justify-center min-h-[300px]">
+                            <p className="text-muted-foreground">Không tìm thấy thông tin sản phẩm</p>
+                            <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-4">
+                                Đóng
+                            </Button>
                         </div>
-                    )
-                ) : (
-                    <div className="p-4 text-center flex-1 flex flex-col items-center justify-center min-h-[300px]">
-                        <p className="text-muted-foreground">Không tìm thấy thông tin sản phẩm</p>
-                        <Button variant="outline" onClick={() => onOpenChange(false)} className="mt-4">
-                            Đóng
-                        </Button>
-                    </div>
-                )}
-            </DialogContent>
-        </Dialog>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <UpdateOptionItemStatusDialog
+                isOpen={isStatusDialogOpen}
+                onOpenChange={setIsStatusDialogOpen}
+                optionItemId={selectedOptionItem?.id || ''}
+                currentStatus={selectedOptionItem?.optionItemStatus || 'Available'}
+                onSuccess={handleOptionItemStatusUpdate}
+                optionItemName={selectedOptionItemName}
+            />
+        </>
     )
 }

@@ -2,7 +2,7 @@
 import { AlertCircle, Check, Lock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
-interface ProductStatusBadgeProps {
+interface OptionItemStatusBadgeProps {
     status: string
     className?: string
 }
@@ -34,7 +34,7 @@ const formatProductStatus = (status: string) => {
 }
 
 // Update the component to use different icons based on status
-export function ProductStatusBadge({ status, className = "" }: ProductStatusBadgeProps) {
+export function OptionItemStatusBadge({ status, className = "" }: OptionItemStatusBadgeProps) {
     const getStatusIcon = () => {
         switch (status) {
             case "Available":
@@ -49,7 +49,7 @@ export function ProductStatusBadge({ status, className = "" }: ProductStatusBadg
     }
 
     return (
-        <Badge variant={getStatusBadgeVariant(status)} className={`flex items-center gap-1 h-7 ${className}`}>
+        <Badge variant={getStatusBadgeVariant(status)} className={`flex justify-center items-center gap-1 h-7 ${className}`}>
             {getStatusIcon()}
             {formatProductStatus(status)}
         </Badge>

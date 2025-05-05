@@ -1,5 +1,5 @@
-import ApiResponse, { get } from "@/apis/apiUtils"
-import type { OptionResult } from "@/types/option"
+import ApiResponse, { get, put } from "@/apis/apiUtils"
+import type { OPTIONITEM_STATUS, OptionResult } from "@/types/option"
 
 export default class OptionService {
     private static instance: OptionService
@@ -25,6 +25,19 @@ export default class OptionService {
         } catch (error) {
             console.error("Error fetching options:", error)
             throw error
+        }
+    }
+    public async updateStatusOptionItem(id: string, optionItemStatus: OPTIONITEM_STATUS): Promise<ApiResponse<void>> {
+        try {
+            const req = {
+                id,
+                optionItemStatus
+            }
+            return await put<void>(`/option-items/update-status/${id}`, req)
+        } catch (error) {
+            console.log(`error update option item status with id ${id}`, error);
+            throw error
+
         }
     }
 }
