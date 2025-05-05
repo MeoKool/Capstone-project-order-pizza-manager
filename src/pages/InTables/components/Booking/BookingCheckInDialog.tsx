@@ -234,7 +234,7 @@ export function BookingCheckInDialog({ reservation, open, onOpenChange, onSucces
 
                     <div className="bg-amber-50 p-3 rounded-md border border-amber-100 mt-4">
                         <p className="text-sm text-amber-700">
-                            <strong>Lưu ý:</strong> Sau khi check-in, trạng thái đặt bàn sẽ chuyển thành "Bàn Mở" và bàn sẽ gộp với số điện thoại của khách hàng để phục vụ.
+                            <strong>Lưu ý:</strong> Sau khi check-in, trạng thái đặt bàn sẽ chuyển thành "Bàn Mở" và bàn sẽ gộp để phục vụ khách hàng.
                         </p>
                     </div>
                 </div>
