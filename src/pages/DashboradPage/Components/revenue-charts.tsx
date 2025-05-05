@@ -36,15 +36,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Hải sản": "#06b6d4",
   Lẩu: "#f43f5e",
 }
-const FALLBACK_COLORS = [
-  "#6366f1",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#84cc16",
-  "#ec4899",
-  "#bcdb30",
-]
+const FALLBACK_COLORS = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#84cc16", "#ec4899", "#bcdb30"]
 
 // Format currency
 const formatCurrency = (value: number) => {
@@ -60,30 +52,56 @@ const getCategoryColor = (categoryName: string, index: number): string => {
   return CATEGORY_COLORS[categoryName] || FALLBACK_COLORS[index % FALLBACK_COLORS.length]
 }
 
-// Get week number in month
+// Get week number in month (custom Vietnamese format)
 const getWeekNumberInMonth = (date: Date): number => {
-  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1)
-  const firstDayWeekday = firstDay.getDay()
-  const offset = firstDayWeekday === 0 ? 1 : 8 - firstDayWeekday
   const day = date.getDate()
-  if (day <= offset) return 1
-  return Math.ceil((day - offset) / 7) + 1
+
+  if (day <= 4) return 1
+  if (day <= 11) return 2
+  if (day <= 18) return 3
+  if (day <= 25) return 4
+  return 5
 }
 
-// Get date range for a given week
+// Get date range for a given week (custom Vietnamese format)
 const getWeekDateRange = (year: number, month: number, week: number) => {
-  const firstOfMonth = new Date(year, month, 1)
-  const firstWeekday = firstOfMonth.getDay()
-  let startOfWeek =
-    firstWeekday === 0
-      ? new Date(firstOfMonth)
-      : new Date(firstOfMonth.setDate(firstOfMonth.getDate() - firstWeekday))
-  startOfWeek = new Date(startOfWeek.setDate(startOfWeek.getDate() + (week - 1) * 7))
-  let endOfWeek = new Date(startOfWeek)
-  endOfWeek.setDate(startOfWeek.getDate() + 6)
-  const lastOfMonth = new Date(year, month + 1, 0)
-  if (startOfWeek < new Date(year, month, 1)) startOfWeek = new Date(year, month, 1)
-  if (endOfWeek > lastOfMonth) endOfWeek = lastOfMonth
+  let startDay, endDay
+
+  switch (week) {
+    case 1:
+      startDay = 1
+      endDay = 4
+      break
+    case 2:
+      startDay = 5
+      endDay = 11
+      break
+    case 3:
+      startDay = 12
+      endDay = 18
+      break
+    case 4:
+      startDay = 19
+      endDay = 25
+      break
+    case 5:
+      startDay = 26
+      endDay = 31 // This will be adjusted if the month has fewer days
+      break
+    default:
+      startDay = 1
+      endDay = 7
+  }
+
+  const startOfWeek = new Date(year, month, startDay)
+  const endOfWeek = new Date(year, month, endDay)
+
+  // Adjust if end date exceeds month boundary
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
+  if (endDay > lastDayOfMonth) {
+    endOfWeek.setDate(lastDayOfMonth)
+  }
+
   return { start: startOfWeek, end: endOfWeek }
 }
 
@@ -102,7 +120,7 @@ export default function RevenueCharts() {
   const [monthlyData, setMonthlyData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [year, setYear] = useState<string>(() => new Date().getFullYear().toString())
+  const [year, setYear] = useState<string>(() => "2025")
 
   useEffect(() => {
     console.log("Fetching revenue for year", year)
@@ -122,13 +140,11 @@ export default function RevenueCharts() {
       const res = await svc.getAllOrders()
       console.log("API response:", res)
       if (res.success && Array.isArray(res.result.items)) {
-        const paid = res.result.items.filter(
-          (o: Order) => o.status === "Paid" && o.endTime
-        )
+        const paid = res.result.items.filter((o: Order) => o.status === "Paid" && o.endTime)
         console.log("Paid orders:", paid)
         processRevenueData(paid, Number.parseInt(year))
       } else {
-        throw new Error('Invalid data')
+        throw new Error("Invalid data")
       }
     } catch (err) {
       console.error(err)
@@ -163,10 +179,7 @@ export default function RevenueCharts() {
       for (let i = 0; i < 10; i++) {
         const d = new Date(tenDaysAgo)
         d.setDate(tenDaysAgo.getDate() + i)
-        dailyMap.set(
-          d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }),
-          0
-        )
+        dailyMap.set(d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }), 0)
       }
 
       // Accumulate
@@ -179,15 +192,13 @@ export default function RevenueCharts() {
         monthlyMap.set(mn, (monthlyMap.get(mn) || 0) + o.totalPrice)
         const wn = getWeekNumberInMonth(od)
         const wkKey = `${mn} - Tuần ${wn} (${formatDateShort(
-          getWeekDateRange(selectedYear, od.getMonth(), wn).start
+          getWeekDateRange(selectedYear, od.getMonth(), wn).start,
         )} - ${formatDateShort(getWeekDateRange(selectedYear, od.getMonth(), wn).end)})`
         weeklyMap.set(wkKey, (weeklyMap.get(wkKey) || 0) + o.totalPrice)
       })
 
       setDailyData(Array.from(dailyMap, ([name, value]) => ({ name, value })))
-      setWeeklyData(
-        Array.from(weeklyMap, ([name, value]) => ({ name, value })).filter((i) => i.value > 0)
-      )
+      setWeeklyData(Array.from(weeklyMap, ([name, value]) => ({ name, value })).filter((i) => i.value > 0))
       setMonthlyData(Array.from(monthlyMap, ([name, value]) => ({ name, value })))
     } catch (err) {
       console.error("Error processing data", err)
@@ -203,7 +214,11 @@ export default function RevenueCharts() {
       const svc = CategoryService.getInstance()
       const res = await svc.getAllCategories()
       if (res.success && res.result.items.length) {
-        const data = res.result.items.map((c) => ({ name: c.name, value: Math.round(Math.random() * 45 + 5), id: c.id }))
+        const data = res.result.items.map((c) => ({
+          name: c.name,
+          value: Math.round(Math.random() * 45 + 5),
+          id: c.id,
+        }))
         const sum = data.reduce((a, b) => a + b.value, 0)
         setCategoryData(data.map((d) => ({ ...d, value: Math.round((d.value / sum) * 100) })))
       } else {
@@ -233,7 +248,7 @@ export default function RevenueCharts() {
             value={year}
             onChange={(e) => setYear(e.target.value)}
           >
-            <option value="2024">Năm 2024</option>
+            <option value="2025">Năm 2025</option>
           </select>
         </div>
       </CardHeader>

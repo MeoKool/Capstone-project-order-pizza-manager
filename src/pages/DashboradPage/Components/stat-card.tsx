@@ -8,6 +8,7 @@ interface StatCardProps {
     description: string
     icon: React.ReactNode
     trend?: "up" | "down" | "neutral"
+    isLoading?: boolean
 }
 
 export default function StatCard({ title, value, description, icon, trend = "neutral" }: StatCardProps) {

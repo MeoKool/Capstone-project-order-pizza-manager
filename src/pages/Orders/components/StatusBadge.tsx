@@ -4,7 +4,7 @@ import { CheckCircle2, Clock, AlertCircle, Ban } from "lucide-react";
 // Optional: Enum nếu bạn muốn type-safe hơn
 export enum PAYMENT_STATUS {
     PAID = "Paid",
-    CHECKOUT = "Checkout",
+    CHECKOUT = "CheckedOut",
     UNPAID = "Unpaid",
     CANCELLED = "Cancelled"
 }
