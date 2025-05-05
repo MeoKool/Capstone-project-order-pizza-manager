@@ -1,3 +1,5 @@
+'use client'
+
 import type React from 'react'
 
 import { useEffect, useRef, useState } from 'react'
@@ -113,6 +115,8 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
   const [zones, setZones] = useState<ZoneResponse[]>([])
   const [products, setProducts] = useState<ProductModel[]>([])
   const [showExitDialog, setShowExitDialog] = useState(false)
+  // Add state to track if we're in edit mode
+  const [isEditMode, setIsEditMode] = useState(true)
 
   // Step management
   const [currentStep, setCurrentStep] = useState(0)
@@ -323,17 +327,46 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       console.log('End Register Date (Local):', endRegDateTime)
       console.log('End Register Date (ISO):', formatToLocalISOString(endRegDateTime))
 
-      const payload = {
-        ...values,
-        totalFee: values.totalFee ?? 0,
-        maxRegister: values.maxRegister ?? 0,
-        maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
-        maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
-        // Sử dụng định dạng ISO mà không chuyển đổi múi giờ
-        workshopDate: formatToLocalISOString(workshopDateTime),
-        startRegisterDate: formatToLocalISOString(startRegDateTime),
-        endRegisterDate: formatToLocalISOString(endRegDateTime),
-        zoneName: zones.find((z) => z.id === values.zoneId)?.name || ''
+      let payload
+
+      if (isEditing) {
+        // When updating, include all required fields from the form values
+        // but only allow changes to the basic information fields
+        payload = {
+          // Basic information fields (editable)
+          name: values.name,
+          header: values.header,
+          description: values.description,
+          location: values.location,
+          organizer: values.organizer,
+          hotLineContact: values.hotLineContact,
+          zoneId: values.zoneId,
+          zoneName: zones.find((z) => z.id === values.zoneId)?.name || '',
+
+          // Include other required fields from the existing values (non-editable)
+          workshopDate: values.workshopDate,
+          startRegisterDate: values.startRegisterDate,
+          endRegisterDate: values.endRegisterDate,
+          totalFee: values.totalFee ?? 0,
+          maxRegister: values.maxRegister ?? 0,
+          maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
+          maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
+          productIds: values.productIds
+        }
+      } else {
+        // Create mode - no changes needed here
+        payload = {
+          ...values,
+          totalFee: values.totalFee ?? 0,
+          maxRegister: values.maxRegister ?? 0,
+          maxPizzaPerRegister: values.maxPizzaPerRegister ?? 0,
+          maxParticipantPerRegister: values.maxParticipantPerRegister ?? 0,
+          // Sử dụng định dạng ISO mà không chuyển đổi múi giờ
+          workshopDate: formatToLocalISOString(workshopDateTime),
+          startRegisterDate: formatToLocalISOString(startRegDateTime),
+          endRegisterDate: formatToLocalISOString(endRegDateTime),
+          zoneName: zones.find((z) => z.id === values.zoneId)?.name || ''
+        }
       }
 
       const res =
@@ -359,6 +392,11 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
   const validateCurrentStep = async () => {
     let fieldsToValidate: string[] = []
     let isValid = true
+
+    // Skip validation for non-editable pages when in edit mode
+    if (isEditing && currentStep > 0) {
+      return true
+    }
 
     // Xác định các trường cần kiểm tra dựa trên bước hiện tại
     switch (currentStep) {
@@ -451,18 +489,32 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
     e.preventDefault() // Prevent any default form submission
     e.stopPropagation() // Stop event bubbling
 
-    // Kiểm tra tính hợp lệ của bước hiện tại trước khi chuyển sang bước tiếp theo
-    const isValid = await validateCurrentStep()
+    // Skip validation for non-editable pages when in edit mode
+    let isValid = true
+    if (!(isEditing && currentStep > 0)) {
+      // Kiểm tra tính hợp lệ của bước hiện tại trước khi chuyển sang bước tiếp theo
+      isValid = await validateCurrentStep()
+    }
 
     if (isValid && currentStep < steps.length - 1) {
       // Chỉ cập nhật state, không gọi API
       setCurrentStep((prev) => prev + 1)
+
+      // When moving from first page in edit mode, set edit mode to false
+      if (isEditing && currentStep === 0) {
+        setIsEditMode(false)
+      }
     }
   }
 
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
+
+      // When returning to first page in edit mode, set edit mode back to true
+      if (isEditing && currentStep === 1) {
+        setIsEditMode(true)
+      }
     }
   }
 
@@ -519,6 +571,12 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       <FormProvider {...form}>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+            {isEditing && currentStep > 0 && (
+              <div className='mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-amber-700'>
+                <p>Khi cập nhật workshop, chỉ có thể chỉnh sửa thông tin cơ bản. Các thông tin khác chỉ có thể xem.</p>
+              </div>
+            )}
+
             <Card className='shadow-md border border-gray-200 rounded-xl'>
               <CardHeader className='border-b bg-gray-50'>
                 <CardTitle>{steps[currentStep].title}</CardTitle>
@@ -540,16 +598,18 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
                     setEndRegisterDate={setEndRegisterDate}
                     endRegisterTime={endRegisterTime}
                     setEndRegisterTime={setEndRegisterTime}
+                    disabled={isEditing && !isEditMode}
                   />
                 )}
 
-                {currentStep === 2 && <WorkshopFormRegisterInfo />}
+                {currentStep === 2 && <WorkshopFormRegisterInfo disabled={isEditing && !isEditMode} />}
 
                 {currentStep === 3 && (
                   <WorkshopFormFoodMenu
                     products={products}
                     handleProductSelect={handleProductSelect}
                     isProductSelected={isProductSelected}
+                    disabled={isEditing && !isEditMode}
                   />
                 )}
               </CardContent>
@@ -582,8 +642,12 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
                       disabled={loading}
                       className='min-w-[120px] h-11'
                       onClick={async (e) => {
-                        // Kiểm tra bước cuối cùng trước khi submit
-                        const isValid = await validateCurrentStep()
+                        // Skip validation for non-editable pages when in edit mode
+                        let isValid = true
+                        if (!(isEditing && currentStep > 0)) {
+                          // Kiểm tra bước cuối cùng trước khi submit
+                          isValid = await validateCurrentStep()
+                        }
                         if (!isValid) {
                           e.preventDefault()
                         }

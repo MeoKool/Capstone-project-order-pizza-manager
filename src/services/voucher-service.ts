@@ -13,7 +13,7 @@ import {
 class VoucherService {
   private static instance: VoucherService
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): VoucherService {
     if (!VoucherService.instance) {
@@ -135,7 +135,7 @@ class VoucherService {
       const payload = {
         orderId,
         voucherId
-      };
+      }
       return await post<AddVoucherToOrder>(`/order-vouchers`, payload)
     } catch (error) {
       console.error(`Error add voucher to order `, error)
@@ -147,6 +147,14 @@ class VoucherService {
       return await del<void>(`/order-vouchers/${id}?isHardDeleted=false`)
     } catch (error) {
       console.error(`Error add voucher to order `, error)
+      throw error
+    }
+  }
+  public async invalidateVoucherBatch(id: string): Promise<ApiResponse<unknown>> {
+    try {
+      return await put<unknown>(`/voucher-types/invalid-voucherbatch/${id}`, { voucherBatchId: id })
+    } catch (error) {
+      console.error(`Error invalidating voucher batch with id ${id}:`, error)
       throw error
     }
   }

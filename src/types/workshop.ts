@@ -45,10 +45,12 @@ export interface WorkshopCreate {
   startRegisterDate: string
   endRegisterDate: string
   totalFee: number
+  maxRegister: number
   maxPizzaPerRegister: number
   maxParticipantPerRegister: number
   productIds: string[]
   zoneId: string
+  zoneName: string
 }
 
 export enum WorkshopStatus {

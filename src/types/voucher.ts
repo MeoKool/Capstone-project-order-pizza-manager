@@ -7,6 +7,7 @@ export interface VoucherType {
   totalQuantity: number
   discountValue: number
   discountType: string
+  isValid: boolean
 }
 
 export interface VoucherTypeResult {

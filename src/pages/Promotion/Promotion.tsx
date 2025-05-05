@@ -12,6 +12,7 @@ import { DeleteVoucherTypeDialog } from './components/delete-voucher-type-dialog
 import { DeleteVoucherDialog } from './components/delete-voucher-dialog'
 import { GenerateVouchersDialog } from './components/generate-vouchers-dialog'
 import { Voucher, VoucherType } from '@/types/voucher'
+import { InvalidateVoucherTypeDialog } from './components/invalidate-voucher-type-dialog'
 
 export default function VoucherPage() {
   const [activeTab, setActiveTab] = useState<string>('types')
@@ -30,6 +31,8 @@ export default function VoucherPage() {
   const [generatingVoucherType, setGeneratingVoucherType] = useState<VoucherType | null>(null)
   const [isGenerateVouchersDialogOpen, setIsGenerateVouchersDialogOpen] = useState(false)
 
+  const [invalidatingVoucherType, setInvalidatingVoucherType] = useState<VoucherType | null>(null)
+  const [isInvalidateVoucherTypeDialogOpen, setIsInvalidateVoucherTypeDialogOpen] = useState(false)
   return (
     <VoucherProvider>
       <div className='h-full flex flex-col'>
@@ -43,6 +46,11 @@ export default function VoucherPage() {
 
           {activeTab === 'types' ? (
             <VoucherTypeTable
+              onInvalidate={(voucherType) => {
+                console.log('Invalidating voucher type:', voucherType)
+                setInvalidatingVoucherType(voucherType)
+                setIsInvalidateVoucherTypeDialogOpen(true)
+              }}
               onEdit={(voucherType) => {
                 console.log('Editing voucher type:', voucherType)
                 setEditingVoucherType(voucherType)
@@ -101,6 +109,13 @@ export default function VoucherPage() {
               voucherType={generatingVoucherType}
               open={isGenerateVouchersDialogOpen}
               onOpenChange={setIsGenerateVouchersDialogOpen}
+            />
+          )}
+          {invalidatingVoucherType && (
+            <InvalidateVoucherTypeDialog
+              voucherType={invalidatingVoucherType}
+              open={isInvalidateVoucherTypeDialogOpen}
+              onOpenChange={setIsInvalidateVoucherTypeDialogOpen}
             />
           )}
         </div>
