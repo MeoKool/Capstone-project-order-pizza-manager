@@ -36,7 +36,7 @@ const editBookingFormSchema = z.object({
     phoneNumber: z
         .string()
         .min(10, { message: "Số điện thoại phải có ít nhất 10 số" })
-        .max(15, { message: "Số điện thoại không được vượt quá 15 số" })
+        .max(10, { message: "Số điện thoại không được vượt quá 10 số" })
         .regex(/^[0-9]+$/, { message: "Số điện thoại chỉ được chứa các chữ số" }),
     bookingDate: z.date({
         required_error: "Vui lòng chọn ngày đặt bàn",
@@ -258,7 +258,7 @@ export function EditBookingDialog({ reservation, open, onOpenChange, onSuccess }
                                 control={form.control}
                                 name="bookingDate"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-col">
+                                    <FormItem className="flex flex-col mt-2.5">
                                         <FormLabel>
                                             Ngày đặt bàn <span className="text-red-500">*</span>
                                         </FormLabel>

@@ -39,7 +39,7 @@ export function TableTimer({
 
   useEffect(() => {
     // Parse the reservation time if provided, otherwise use current time + 30 minutes
-    const reservationTime = bookingTime ? parseISO(bookingTime) : new Date(Date.now() + 30 * 60 * 1000)
+    const reservationTime = bookingTime ? parseISO(bookingTime) : new Date(Date.now() + 30 * 60 * 5000)
     let intervalId: NodeJS.Timeout | null = null
 
     // Function to update the timer

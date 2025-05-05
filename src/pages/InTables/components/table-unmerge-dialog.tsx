@@ -100,13 +100,11 @@ export function TableUnmergeDialog({ table, open, onOpenChange, onTableUpdated }
                             <p>
                                 Bàn: <span className="font-medium">{table.code}</span>
                             </p>
-                            <p>
-                                Mã nhóm: <span className="font-medium">{table.tableMergeId}</span>
-                            </p>
+
                         </div>
                         <div className="mt-3 flex items-center text-xs text-amber-600">
                             <AlertTriangle className="h-3 w-3 mr-1" />
-                            <p>Hủy ghép bàn sẽ tách bàn này ra khỏi nhóm ghép bàn hiện tại.</p>
+                            <p>Hủy ghép bàn sẽ hủy tất cả các bàn  ra khỏi nhóm ghép bàn hiện tại.</p>
                         </div>
                     </div>
                 </div>

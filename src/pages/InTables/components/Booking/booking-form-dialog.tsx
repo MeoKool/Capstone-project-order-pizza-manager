@@ -35,7 +35,7 @@ const bookingFormSchema = z.object({
     phoneNumber: z
         .string()
         .min(10, { message: "Số điện thoại phải có ít nhất 10 số" })
-        .max(15, { message: "Số điện thoại không được vượt quá 15 số" })
+        .max(10, { message: "Số điện thoại phải có đúng 10 số" })
         .regex(/^[0-9]+$/, { message: "Số điện thoại chỉ được chứa các chữ số" }),
     bookingDate: z.date({
         required_error: "Vui lòng chọn ngày đặt bàn",
@@ -323,7 +323,21 @@ export function BookingFormDialog({ onSuccess, trigger }: BookingFormDialogProps
                                         <FormControl>
                                             <div className="relative">
                                                 <Phone className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
-                                                <Input placeholder="Nhập số điện thoại" className="pl-10 text-sm" {...field} />
+                                                <Input
+                                                    placeholder="Nhập số điện thoại"
+                                                    className="pl-10 text-sm"
+                                                    {...field}
+                                                    maxLength={10}
+                                                    onKeyPress={(e) => {
+                                                        if (!/[0-9]/.test(e.key)) {
+                                                            e.preventDefault()
+                                                        }
+                                                    }}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/[^0-9]/g, '')
+                                                        field.onChange(value)
+                                                    }}
+                                                />
                                             </div>
                                         </FormControl>
                                         <FormMessage className="text-xs" />

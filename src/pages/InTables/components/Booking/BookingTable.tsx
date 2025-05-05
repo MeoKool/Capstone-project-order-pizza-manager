@@ -14,6 +14,7 @@ import {
   TableIcon,
   Trash2,
   Edit,
+  CheckCircle,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -49,6 +50,7 @@ import { ReservationPriorityStatus } from "./reservationPriorityStatus"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { BookingSuccessToast } from "./toast-booking"
 import { EditBookingDialog } from "./edit-booking-dialog"
+import { BookingCheckInDialog } from "./BookingCheckInDialog"
 
 interface BookingTableProps {
   reservations: Reservation[]
@@ -89,6 +91,8 @@ export function BookingTable({
     reservation: Reservation
     hasTables: boolean
   } | null>(null)
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false)
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
 
   const bookingService = BookingService.getInstance()
   const tableService = TableService.getInstance()
@@ -426,6 +430,12 @@ export function BookingTable({
     setEditingReservation(reservation)
     setIsEditDialogOpen(true)
   }
+
+  const handleCheckIn = (reservation: Reservation) => {
+    setSelectedReservation(reservation)
+    setIsCheckInDialogOpen(true)
+  }
+
   return (
     <div className="space-y-4">
       <div className="rounded-md border overflow-x-auto">
@@ -521,157 +531,142 @@ export function BookingTable({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {/* Luôn hiển thị tùy chọn xem chi tiết */}
-                          <DropdownMenuItem onClick={() => onView(reservation)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Xem chi tiết
-                          </DropdownMenuItem>
-
-                          {/* Tùy chọn dựa trên trạng thái Created */}
-                          {reservation.status === "Created" && (
+                          {reservation.status === "Checkedin" ? (
+                            <DropdownMenuItem onClick={() => onView(reservation)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Xem chi tiết
+                            </DropdownMenuItem>
+                          ) : (
                             <>
-                              <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Chỉnh sửa
+                              <DropdownMenuItem onClick={() => onView(reservation)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Xem chi tiết
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleConfirm(reservation.id)}
-                                disabled={isConfirmLoading}
-                                className="text-green-600 focus:text-green-600"
-                              >
-                                {isConfirmLoading ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang xác nhận...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className="mr-2 h-4 w-4" />
-                                    Xác nhận đặt bàn
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleShowCancelDialog(reservation)}
-                                disabled={isCancelLoading}
-                                className="text-red-600 focus:text-red-600"
-                              >
-                                {isCancelLoading ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang hủy...
-                                  </>
-                                ) : (
-                                  <>
-                                    <X className="mr-2 h-4 w-4" />
-                                    Hủy đặt bàn
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                            </>
-                          )}
 
-                          {/* Tùy chọn dựa trên trạng thái Confirmed */}
-                          {reservation.status === "Confirmed" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Chỉnh sửa
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => onAssignTable(reservation)}>
-                                <TableIcon className="mr-2 h-4 w-4" />
-                                {hasTablesAssigned(reservation) ? "Thêm/Sửa bàn" : "Xếp bàn"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleShowCancelDialog(reservation)}
-                                disabled={isCancelLoading}
-                                className="text-red-600 focus:text-red-600"
-                              >
-                                {isCancelLoading ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang hủy...
-                                  </>
-                                ) : (
-                                  <>
-                                    <X className="mr-2 h-4 w-4" />
-                                    Hủy đặt bàn
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                            </>
-                          )}
-
-                          {/* Tùy chọn dựa trên trạng thái Checkedin */}
-                          {reservation.status === "Checkedin" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Chỉnh sửa
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleShowCancelDialog(reservation)}
-                                disabled={isCancelLoading}
-                                className="text-red-600 focus:text-red-600"
-                              >
-                                {isCancelLoading ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang hủy...
-                                  </>
-                                ) : (
-                                  <>
-                                    <X className="mr-2 h-4 w-4" />
-                                    Hủy đặt bàn
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                            </>
-                          )}
-
-                          {/* Không có tùy chọn thêm cho trạng thái Cancelled */}
-
-                          {/* Hiển thị tùy chọn hủy bàn nếu có bàn được gán và không ở trạng thái Cancelled */}
-                          {hasTablesAssigned(reservation) && reservation.status !== "Cancelled" && (
-                            <DropdownMenuSub>
-                              <DropdownMenuSubTrigger
-                                disabled={isUnassignLoading}
-                                className="text-amber-600 focus:text-amber-600"
-                              >
-                                {isUnassignLoading ? (
-                                  <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang hủy bàn...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Hủy bàn đã đặt
-                                  </>
-                                )}
-                              </DropdownMenuSubTrigger>
-                              <DropdownMenuPortal>
-                                <DropdownMenuSubContent>
+                              {reservation.status === "Created" && (
+                                <>
+                                  <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Chỉnh sửa
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem
-                                    onClick={() => handleUnassignTable(reservation.id, tableIds, true)}
+                                    onClick={() => handleConfirm(reservation.id)}
+                                    disabled={isConfirmLoading}
+                                    className="text-green-600 focus:text-green-600"
+                                  >
+                                    {isConfirmLoading ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Đang xác nhận...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Check className="mr-2 h-4 w-4" />
+                                        Xác nhận đặt bàn
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleShowCancelDialog(reservation)}
+                                    disabled={isCancelLoading}
                                     className="text-red-600 focus:text-red-600"
                                   >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Hủy tất cả bàn
+                                    {isCancelLoading ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Đang hủy...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <X className="mr-2 h-4 w-4" />
+                                        Hủy đặt bàn
+                                      </>
+                                    )}
                                   </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  {tableIds.map((tableId) => (
+                                </>
+                              )}
+
+                              {reservation.status === "Confirmed" && (
+                                <>
+                                  <DropdownMenuItem onClick={() => handleEditReservation(reservation)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Chỉnh sửa
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => onAssignTable(reservation)}>
+                                    <TableIcon className="mr-2 h-4 w-4" />
+                                    {hasTablesAssigned(reservation) ? "Thêm/Sửa bàn" : "Xếp bàn"}
+                                  </DropdownMenuItem>
+                                  {hasTablesAssigned(reservation) && (
                                     <DropdownMenuItem
-                                      key={tableId}
-                                      onClick={() => handleUnassignTable(reservation.id, [tableId])}
+                                      onClick={() => handleCheckIn(reservation)}
+                                      className="text-green-600 focus:text-green-600"
                                     >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Hủy bàn {tableCodes[tableId] || (tableId ? tableId.substring(0, 4) : "N/A")}
+                                      <CheckCircle className="mr-2 h-4 w-4" />
+                                      Check-in
                                     </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuSubContent>
-                              </DropdownMenuPortal>
-                            </DropdownMenuSub>
+                                  )}
+                                  <DropdownMenuItem
+                                    onClick={() => handleShowCancelDialog(reservation)}
+                                    disabled={isCancelLoading}
+                                    className="text-red-600 focus:text-red-600"
+                                  >
+                                    {isCancelLoading ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Đang hủy...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <X className="mr-2 h-4 w-4" />
+                                        Hủy đặt bàn
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+
+                              {hasTablesAssigned(reservation) && reservation.status !== "Cancelled" && (
+                                <DropdownMenuSub>
+                                  <DropdownMenuSubTrigger
+                                    disabled={isUnassignLoading}
+                                    className="text-amber-600 focus:text-amber-600"
+                                  >
+                                    {isUnassignLoading ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Đang hủy bàn...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Hủy bàn đã đặt
+                                      </>
+                                    )}
+                                  </DropdownMenuSubTrigger>
+                                  <DropdownMenuPortal>
+                                    <DropdownMenuSubContent>
+                                      <DropdownMenuItem
+                                        onClick={() => handleUnassignTable(reservation.id, tableIds, true)}
+                                        className="text-red-600 focus:text-red-600"
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Hủy tất cả bàn
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      {tableIds.map((tableId) => (
+                                        <DropdownMenuItem
+                                          key={tableId}
+                                          onClick={() => handleUnassignTable(reservation.id, [tableId])}
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Hủy bàn {tableCodes[tableId] || (tableId ? tableId.substring(0, 4) : "N/A")}
+                                        </DropdownMenuItem>
+                                      ))}
+                                    </DropdownMenuSubContent>
+                                  </DropdownMenuPortal>
+                                </DropdownMenuSub>
+                              )}
+                            </>
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -760,6 +755,15 @@ export function BookingTable({
           reservation={editingReservation}
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
+          onSuccess={onRefresh}
+        />
+      )}
+
+      {selectedReservation && (
+        <BookingCheckInDialog
+          reservation={selectedReservation}
+          open={isCheckInDialogOpen}
+          onOpenChange={setIsCheckInDialogOpen}
           onSuccess={onRefresh}
         />
       )}

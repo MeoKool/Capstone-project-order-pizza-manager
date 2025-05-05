@@ -358,7 +358,12 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
   }
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(newOpen) => {
+        onOpenChange(newOpen);
+        if (!newOpen && onTableUpdated) {
+          onTableUpdated();
+        }
+      }}>
         <DialogContent className="sm:max-w-[550px] border-amber-200 max-w-[95vw]">
           <DialogHeader className="-mx-4 sm:-mx-6 mt-3 px-4 sm:px-6 sm:pt-3 rounded-t-lg border-b border-amber-100 sticky top-0 bg-white z-10">
             <DialogTitle className="flex items-center gap-2 sm:gap-3">
@@ -475,15 +480,21 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
               <>
                 {orderDetail && currentTable.status === "Opening" && (
                   <div className="flex flex-col-reverse sm:flex-row gap-2 mt-2 sm:mt-0 sm:justify-end">
-                    <Button
-                      onClick={() => setIsCancelDialogOpen(true)}
-                      className="w-[160px] sm:w-auto bg-red-500 hover:bg-red-600 gap-1 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
-                    >
-                      <div className="flex items-center">
-                        <Trash2 className="mr-1 h-4 w-4" />
-                        <span>Hủy đơn hàng</span>
-                      </div>
-                    </Button>
+
+                    {orderDetail.status !== "Paid" && (
+                      <>
+
+                        <Button
+                          onClick={() => setIsCancelDialogOpen(true)}
+                          className="w-[160px] sm:w-auto bg-red-500 hover:bg-red-600 gap-1 text-white text-xs sm:text-sm py-1 px-2 h-7 sm:h-9"
+                        >
+                          <div className="flex items-center">
+                            <Trash2 className="mr-1 h-4 w-4" />
+                            <span>Hủy đơn hàng</span>
+                          </div>
+                        </Button>
+                      </>
+                    )}
 
                     {orderDetail.status === "Unpaid" && (
                       <>

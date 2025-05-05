@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { CheckCircle, Clock, Users, Phone, Calendar, Loader2 } from "lucide-react"
+import { CheckCircle, Clock, Users, Phone, Calendar, Loader2, TableIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -204,6 +204,24 @@ export function TableCheckInDialog({ table, open, onOpenChange, onTableUpdated }
                             </div>
 
                             <div className="flex items-center gap-2">
+                                <TableIcon className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-sm font-medium">Bàn đã đặt</p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        {Object.entries(tableCodesMap).map(([tableId, tableCode]) => (
+                                            <Badge
+                                                key={tableId}
+                                                variant="outline"
+                                                className="bg-orange-50 text-orange-700 border-orange-200"
+                                            >
+                                                {tableCode}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
                                 <Clock className="h-5 w-5 text-muted-foreground" />
                                 <div>
                                     <p className="text-sm font-medium">Trạng thái</p>
@@ -214,8 +232,8 @@ export function TableCheckInDialog({ table, open, onOpenChange, onTableUpdated }
 
                         <div className="bg-amber-50 p-3 rounded-md border border-amber-100 mt-4">
                             <p className="text-sm text-amber-700">
-                                <strong>Lưu ý:</strong> Sau khi check-in, trạng thái đặt bàn sẽ chuyển thành "Đã check-in" và bàn sẽ
-                                được mở để phục vụ.
+                                <strong>Lưu ý:</strong> Sau khi check-in, trạng thái đặt bàn sẽ chuyển thành "Bàn Mở" và bàn sẽ gộp với tên của khách hàng để phục vụ.
+
                             </p>
                         </div>
                     </div>
