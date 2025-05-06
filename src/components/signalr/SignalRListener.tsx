@@ -109,9 +109,7 @@ export default function EnhancedSignalRListener() {
         endTime: data.endTime
       })
     })
-    connection.on('PaymentSuccess', (data) => {
-      console.log('PaymentSuccess', data)
-    })
+    connection.on('PaymentSuccess', () => {})
     // Empty handler for OrderItemUpdatedStatus
     connection.on('OrderItemUpdatedStatus', () => {})
     // Clean up event listeners on component unmount
