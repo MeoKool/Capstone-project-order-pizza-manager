@@ -1,6 +1,11 @@
 import { connection } from '@/lib/signalr-client'
 import { useEffect } from 'react'
-import { showAssignTableToast, showGeneralNotificationToast, showReservationCreatedToast } from '../custom-toast'
+import {
+  showAssignTableToast,
+  showCancelDishToast,
+  showGeneralNotificationToast,
+  showReservationCreatedToast
+} from '../custom-toast'
 import { useNavigate } from 'react-router-dom'
 
 let isConnected = false
@@ -24,6 +29,13 @@ interface ReservationCreatedNotification {
   arrivalTime?: string
 }
 
+interface OrderItemCancelledStatus {
+  name: string
+  tableCode: string
+  reasonCancel: string
+  quantity: number
+  endTime: string
+}
 // Map notification type numbers to toast types
 const getNotificationType = (type: number): 'info' | 'success' | 'warning' | 'error' => {
   switch (type) {
@@ -87,8 +99,15 @@ export default function EnhancedSignalRListener() {
       })
     })
 
-    connection.on('OrderItemCancelledStatus', (data) => {
+    connection.on('OrderItemCancelledStatus', (data: OrderItemCancelledStatus) => {
       console.log('OrderItemCancelledStatus', data)
+      showCancelDishToast({
+        name: data.name,
+        tableCode: data.tableCode,
+        reasonCancel: data.reasonCancel,
+        quantity: data.quantity,
+        endTime: data.endTime
+      })
     })
     connection.on('PaymentSuccess', (data) => {
       console.log('PaymentSuccess', data)

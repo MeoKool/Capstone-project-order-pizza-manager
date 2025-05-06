@@ -11,7 +11,13 @@ interface TableLockToastProps {
   note?: string
   duration?: number
 }
-
+interface CancelDishData {
+  name: string
+  tableCode: string
+  reasonCancel: string
+  quantity: number | string
+  endTime: string
+}
 export const showTableLToast = ({ tableCode, message, note, duration = 5000 }: TableLockToastProps) => {
   return toast.custom(
     () => (
@@ -47,7 +53,6 @@ export const showTableLToast = ({ tableCode, message, note, duration = 5000 }: T
   )
 }
 
-
 export interface ReservationProps {
   numberOfPeople: number
   customerName: string
@@ -56,7 +61,6 @@ export interface ReservationProps {
   onClickNavigateToTable: () => void
   duration?: number
   arrivalTime?: string
-
 }
 export const showReservationCreatedToast = (data: ReservationProps) => {
   return toast.custom(
@@ -68,9 +72,7 @@ export const showReservationCreatedToast = (data: ReservationProps) => {
           </div>
           <div>
             <h3 className='font-bold text-lg'>Đặt bàn mới</h3>
-            <p className='text-sm text-gray-600'>
-              Vừa nhận lúc {new Date().toLocaleTimeString('vi-VN')}
-            </p>
+            <p className='text-sm text-gray-600'>Vừa nhận lúc {new Date().toLocaleTimeString('vi-VN')}</p>
           </div>
         </div>
 
@@ -78,19 +80,16 @@ export const showReservationCreatedToast = (data: ReservationProps) => {
           <div className='flex items-center gap-2'>
             <Users className='h-4 w-4 text-blue-600' />
             <span className='font-medium'>Tên khách hàng: {data.customerName}</span>
-
           </div>
 
           <div className='flex items-center gap-2'>
             <Users className='h-4 w-4 text-blue-600' />
             <span className='font-medium'>Số người: {data.numberOfPeople} người</span>
-
           </div>
 
           <div className='flex items-center gap-2'>
             <Phone className='h-4 w-4 text-blue-600' />
             <span className='font-medium'>Số điện thoại: {data.phoneNumber}</span>
-
           </div>
         </div>
 
@@ -112,7 +111,6 @@ export const showReservationCreatedToast = (data: ReservationProps) => {
           </button>
         </div>
       </div>
-
     ),
     { duration: Number.POSITIVE_INFINITY }
   )
@@ -138,14 +136,20 @@ export const showAssignTableToast = (data: ReservationProps) => {
           <div className='flex items-center gap-2'>
             <Users className='h-4 w-4 text-amber-600' />
             <span className='font-medium'>Tên khách hàng:</span>
-            <Badge variant='outline' className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'>
+            <Badge
+              variant='outline'
+              className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'
+            >
               {data.customerName}
             </Badge>
           </div>
           <div className='flex items-center gap-2'>
             <Users className='h-4 w-4 text-amber-600' />
             <span className='font-medium'>Số người:</span>
-            <Badge variant='outline' className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'>
+            <Badge
+              variant='outline'
+              className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'
+            >
               {data.numberOfPeople} người
             </Badge>
           </div>
@@ -153,17 +157,19 @@ export const showAssignTableToast = (data: ReservationProps) => {
           <div className='flex items-center gap-2'>
             <Phone className='h-4 w-4 text-amber-600' />
             <span className='font-medium'>Số điện thoại:</span>
-            <Badge variant='outline' className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'>
+            <Badge
+              variant='outline'
+              className='text-sm bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-100'
+            >
               {data.phoneNumber}
             </Badge>
           </div>
         </div>
         <div>
           <p className='text-sm text-amber-700 bg-amber-50 p-3 '>
-            <strong>Lưu ý:</strong> Sau khi chọn bàn, trạng thái đặt bàn sẽ chuyển thành "Đã xác nhận" và bàn sẽ được mở để
-            phục vụ.
+            <strong>Lưu ý:</strong> Sau khi chọn bàn, trạng thái đặt bàn sẽ chuyển thành "Đã xác nhận" và bàn sẽ được mở
+            để phục vụ.
           </p>
-
         </div>
         <div className='flex justify-end bg-amber-50  pb-6 pt-0 px-5'>
           <button
@@ -176,7 +182,6 @@ export const showAssignTableToast = (data: ReservationProps) => {
             Chọn bàn ngay
           </button>
         </div>
-
       </div>
     ),
     { duration: data.duration || Number.POSITIVE_INFINITY }
@@ -247,6 +252,59 @@ export const showGeneralNotificationToast = (
   )
 }
 
+export const showCancelDishToast = (data: CancelDishData, duration?: number) => {
+  const timeStr = new Date(data.endTime).toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+
+  toast.custom(
+    (t) => (
+      <div className='flex flex-col bg-red-50 border border-red-200 p-4 rounded-lg shadow-sm w-[360px] max-w-full'>
+        {/* Header */}
+        <div className='flex items-center gap-2 mb-2'>
+          <X className='h-5 w-5 text-red-600' />
+          <h3 className='font-bold text-red-700 text-lg'>Hủy món ăn</h3>
+        </div>
+
+        {/* Body */}
+        <div className='space-y-1 text-sm text-gray-800'>
+          <div className='flex items-center gap-1'>
+            <span className='font-medium'>Món:</span> {data.name}
+          </div>
+          <div className='flex items-center gap-1'>
+            <span className='font-medium'>Bàn:</span> {data.tableCode}
+          </div>
+          <div className='flex items-center gap-1'>
+            <span className='font-medium'>Lý do:</span> {data.reasonCancel}
+          </div>
+          <div className='flex items-center gap-1'>
+            <span className='font-medium'>Số lượng:</span> {data.quantity}
+          </div>
+          <div className='flex items-center gap-1'>
+            <span className='font-medium'>Giờ báo:</span> {timeStr}
+          </div>
+        </div>
+
+        {/* Button */}
+        <button
+          onClick={() => toast.dismiss(t)}
+          className='mt-4 self-end bg-red-100 text-red-700 hover:bg-red-600 hover:text-white transition px-3 py-1.5 rounded-md text-sm font-medium'
+        >
+          Xác nhận
+        </button>
+      </div>
+    ),
+    {
+      // Mặc định toast sẽ đứng yên cho đến khi user nhấn Xác nhận
+      duration: duration ?? Number.POSITIVE_INFINITY
+    }
+  )
+}
 export const showTableStatusToast = (data: {
   tableName: string
   status: 'occupied' | 'available' | 'reserved' | 'cleaning'
