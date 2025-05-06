@@ -91,7 +91,7 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
                   <div className='flex flex-wrap gap-2'>
                     {getStatusBadge(registration.status)}
                     {registration.status === 'Approved' && registration.zoneId === null && (
-                      <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1'>
+                      <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1 hover:bg-blue-200'>
                         <AlertCircle className='h-3.5 w-3.5' />
                         <span>Chưa phân khu vực</span>
                       </Badge>

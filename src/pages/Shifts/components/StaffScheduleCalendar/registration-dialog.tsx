@@ -43,14 +43,14 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
     switch (status) {
       case 'Approved':
         return (
-          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
+          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1 hover:bg-red-200'>
             <CheckCircle className='h-3.5 w-3.5' />
             <span>Đã duyệt</span>
           </Badge>
         )
       case 'Rejected':
         return (
-          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
+          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1 hover:bg-red-200'>
             <XCircle className='h-3.5 w-3.5' />
             <span>Từ chối</span>
           </Badge>
@@ -58,13 +58,13 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
       case 'Onhold':
       case 'PendingManagerApprove':
         return (
-          <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1'>
+          <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1 hover:bg-orange-200'>
             <AlertCircle className='h-3.5 w-3.5' />
             <span>Chờ duyệt</span>
           </Badge>
         )
       default:
-        return <Badge className='bg-gray-100 text-gray-800 border border-gray-300'>{status}</Badge>
+        return <Badge className='bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200'>{status}</Badge>
     }
   }
 
@@ -88,7 +88,7 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
               <div className='flex flex-wrap gap-2 mt-1'>
                 {getStatusBadge(registration.status)}
                 {registration.status === 'Approved' && registration.zoneId === null && (
-                  <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1'>
+                  <Badge className='bg-blue-100 text-blue-800 border border-blue-300 flex items-center gap-1 hover:bg-blue-200'>
                     <AlertCircle className='h-3.5 w-3.5' />
                     <span>Chưa phân khu vực</span>
                   </Badge>
@@ -109,7 +109,7 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
                   <span>Ca làm: {registration.workingSlot.shiftName}</span>
                 </div>
                 <div className='flex items-center gap-2 text-gray-700 ml-6'>
-                  <Badge variant='outline' className='bg-red-50 border-red-200'>
+                  <Badge variant='outline' className='bg-red-50 border-red-200 hover:bg-red-200'>
                     {formatTime(registration.workingSlot.shiftStart)} - {formatTime(registration.workingSlot.shiftEnd)}
                   </Badge>
                 </div>
@@ -123,24 +123,24 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
 
           {(registration.status === 'Onhold' ||
             (registration.status === 'Approved' && registration.zoneId === null)) && (
-            <div className='space-y-3 bg-red-50/50 p-4 rounded-lg border border-red-100'>
-              <Label htmlFor='zone' className='text-red-700 font-medium'>
-                Chọn khu vực làm việc
-              </Label>
-              <Select value={selectedZone} onValueChange={setSelectedZone}>
-                <SelectTrigger id='zone' className='border-red-200 focus:ring-red-500'>
-                  <SelectValue placeholder='Chọn khu vực' />
-                </SelectTrigger>
-                <SelectContent>
-                  {zones.map((zone) => (
-                    <SelectItem key={zone.id} value={zone.id}>
-                      {zone.name} - {zone.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+              <div className='space-y-3 bg-red-50/50 p-4 rounded-lg border border-red-100'>
+                <Label htmlFor='zone' className='text-red-700 font-medium'>
+                  Chọn khu vực làm việc
+                </Label>
+                <Select value={selectedZone} onValueChange={setSelectedZone}>
+                  <SelectTrigger id='zone' className='border-red-200 focus:ring-red-500'>
+                    <SelectValue placeholder='Chọn khu vực' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {zones.map((zone) => (
+                      <SelectItem key={zone.id} value={zone.id}>
+                        {zone.name} - {zone.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
         </div>
 
         <DialogFooter className='mt-4 border-t pt-4 shrink-0'>
@@ -153,18 +153,18 @@ export function RegistrationDialog({ registration, zones, isSubmitting, onClose,
 
             {(registration.status === 'Onhold' ||
               (registration.status === 'Approved' && registration.zoneId === null)) && (
-              <Button
-                onClick={() => onApprove(registration, selectedZone)}
-                disabled={isSubmitting || !selectedZone}
-                className='bg-red-500 hover:bg-red-600 text-white'
-              >
-                {isSubmitting
-                  ? 'Đang xử lý...'
-                  : registration.status === 'Onhold'
-                    ? 'Duyệt và phân công'
-                    : 'Phân công khu vực'}
-              </Button>
-            )}
+                <Button
+                  onClick={() => onApprove(registration, selectedZone)}
+                  disabled={isSubmitting || !selectedZone}
+                  className='bg-red-500 hover:bg-red-600 text-white'
+                >
+                  {isSubmitting
+                    ? 'Đang xử lý...'
+                    : registration.status === 'Onhold'
+                      ? 'Duyệt và phân công'
+                      : 'Phân công khu vực'}
+                </Button>
+              )}
           </div>
         </DialogFooter>
       </DialogContent>
