@@ -219,6 +219,12 @@ export function PaymentQRDialog({
                   <tbody>
                     ${orderItemsHtml}
                     
+                    <!-- Tạm tính -->
+                    <tr>
+                      <td colspan="3" style="padding: 8px; text-align: right; font-weight: bold;">Tạm tính:</td>
+                      <td style="padding: 8px; text-align: right; font-weight: bold;">${new Intl.NumberFormat("vi-VN").format(orderDetail.totalOrderItemPrice)} đ</td>
+                    </tr>
+                    
                     <!-- Additional fees -->
                     ${additionalFeesHtml}
                     

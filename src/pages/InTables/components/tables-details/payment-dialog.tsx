@@ -105,8 +105,11 @@ export function PaymentDialog({
           if (data.id === orderId) {
             toast.success('Thanh toán thành công')
             setIsQRDialogOpen(false)
-            onOpenChange(false)
+            onOpenChange(false) // handle
             if (onPaymentComplete) onPaymentComplete()
+            // Close both dialogs
+            setIsQRDialogOpen(false)
+            onOpenChange(false)
           }
         })
         return () => {

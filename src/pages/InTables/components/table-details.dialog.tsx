@@ -433,7 +433,7 @@ export function TableDetailsDialog({ table, open, onOpenChange, onTableUpdated }
                             />
 
                             {/* Additional Fees */}
-                            <AdditionalFees fees={orderDetail.additionalFees} formatCurrency={formatCurrency} />
+                            <AdditionalFees totalOrderItemPrice={orderDetail.totalOrderItemPrice} fees={orderDetail.additionalFees} formatCurrency={formatCurrency} />
 
                             {/* Voucher section - Only show for Unpaid orders */}
                             {orderDetail.status === "Unpaid" && (
