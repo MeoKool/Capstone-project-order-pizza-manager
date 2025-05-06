@@ -12,7 +12,7 @@ interface RegistrationsListProps {
 
 export function RegistrationsList({ registrations, onSelect }: RegistrationsListProps) {
   // Filter out approved registrations that already have a zoneId
-  const filteredRegistrations = registrations.filter((reg) => !(reg.status === 'Approved'))
+  const filteredRegistrations = registrations.filter((reg) => reg.status === 'Approved' || reg.status === 'Onhold')
 
   if (filteredRegistrations.length === 0) {
     return <div className='text-center py-6 text-gray-500'>Không có yêu cầu đăng ký nào cần xử lý</div>

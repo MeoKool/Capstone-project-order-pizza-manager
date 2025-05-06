@@ -118,7 +118,9 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
               const dayRegistrations = getRegistrationsForDate(day)
               const daySwapRequests = getSwapRequestsForDate(day)
 
-              const pendingRegistrations = dayRegistrations.filter((r) => r.status === 'Onhold')
+              const pendingRegistrations = dayRegistrations.filter(
+                (r) => r.status === 'Onhold' || (r.status === 'Approved' && r.zoneId === null)
+              )
               const pendingSwaps = daySwapRequests.filter((s) => s.status === 'PendingManagerApprove')
 
               const hasData = daySchedules.length > 0 || pendingRegistrations.length > 0 || pendingSwaps.length > 0
@@ -194,21 +196,21 @@ export function MonthView({ currentDate, staffSchedules, registrations, swapRequ
 
                             {pendingRegistrations.length > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-orange-100 text-orange-800 border-orange-200 h-5 px-1.5 text-xs flex items-center gap-0.5 *:hover:bg-orange-100'>
+                                <Badge className='bg-orange-100 text-orange-800 border-orange-200 h-5 px-1.5 text-xs flex items-center gap-0.5 hover:bg-orange-100 '>
                                   <Clock className='h-3 w-3' />
                                   <span>{pendingRegistrations.length}</span>
                                 </Badge>
-                                <span className='text-xs text-gray-600'>đăng ký</span>
+                                <span className='text-xs text-gray-600'>Đăng ký cần duyệt</span>
                               </div>
                             )}
 
                             {pendingSwaps.length > 0 && (
                               <div className='flex items-center gap-1'>
-                                <Badge className='bg-blue-100 text-blue-800 border-blue-200 h-5 px-1.5 text-xs flex items-center gap-0.5 *:hover:bg-blue-100'>
+                                <Badge className='bg-blue-100 text-blue-800 border-blue-200 h-5 px-1.5 text-xs flex items-center gap-0.5 hover:bg-blue-100'>
                                   <ArrowRightLeft className='h-3 w-3' />
                                   <span>{pendingSwaps.length}</span>
                                 </Badge>
-                                <span className='text-xs text-gray-600'>đổi ca</span>
+                                <span className='text-xs text-gray-600'>Đổi ca</span>
                               </div>
                             )}
                           </div>

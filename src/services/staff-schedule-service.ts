@@ -118,7 +118,7 @@ class StaffScheduleService {
 
   public async getZones(): Promise<ApiResponse<ZonesResult>> {
     try {
-      return await get<ZonesResult>('https://vietsac.id.vn/api/zones')
+      return await get<ZonesResult>('https://vietsac.id.vn/api/zones?SortBy=name')
     } catch (error) {
       console.error('Error fetching zones:', error)
       throw error
