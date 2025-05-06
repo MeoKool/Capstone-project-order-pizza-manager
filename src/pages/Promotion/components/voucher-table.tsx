@@ -19,7 +19,7 @@ interface VoucherTableProps {
 export function VoucherTable({ onDelete }: VoucherTableProps) {
   const { vouchers, voucherTypes, loading } = useVoucher()
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('Available')
   const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<Date | null>(null)
 
@@ -268,7 +268,7 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
                 size='sm'
                 className='h-4 w-4 p-0 ml-1 text-primary hover:bg-transparent'
                 onClick={() => {
-                  setVoucherTypeFilter('all')
+                  setVoucherTypeFilter('avaava')
                   setCurrentPage(1) // Reset to first page on clear
                 }}
               >
@@ -402,6 +402,8 @@ export function VoucherTable({ onDelete }: VoucherTableProps) {
                       {voucher.voucherStatus === 'Available' && 'Khả dụng'}
                       {voucher.voucherStatus === 'Used' && 'Đã sử dụng'}
                       {voucher.voucherStatus === 'PendingPayment' && 'Đang sử dụng'}
+                      {voucher.voucherStatus === 'Invalid' && 'Không khả dụng'}
+
                     </Badge>
                   </TableCell>
                   <TableCell>{getVoucherTypeName(voucher.voucherBatchId)}</TableCell>

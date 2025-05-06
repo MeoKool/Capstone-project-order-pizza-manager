@@ -20,7 +20,7 @@ export interface Voucher {
   code: string
   discountType: string
   discountValue: number
-  voucherStatus: 'Available' | 'Used' | 'PendingPayment' | 'PendingPayment'
+  voucherStatus: 'Available' | 'Used' | 'PendingPayment' | 'PendingPayment' | 'Invalid'
   voucherBatchId: string
   voucherBatch: VoucherType | null
   expiryDate?: string

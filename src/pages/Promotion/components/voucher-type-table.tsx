@@ -38,7 +38,7 @@ export function VoucherTypeTable({ onInvalidate }: VoucherTypeTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [discountTypeFilter, setDiscountTypeFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<Date | null>(null)
-  const [validityFilter, setValidityFilter] = useState<string>('all')
+  const [validityFilter, setValidityFilter] = useState<string>('valid')
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
