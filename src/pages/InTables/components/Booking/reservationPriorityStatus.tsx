@@ -14,7 +14,7 @@ export const ReservationPriorityStatus = ({ reservationPriorityStatus }: Reserva
       )
     case 'NonPriority':
       return (
-        <Badge variant='outline' className='bg-gray-50 text-gray-700 border-gray-200 p-1 w-[100px]'>
+        <Badge variant='outline' className='bg-gray-50 text-gray-700 border-gray-200 p-1 w-[100px] hover:bg-gray-200'>
           <span className='text-center w-[100px]'>Không ưu tiên</span>
         </Badge>
       )

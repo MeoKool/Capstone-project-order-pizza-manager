@@ -30,7 +30,7 @@ export function TableFilters({ activeFilter, onFilterChange, counts }: TableFilt
     },
     {
       value: "Opening",
-      label: "Trống",
+      label: "Bàn mở",
       icon: CheckCircle,
       color: "bg-emerald-100 text-emerald-700",
       activeColor: "bg-emerald-600 hover:bg-emerald-700",

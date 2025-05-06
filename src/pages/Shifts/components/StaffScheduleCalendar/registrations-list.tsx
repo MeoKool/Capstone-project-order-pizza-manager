@@ -39,7 +39,7 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
     switch (status) {
       case 'Approved':
         return (
-          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1'>
+          <Badge className='bg-red-100 text-red-800 border border-red-300 flex items-center gap-1 hover:bg-red-200'>
             <CheckCircle className='h-3.5 w-3.5' />
             <span>Ưu tiên</span>
           </Badge>
@@ -54,7 +54,7 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
       case 'Onhold':
       case 'PendingManagerApprove':
         return (
-          <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1'>
+          <Badge className='bg-orange-100 text-orange-800 border border-orange-300 flex items-center gap-1 hover:bg-orange-200'>
             <AlertCircle className='h-3.5 w-3.5' />
             <span>Không ưu tiên</span>
           </Badge>
@@ -69,15 +69,14 @@ export function RegistrationsList({ registrations, onSelect }: RegistrationsList
       {filteredRegistrations.map((registration) => (
         <Card
           key={registration.id}
-          className={`border hover:shadow-md transition-shadow cursor-pointer ${
-            registration.status === 'Onhold'
-              ? 'border-orange-300 bg-orange-50/30'
-              : registration.status === 'Approved'
-                ? registration.zoneId
-                  ? 'border-red-300 bg-red-50/30'
-                  : 'border-blue-300 bg-blue-50/30'
-                : 'border-red-300 bg-red-50/30'
-          }`}
+          className={`border hover:shadow-md transition-shadow cursor-pointer ${registration.status === 'Onhold'
+            ? 'border-orange-300 bg-orange-50/30'
+            : registration.status === 'Approved'
+              ? registration.zoneId
+                ? 'border-red-300 bg-red-50/30'
+                : 'border-blue-300 bg-blue-50/30'
+              : 'border-red-300 bg-red-50/30'
+            }`}
           onClick={() => onSelect(registration)}
         >
           <CardContent className='p-4'>

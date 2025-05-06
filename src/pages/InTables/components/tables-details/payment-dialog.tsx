@@ -87,6 +87,22 @@ export function PaymentDialog({
     }
   }
 
+  useEffect(() => {
+    connection.on('PaymentSuccess', (data: PaymentSuccessNotification) => {
+      if (data.id === orderId) {
+        showGeneralNotificationToast('Thanh toán thành công', 'Đơn hàng đã được thanh toán thành công', 'success')
+        if (onPaymentComplete) onPaymentComplete()
+        // Close both dialogs
+        setIsQRDialogOpen(false)
+        onOpenChange(false)
+      }
+    })
+    return () => {
+      connection.off('PaymentSuccess')
+    }
+  }, [orderId, onPaymentComplete, onOpenChange])
+
+
   const handleCreateQRCode = async () => {
     if (!orderId) return
 
@@ -102,20 +118,6 @@ export function PaymentDialog({
         setQrCodeGenerated(true)
         // Open the QR code dialog
         setIsQRDialogOpen(true)
-        connection.on('PaymentSuccess', (data: PaymentSuccessNotification) => {
-          if (data.id === orderId) {
-            showGeneralNotificationToast('Thanh toán thành công', 'Đơn hàng đã được thanh toán thành công', 'success')
-            setIsQRDialogOpen(false)
-            onOpenChange(false) // handle
-            if (onPaymentComplete) onPaymentComplete()
-            // Close both dialogs
-            setIsQRDialogOpen(false)
-            onOpenChange(false)
-          }
-        })
-        return () => {
-          connection.off('PaymentSuccess')
-        }
       } else {
         toast.error(response.message || 'Không thể tạo mã QR thanh toán')
       }

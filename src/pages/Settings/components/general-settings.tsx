@@ -65,7 +65,7 @@ export function GeneralSettings() {
         <CardContent className='space-y-4'>
           <div className='space-y-2'>
             <div className='flex items-center gap-2'>
-              <Label htmlFor='max-slots'>Số lượng nhân viên bán thời gian mặc định</Label>
+              <Label htmlFor='max-slots'>Số lượng ca nhân viên bán thời gian đăng ký ưu tiên tối đa</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className='h-4 w-4 text-muted-foreground cursor-help' />
@@ -73,7 +73,7 @@ export function GeneralSettings() {
                 <TooltipContent>
                   <p className='max-w-xs'>
                     Giới hạn số lượng slot mà mỗi nhân viên có thể đăng ký trong hệ thống. Điều này giúp phân phối công
-                    việc đồng đều giữa các nhân viên.
+                    việc đồng đều giữa các nhân viên. Nếu đăng ký quá mặc định sẽ xếp vào hàng chờ không ưu tiên
                   </p>
                 </TooltipContent>
               </Tooltip>
