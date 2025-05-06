@@ -11,6 +11,7 @@ import { PaymentQRDialog } from './payment-qr-dialog'
 import type { OrderDetail } from '@/types/order'
 import OrderService from '@/services/order-service'
 import { connection } from '@/lib/signalr-client'
+import { showGeneralNotificationToast } from '@/components/custom-toast'
 
 interface PaymentDialogProps {
   orderId: string
@@ -103,7 +104,7 @@ export function PaymentDialog({
         setIsQRDialogOpen(true)
         connection.on('PaymentSuccess', (data: PaymentSuccessNotification) => {
           if (data.id === orderId) {
-            toast.success('Thanh toán thành công')
+            showGeneralNotificationToast('Thanh toán thành công', 'Đơn hàng đã được thanh toán thành công', 'success')
             setIsQRDialogOpen(false)
             onOpenChange(false) // handle
             if (onPaymentComplete) onPaymentComplete()
