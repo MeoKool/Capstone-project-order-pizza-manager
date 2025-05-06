@@ -17,8 +17,7 @@ import { StaffZoneOverlay } from './components/staff-zone/staff-zone-overlay'
 import { AddStaffDialog } from './components/staff-zone/add-staff-dialog'
 import { DeleteDropZone } from './components/staff-zone/delete-drop-zone'
 import { DeleteConfirmDialog } from './components/staff-zone/delete-confirm-dialog'
-import { Button } from '@/components/ui/button'
-import { CalendarClock } from 'lucide-react'
+
 
 interface ZoneWithStaff {
   zone: Zone
@@ -44,8 +43,6 @@ export default function StaffZoneManagement() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const [isSyncingSchedule, setIsSyncingSchedule] = useState(false)
-  const [, setSyncError] = useState<string | null>(null)
 
   // Add a new state to track if there's a current working slot
   const [hasCurrentWorkingSlot, setHasCurrentWorkingSlot] = useState(true)
@@ -78,49 +75,49 @@ export default function StaffZoneManagement() {
     }
   }
 
-  const handleViewSchedule = async () => {
-    try {
-      setIsSyncingSchedule(true)
-      setSyncError(null)
+  // const handleViewSchedule = async () => {
+  //   try {
+  //     setIsSyncingSchedule(true)
+  //     setSyncError(null)
 
-      // Fetch current working slot using axios
-      const response = await axios.get('https://vietsac.id.vn/api/working-slots/current')
-      const data = response.data
+  //     // Fetch current working slot using axios
+  //     const response = await axios.get('https://vietsac.id.vn/api/working-slots/current')
+  //     const data = response.data
 
-      if (!data.success) {
-        throw new Error(data.error?.message || 'Failed to fetch current working slot')
-      }
+  //     if (!data.success) {
+  //       throw new Error(data.error?.message || 'Failed to fetch current working slot')
+  //     }
 
-      // Get the working slot ID (even if it's all zeros)
-      const workingSlotId = data.result.id
+  //     // Get the working slot ID (even if it's all zeros)
+  //     const workingSlotId = data.result.id
 
-      if (workingSlotId === '00000000-0000-0000-0000-000000000000') {
-        toast.info('Không có ca làm việc vào khung giờ này')
-        setHasCurrentWorkingSlot(false)
-        // Continue with sync API call even with the all-zeros ID
-      } else {
-        setHasCurrentWorkingSlot(true)
-      }
+  //     if (workingSlotId === '00000000-0000-0000-0000-000000000000') {
+  //       toast.info('Không có ca làm việc vào khung giờ này')
+  //       setHasCurrentWorkingSlot(false)
+  //       // Continue with sync API call even with the all-zeros ID
+  //     } else {
+  //       setHasCurrentWorkingSlot(true)
+  //     }
 
-      // Always call sync API with the working slot ID
-      const syncResponse = await axios.post('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', { workingSlotId })
-      const syncData = syncResponse.data
+  //     // Always call sync API with the working slot ID
+  //     const syncResponse = await axios.post('https://vietsac.id.vn/api/staff-zones/sync-staff-zone', { workingSlotId })
+  //     const syncData = syncResponse.data
 
-      if (!syncData.success) {
-        throw new Error(syncData.message || 'Failed to sync staff zone')
-      }
+  //     if (!syncData.success) {
+  //       throw new Error(syncData.message || 'Failed to sync staff zone')
+  //     }
 
-      // Refresh data after successful sync
-      await fetchZonesAndStaff()
+  //     // Refresh data after successful sync
+  //     await fetchZonesAndStaff()
 
-      toast.success(`Đã đồng bộ lịch phân công`)
-    } catch (err) {
-      console.error('Error syncing schedule:', err)
-      toast.error('Đã xảy ra lỗi khi đồng bộ lịch phân công')
-    } finally {
-      setIsSyncingSchedule(false)
-    }
-  }
+  //     toast.success(`Đã đồng bộ lịch phân công`)
+  //   } catch (err) {
+  //     console.error('Error syncing schedule:', err)
+  //     toast.error('Đã xảy ra lỗi khi đồng bộ lịch phân công')
+  //   } finally {
+  //     setIsSyncingSchedule(false)
+  //   }
+  // }
 
   // Add a function to automatically sync staff zone
   const syncStaffZone = async () => {
@@ -379,6 +376,7 @@ export default function StaffZoneManagement() {
   }
 
   // Handle drag over delete zone
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDragOver = (event: any) => {
     const { over } = event
     setIsOverDelete(over?.id === 'delete-zone')
@@ -506,7 +504,10 @@ export default function StaffZoneManagement() {
       {/* Main content */}
       <div className='flex justify-end items-center my-4'>
         <div className='flex gap-2'>
-          <Button
+          {/* {isSyncingSchedule && (
+            <>
+          
+            <Button
             variant='yellow'
             onClick={handleViewSchedule}
             disabled={isSyncingSchedule}
@@ -515,6 +516,9 @@ export default function StaffZoneManagement() {
             <CalendarClock className='h-4 w-4' />
             {isSyncingSchedule ? 'Đang đồng bộ...' : 'Xem lịch phân công'}
           </Button>
+          </>
+          )}
+           */}
           <AddStaffDialog zones={zones} onAddStaff={handleAddStaff} disabled={!hasCurrentWorkingSlot} />
         </div>
       </div>

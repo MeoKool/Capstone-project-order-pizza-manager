@@ -9,8 +9,8 @@ import {
   Utensils,
   UserCircle,
   Tag,
-  BarChart,
-  MoreHorizontal,
+  // BarChart,
+  // MoreHorizontal,
   Settings,
   CalendarCheck,
   Store,
@@ -108,12 +108,12 @@ const DashboardLayout = () => {
             <SidebarItem icon={<Settings size={20} />} text='Cài đặt' active={isActive('/settings')} />
           </Link>
           <hr />
-          <Link to='/reports'>
+          {/* <Link to='/reports'>
             <SidebarItem icon={<BarChart size={20} />} text='Báo cáo' active={isActive('/reports')} />
-          </Link>
-          <Link to='/more'>
+          </Link> */}
+          {/* <Link to='/more'>
             <SidebarItem icon={<MoreHorizontal size={20} />} text='More' active={isActive('/more')} />
-          </Link>
+          </Link> */}
         </Sidebar>
         <div className='flex flex-col flex-1 relative overflow-hidden  '>
           <Header title={getHeaderTitle()} />
