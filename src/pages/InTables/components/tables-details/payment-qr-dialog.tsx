@@ -1,6 +1,16 @@
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { QRCodeSVG } from "qrcode.react"
 import { ArrowLeft, Download, Printer, Loader2 } from "lucide-react"
@@ -27,6 +37,7 @@ export function PaymentQRDialog({
   orderDetail,
 }: PaymentQRDialogProps) {
   const [isCanceling, setIsCanceling] = useState(false)
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -322,92 +333,148 @@ export function PaymentQRDialog({
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)))
   }
 
-  const handleBackWithCancel = async () => {
+  const handleCancelClick = () => {
+    setIsAlertDialogOpen(true)
+  }
+
+  const handleConfirmCancel = async () => {
+    setIsAlertDialogOpen(false)
     setIsCanceling(true)
     try {
       await onCancel()
+      // Only call onBack after successful cancellation
+      onBack()
+    } catch (error) {
+      console.error("Error canceling payment:", error)
+      // Show error toast or message here if needed
     } finally {
       setIsCanceling(false)
-      onBack()
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
-          <DialogTitle className="text-xl font-bold text-amber-800 flex items-center gap-2">
-            Mã QR Thanh toán
-          </DialogTitle>
-          <p className="text-amber-600 text-sm">Quét mã QR này để thanh toán đơn hàng</p>
-        </DialogHeader>
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={(newOpen) => {
+          // Only allow closing if explicitly set to false
+          if (newOpen === false) {
+            // Show alert dialog instead of closing directly
+            setIsAlertDialogOpen(true)
+          } else {
+            onOpenChange(newOpen)
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
+            <DialogTitle className="text-xl font-bold text-amber-800 flex items-center gap-2">
+              Mã QR Thanh toán
+            </DialogTitle>
+            <p className="text-amber-600 text-sm">Quét mã QR này để thanh toán đơn hàng</p>
+          </DialogHeader>
 
-        <div className="p-6 flex flex-col items-center">
-          <div className="text-center mb-4">
-            <p className="text-sm text-slate-600">Số tiền thanh toán</p>
-            <p className="text-2xl font-bold text-amber-800">{formatCurrency(amount)}</p>
-          </div>
+          <div className="p-6 flex flex-col items-center">
+            <div className="text-center mb-4">
+              <p className="text-sm text-slate-600">Số tiền thanh toán</p>
+              <p className="text-2xl font-bold text-amber-800">{formatCurrency(amount)}</p>
+            </div>
 
-          <div className="p-4 bg-white rounded-xl border-4 border-amber-100 mb-4">
-            <div id="payment-qr-code-print-area">
-              <QRCodeSVG
-                id="payment-qr-code-svg"
-                value={qrCodeData}
-                size={200}
-                level="H"
-                includeMargin={true}
-                className="rounded-md"
-                bgColor="#FFFFFF"
-                fgColor="#000000"
-              />
+            <div className="p-4 bg-white rounded-xl border-4 border-amber-100 mb-4">
+              <div id="payment-qr-code-print-area">
+                <QRCodeSVG
+                  id="payment-qr-code-svg"
+                  value={qrCodeData}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                  className="rounded-md"
+                  bgColor="#FFFFFF"
+                  fgColor="#000000"
+                />
+              </div>
+            </div>
+
+            <p className="text-sm text-center text-amber-600 mb-4">
+              Sử dụng ứng dụng ngân hàng hoặc ví điện tử để quét mã QR và thanh toán
+            </p>
+
+            <div className="flex gap-2 w-full">
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                className="flex-1 border-amber-200 text-amber-700 hover:bg-amber-50"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Tải xuống
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+                className="flex-1 border-amber-200 text-amber-700 hover:bg-amber-50"
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                {orderDetail ? "In hóa đơn" : "In mã QR"}
+              </Button>
             </div>
           </div>
 
-          <p className="text-sm text-center text-amber-600 mb-4">
-            Sử dụng ứng dụng ngân hàng hoặc ví điện tử để quét mã QR và thanh toán
-          </p>
-
-          <div className="flex gap-2 w-full">
+          <DialogFooter className="px-6 py-4 bg-amber-50 border-t border-amber-100">
             <Button
               variant="outline"
-              onClick={handleDownload}
-              className="flex-1 border-amber-200 text-amber-700 hover:bg-amber-50"
+              onClick={handleCancelClick}
+              disabled={isCanceling}
+              className="w-full border-amber-200 text-amber-700 hover:bg-amber-100"
             >
-              <Download className="mr-2 h-4 w-4" />
-              Tải xuống
+              {isCanceling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang hủy...
+                </>
+              ) : (
+                <>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Hủy thanh toán QR
+                </>
+              )}
             </Button>
-            <Button
-              variant="outline"
-              onClick={handlePrint}
-              className="flex-1 border-amber-200 text-amber-700 hover:bg-amber-50"
-            >
-              <Printer className="mr-2 h-4 w-4" />
-              {orderDetail ? "In hóa đơn" : "In mã QR"}
-            </Button>
-          </div>
-        </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <DialogFooter className="px-6 py-4 bg-amber-50 border-t border-amber-100">
-          <Button
-            variant="outline"
-            onClick={handleBackWithCancel}
-            disabled={isCanceling}
-            className="w-full border-amber-200 text-amber-700 hover:bg-amber-100"
-          >
-            {isCanceling ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang hủy...
-              </>
-            ) : (
-              <>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Hủy thanh toán QR
-              </>
-            )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {/* Confirmation Alert Dialog */}
+      <AlertDialog
+        open={isAlertDialogOpen}
+        onOpenChange={(open) => {
+          // Only allow closing through explicit actions
+          if (!open && !isCanceling) {
+            setIsAlertDialogOpen(false)
+          } else if (open) {
+            setIsAlertDialogOpen(open)
+          }
+        }}
+      >
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-amber-800">Xác nhận hủy thanh toán</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn hủy thanh toán QR này? Thao tác này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-amber-200 text-amber-700 hover:bg-amber-100">Không</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleConfirmCancel()
+              }}
+              className="bg-amber-500 text-white hover:bg-amber-600"
+            >
+              Đồng ý
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
