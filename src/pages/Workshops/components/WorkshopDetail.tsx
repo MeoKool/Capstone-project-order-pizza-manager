@@ -15,10 +15,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { ArrowLeft, Edit, Pizza, Users, X, Info } from 'lucide-react'
+import { ArrowLeft, Edit, Pizza, Users, X, Info, MoreVertical } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { toast } from 'sonner'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 // Add interface for workshop registrations
 interface WorkshopRegister {
@@ -53,6 +60,9 @@ export default function WorkshopDetail() {
   const [workshop, setWorkshop] = useState<Workshop | null>(null)
   const [loading, setLoading] = useState(true)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [showCancelRegisterDialog, setShowCancelRegisterDialog] = useState(false)
+  const [selectedRegistration, setSelectedRegistration] = useState<WorkshopRegister | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
   // Add state for registrations
   const [registrations, setRegistrations] = useState<WorkshopRegister[]>([])
   const [registrationsLoading, setRegistrationsLoading] = useState(true)
@@ -154,6 +164,32 @@ export default function WorkshopDetail() {
       }
     } catch (error) {
       console.error('Error cancelling workshop:', error)
+    }
+  }
+
+  const handleCancelRegister = async () => {
+    if (!selectedRegistration || !cancelReason) return
+    const nameRegister = selectedRegistration.customerName
+    try {
+      const response = await workshopService.cancelRegister(selectedRegistration.id, cancelReason)
+
+
+      if (response.success) {
+        toast.success(`Hủy đăng ký thành công cho khách hàng: ${nameRegister} `)
+        // Update the registration status in the local state
+        setRegistrations((prev) =>
+          prev.map((reg) =>
+            reg.id === selectedRegistration.id
+              ? { ...reg, workshopRegisterStatus: 'Cancelled' }
+              : reg
+          )
+        )
+        setShowCancelRegisterDialog(false)
+        setSelectedRegistration(null)
+        setCancelReason('')
+      }
+    } catch (error) {
+      console.error('Error cancelling registration:', error)
     }
   }
 
@@ -303,6 +339,7 @@ export default function WorkshopDetail() {
                     <TableHead>Số người tham gia</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead>Thời gian đăng ký</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -317,7 +354,7 @@ export default function WorkshopDetail() {
                           <span className='bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs'>Đã đăng ký</span>
                         ) : registration.workshopRegisterStatus === 'Attended' ? (
                           <span className='bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs'>Đã checkin</span>
-                        ) : registration.workshopRegisterStatus === 'Cancel' ? (
+                        ) : registration.workshopRegisterStatus === 'Cancelled' ? (
                           <span className='bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs'>Đã hủy</span>
                         ) : (
                           <span className='bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs'>
@@ -326,6 +363,29 @@ export default function WorkshopDetail() {
                         )}
                       </TableCell>
                       <TableCell>{formatDate(registration.registeredAt)}</TableCell>
+                      <TableCell className="text-right">
+                        {registration.workshopRegisterStatus === 'Registered' && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                                onClick={() => {
+                                  setSelectedRegistration(registration)
+                                  setShowCancelRegisterDialog(true)
+                                }}
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Hủy đăng ký
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -478,6 +538,42 @@ export default function WorkshopDetail() {
             <AlertDialogCancel>Không, giữ lại</AlertDialogCancel>
             <AlertDialogAction onClick={handleCancelWorkshop} className='bg-amber-600 hover:bg-amber-700'>
               Có, hủy workshop
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Registration Dialog */}
+      <AlertDialog open={showCancelRegisterDialog} onOpenChange={setShowCancelRegisterDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận hủy đăng ký</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-4">
+                <p>Bạn có chắc chắn muốn hủy đăng ký này không? Hành động này không thể hoàn tác.</p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Lý do hủy:</label>
+                  <textarea
+                    className="w-full min-h-[100px] p-2 border rounded-md"
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Nhập lý do hủy đăng ký..."
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setSelectedRegistration(null)
+              setCancelReason('')
+            }}>Không, giữ lại</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelRegister}
+              disabled={!cancelReason.trim()}
+              className='bg-red-600 hover:bg-red-700'
+            >
+              Có, hủy đăng ký
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

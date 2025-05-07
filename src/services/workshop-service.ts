@@ -38,7 +38,7 @@ interface PizzaDetail {
 export default class WorkshopService {
   private static instance: WorkshopService
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): WorkshopService {
     if (!WorkshopService.instance) {
@@ -148,4 +148,20 @@ export default class WorkshopService {
       throw error
     }
   }
+  public cancelRegister(workshopRegisterId: string, reason: string): Promise<ApiResponse<void>> {
+    try {
+      const req = {
+        workshopRegisterId,
+        reason
+      }
+      return put<void>(`/workshop-register/cancel/${workshopRegisterId} `, req)
+    } catch (error) {
+      console.log(error);
+
+      throw error
+    }
+  }
+
+
+
 }

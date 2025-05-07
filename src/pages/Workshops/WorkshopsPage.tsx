@@ -111,14 +111,14 @@ export default function WorkshopsPage() {
         )
       case 'ClosedRegister':
         return (
-          <Badge className='bg-gray-100 hover:bg-gray-300 border-gray-500 text-xs px-1'>
-            <div className='text-gray-600 text-center w-[110px] py-0.4'>Đã đóng đăng ký</div>
+          <Badge className='bg-sky-100 hover:bg-sky-300 border-sky-500 text-xs px-1'>
+            <div className='text-sky-600 text-center w-[110px] py-0.4'>Đã đóng đăng ký</div>
           </Badge>
         )
       case 'Closed':
         return (
-          <Badge className='bg-slate-100 hover:bg-slate-300 border-slate-500 text-xs px-1'>
-            <div className='text-slate-600 text-center w-[110px] py-0.4'>Đã kết thúc</div>
+          <Badge className='bg-gray-100 hover:bg-gray-300 border-gray-500 text-xs px-1'>
+            <div className='text-gray-600 text-center w-[110px] py-0.4'>Đã kết thúc</div>
           </Badge>
         )
       case 'Opening':
@@ -215,10 +215,10 @@ export default function WorkshopsPage() {
           workshops.map((workshop) =>
             workshop.id === reopenWorkshopId
               ? {
-                  ...workshop,
-                  workshopStatus: WorkshopStatus.OpeningToRegister,
-                  endRegisterDate: formattedDate
-                }
+                ...workshop,
+                workshopStatus: WorkshopStatus.OpeningToRegister,
+                endRegisterDate: formattedDate
+              }
               : workshop
           )
         )
@@ -640,14 +640,14 @@ export default function WorkshopsPage() {
                               {(workshop.workshopStatus === 'Scheduled' ||
                                 workshop.workshopStatus === 'OpeningToRegister' ||
                                 workshop.workshopStatus === 'ClosedRegister') && (
-                                <DropdownMenuItem
-                                  onClick={() => setCancelWorkshopId(workshop.id)}
-                                  className='text-red-600'
-                                >
-                                  <X className='mr-2 h-4 w-4' />
-                                  Hủy workshop
-                                </DropdownMenuItem>
-                              )}
+                                  <DropdownMenuItem
+                                    onClick={() => setCancelWorkshopId(workshop.id)}
+                                    className='text-red-600'
+                                  >
+                                    <X className='mr-2 h-4 w-4' />
+                                    Hủy workshop
+                                  </DropdownMenuItem>
+                                )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
