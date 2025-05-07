@@ -10,7 +10,6 @@ import { format, isAfter, isBefore } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { useFormContext } from 'react-hook-form'
 import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
 import type { Dispatch, SetStateAction } from 'react'
 import { cn } from '@/utils/utils'
 
@@ -167,22 +166,22 @@ export default function WorkshopFormTimeInfo({
 
     setTimeErrors(errors)
 
-    // Hiển thị thông báo lỗi nếu có
-    if (errors.workshopDate) {
-      toast.error('Thời gian diễn ra không được nhỏ hơn thời gian hiện tại')
-    }
-    if (errors.startRegisterDate) {
-      toast.error('Thời gian bắt đầu đăng ký không được lớn hơn thời gian diễn ra')
-    }
-    if (errors.endRegisterDate) {
-      if (startRegisterDate) {
-        toast.error(
-          'Thời gian kết thúc đăng ký phải sau thời gian bắt đầu đăng ký và không được lớn hơn thời gian diễn ra'
-        )
-      } else {
-        toast.error('Thời gian kết thúc đăng ký không được lớn hơn thời gian diễn ra')
-      }
-    }
+    // // Hiển thị thông báo lỗi nếu có
+    // if (errors.workshopDate) {
+    //   toast.error('Thời gian diễn ra không được nhỏ hơn thời gian hiện tại')
+    // }
+    // if (errors.startRegisterDate) {
+    //   toast.error('Thời gian bắt đầu đăng ký không được lớn hơn thời gian diễn ra')
+    // }
+    // if (errors.endRegisterDate) {
+    //   if (startRegisterDate) {
+    //     toast.error(
+    //       'Thời gian kết thúc đăng ký phải sau thời gian bắt đầu đăng ký và không được lớn hơn thời gian diễn ra'
+    //     )
+    //   } else {
+    //     toast.error('Thời gian kết thúc đăng ký không được lớn hơn thời gian diễn ra')
+    //   }
+    // }
   }
 
   // Thêm hàm để xử lý việc lưu giá trị UTC vào form khi submit:
