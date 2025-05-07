@@ -342,7 +342,7 @@ export default function WorkshopDetail() {
         <CardHeader className='pb-4 border-b'>
           <CardTitle className='flex items-center gap-2'>
             <Pizza className='h-5 w-5' />
-            Tổng hợp pizza đã đăng ký
+            Tổng hợp món đã đăng ký
           </CardTitle>
         </CardHeader>
         <CardContent className='py-6'>
@@ -355,7 +355,7 @@ export default function WorkshopDetail() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Tên pizza</TableHead>
+                    <TableHead>Tên món</TableHead>
                     <TableHead className='text-center'>Số lượng</TableHead>
                     <TableHead className='text-right'>Thao tác</TableHead>
                   </TableRow>
