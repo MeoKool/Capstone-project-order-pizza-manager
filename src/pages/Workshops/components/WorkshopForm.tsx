@@ -209,13 +209,9 @@ export default function WorkshopForm({ initialData, isEditing = false }: Worksho
       // Đầu tiên lấy danh sách categories để tìm category "Pizza"
       const categoriesResponse = await CategoryService.getInstance().getAllCategories()
       if (categoriesResponse.success) {
-        const pizzaCategory = categoriesResponse.result.items.find(
-          (category) => category.name.toLowerCase() === 'pizza'
-        )
-
-        if (pizzaCategory) {
+        if (categoriesResponse) {
           // Nếu tìm thấy category Pizza, lấy các sản phẩm trong category đó
-          const productsResponse = await ProductService.getInstance().getProductsByCategory(pizzaCategory.id)
+          const productsResponse = await ProductService.getInstance().getAllProductsSort()
           if (productsResponse.success) {
             const masterProductsSorted = productsResponse.result.items
               .filter((product) => product.productRole === 'Master')

@@ -34,6 +34,19 @@ class ProductService {
     }
   }
 
+  public async getAllProductsSort(): Promise<ApiResponse<ProductsResult>> {
+    try {
+      // Calculate skip count based on page and page size
+
+      // Use TakeCount, SkipCount and SortBy parameters
+      const response = await get<ProductsResult>(`/products?TakeCount=10000`)
+
+      return response
+    } catch (error) {
+      console.error(`Error fetching products`, error)
+      throw error
+    }
+  }
   /**
    * Get all products at once (up to a specified limit)
    * @param limit Maximum number of products to retrieve (default: 1000)
