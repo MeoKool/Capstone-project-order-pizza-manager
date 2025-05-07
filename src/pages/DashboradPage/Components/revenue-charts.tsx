@@ -172,24 +172,40 @@ export default function RevenueCharts() {
           weeklyMap.set(key, 0)
         }
       })
+
+      // Initialize dailyMap with last 10 days
       const now = new Date()
       now.setHours(0, 0, 0, 0)
       const tenDaysAgo = new Date(now)
       tenDaysAgo.setDate(now.getDate() - 9)
+
+      // Initialize dailyMap with last 10 days
+      dailyMap.clear()
       for (let i = 0; i < 10; i++) {
         const d = new Date(tenDaysAgo)
         d.setDate(tenDaysAgo.getDate() + i)
         dailyMap.set(d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }), 0)
       }
 
+      // Filter paid orders and sort by endTime
+      const paidOrders = orders
+        .filter((o: Order) => o.status === "Paid" && o.endTime)
+        .sort((a, b) => new Date(a.endTime!).getTime() - new Date(b.endTime!).getTime())
+
       // Accumulate
-      orders.forEach((o) => {
+      paidOrders.forEach((o) => {
         const od = new Date(o.endTime!)
         if (isNaN(od.getTime()) || od.getFullYear() !== selectedYear) return
-        const dayKey = od.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
-        dailyMap.set(dayKey, (dailyMap.get(dayKey) || 0) + o.totalPrice)
+
+        // Check if the order date is within last 10 days
+        if (od >= tenDaysAgo && od <= now) {
+          const dayKey = od.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
+          dailyMap.set(dayKey, (dailyMap.get(dayKey) || 0) + o.totalPrice)
+        }
+
         const mn = monthNames[od.getMonth()]
         monthlyMap.set(mn, (monthlyMap.get(mn) || 0) + o.totalPrice)
+
         const wn = getWeekNumberInMonth(od)
         const wkKey = `${mn} - Tuần ${wn} (${formatDateShort(
           getWeekDateRange(selectedYear, od.getMonth(), wn).start,
@@ -197,7 +213,20 @@ export default function RevenueCharts() {
         weeklyMap.set(wkKey, (weeklyMap.get(wkKey) || 0) + o.totalPrice)
       })
 
-      setDailyData(Array.from(dailyMap, ([name, value]) => ({ name, value })))
+      // Convert to array and sort by date
+      const dailyArray = Array.from(dailyMap, ([name, value]) => {
+        const [day, month] = name.split('/').map(Number)
+        const date = new Date(selectedYear, month - 1, day)
+        return { name, value, date }
+      })
+
+      // Sort by actual date in ascending order
+      dailyArray.sort((a, b) => a.date.getTime() - b.date.getTime())
+
+      // Remove date property before setting state
+      const sortedDailyData = dailyArray.map(({ name, value }) => ({ name, value }))
+      setDailyData(sortedDailyData)
+
       setWeeklyData(Array.from(weeklyMap, ([name, value]) => ({ name, value })).filter((i) => i.value > 0))
       setMonthlyData(Array.from(monthlyMap, ([name, value]) => ({ name, value })))
     } catch (err) {
