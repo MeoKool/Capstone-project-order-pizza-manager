@@ -205,7 +205,8 @@ export default function WorkshopsPage() {
       const dateWithTime = new Date(newEndRegisterDate)
       dateWithTime.setHours(Number.parseInt(newEndRegisterHour), Number.parseInt(newEndRegisterMinute))
 
-      const formattedDate = dateWithTime.toISOString()
+      const formattedDate = dateWithTime.toLocaleString('sv-SE').replace(' ', 'T')
+
       const response = await workshopService.reopenToRegister(reopenWorkshopId, formattedDate)
 
       if (response.success) {
