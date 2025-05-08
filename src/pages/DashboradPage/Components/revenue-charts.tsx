@@ -175,9 +175,9 @@ export default function RevenueCharts() {
 
       // Initialize dailyMap with last 10 days
       const now = new Date()
-      now.setHours(0, 0, 0, 0)
-      const tenDaysAgo = new Date(now)
-      tenDaysAgo.setDate(now.getDate() - 9)
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const tenDaysAgo = new Date(today)
+      tenDaysAgo.setDate(today.getDate() - 9)
 
       // Initialize dailyMap with last 10 days
       dailyMap.clear()
@@ -198,19 +198,23 @@ export default function RevenueCharts() {
         if (isNaN(od.getTime()) || od.getFullYear() !== selectedYear) return
 
         // Check if the order date is within last 10 days
-        if (od >= tenDaysAgo && od <= now) {
+        const orderDate = new Date(od.getFullYear(), od.getMonth(), od.getDate())
+        if (orderDate >= tenDaysAgo && orderDate <= today) {
           const dayKey = od.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })
-          dailyMap.set(dayKey, (dailyMap.get(dayKey) || 0) + o.totalPrice)
+          // Calculate actual revenue
+          const actualRevenue = o.totalPrice
+          dailyMap.set(dayKey, (dailyMap.get(dayKey) || 0) + actualRevenue)
         }
 
         const mn = monthNames[od.getMonth()]
-        monthlyMap.set(mn, (monthlyMap.get(mn) || 0) + o.totalPrice)
+        const actualRevenue = o.totalPrice
+        monthlyMap.set(mn, (monthlyMap.get(mn) || 0) + actualRevenue)
 
         const wn = getWeekNumberInMonth(od)
         const wkKey = `${mn} - Tuần ${wn} (${formatDateShort(
           getWeekDateRange(selectedYear, od.getMonth(), wn).start,
         )} - ${formatDateShort(getWeekDateRange(selectedYear, od.getMonth(), wn).end)})`
-        weeklyMap.set(wkKey, (weeklyMap.get(wkKey) || 0) + o.totalPrice)
+        weeklyMap.set(wkKey, (weeklyMap.get(wkKey) || 0) + actualRevenue)
       })
 
       // Convert to array and sort by date

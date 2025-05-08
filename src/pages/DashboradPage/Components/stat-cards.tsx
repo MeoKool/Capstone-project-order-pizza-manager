@@ -102,38 +102,34 @@ export default function StatCards() {
 
         // Filter orders for different time periods
         const todayOrders = orders.filter((order) => {
-            const orderDate = order.endTime ? new Date(order.endTime) : null
-            return orderDate && orderDate >= today && orderDate < now
+            if (!order.endTime || order.status !== "Paid") return false
+            const orderDate = new Date(order.endTime)
+            return orderDate >= today && orderDate <= now
         })
 
         const yesterdayOrders = orders.filter((order) => {
-            const orderDate = order.endTime ? new Date(order.endTime) : null
-            return orderDate && orderDate >= yesterday && orderDate < today
+            if (!order.endTime || order.status !== "Paid") return false
+            const orderDate = new Date(order.endTime)
+            return orderDate >= yesterday && orderDate < today
         })
 
         const activeOrdersList = orders.filter((order) => order.status === "Unpaid" || order.status === "CheckedOut")
 
         const newOrdersInLastHour = orders.filter((order) => {
-            const orderDate = order.endTime ? new Date(order.endTime) : null
-            return orderDate && orderDate >= oneHourAgo && orderDate >= today && orderDate < now
+            if (!order.endTime) return false
+            const orderDate = new Date(order.endTime)
+            return orderDate >= oneHourAgo && orderDate <= now
         })
 
         // Calculate statistics
-        const todayTotalRevenue = todayOrders
-            .filter((order) => order.status === "Paid")
-            .reduce((sum, order) => sum + order.totalPrice, 0)
-
-        const yesterdayTotalRevenue = yesterdayOrders
-            .filter((order) => order.status === "Paid")
-            .reduce((sum, order) => sum + order.totalPrice, 0)
-
+        const todayTotalRevenue = todayOrders.reduce((sum, order) => sum + order.totalPrice, 0)
+        const yesterdayTotalRevenue = yesterdayOrders.reduce((sum, order) => sum + order.totalPrice, 0)
 
         // Update state
         setTodayRevenue(todayTotalRevenue)
         setYesterdayRevenue(yesterdayTotalRevenue)
         setActiveOrders(activeOrdersList.length)
         setNewOrdersLastHour(newOrdersInLastHour.length)
-
     }
 
     // Format currency
