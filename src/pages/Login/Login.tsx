@@ -151,6 +151,9 @@ export default function LoginPage() {
                 <CardDescription className='text-center text-amber-100/80 text-base'>
                   Truy cập hệ thống quản lý Pizza
                 </CardDescription>
+                <CardDescription className='text-center font-bold text-black text-base'>
+                  Tài khoản test: manager, Mật khẩu: Abc@12345
+                </CardDescription>
               </CardHeader>
 
               <CardContent className='pt-8 pb-6 relative z-10'>
